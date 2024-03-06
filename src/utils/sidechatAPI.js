@@ -1,5 +1,4 @@
 const defaultHeaders = { 'Content-Type': 'application/json' };
-const root = 'https://api.sidechat.lol/v1';
 
 /**
  * Initiate the login process with a phone number.  Should be followed up with verifySMSCode().
@@ -7,7 +6,7 @@ const root = 'https://api.sidechat.lol/v1';
  */
 const loginViaSMS = async phoneNumber => {
   try {
-    const res = await fetch(`${root}/login_register`, {
+    const res = await fetch(`https://api.sidechat.lol/v1/login_register`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -33,7 +32,7 @@ const loginViaSMS = async phoneNumber => {
  */
 const verifySMSCode = async (phoneNumber, code) => {
   try {
-    const res = await fetch(`${root}/verify_phone_number`, {
+    const res = await fetch(`https://api.sidechat.lol/v1/verify_phone_number`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -63,7 +62,7 @@ const verifySMSCode = async (phoneNumber, code) => {
 const getGroupPosts = async (groupID, token, category = 'hot', cursor) => {
   try {
     const res = await fetch(
-      `${root}/posts?group_id=${groupID}&type=${category}${
+      `https://api.sidechat.lol/v1/posts?group_id=${groupID}&type=${category}${
         cursor ? '&cursor=' + cursor : ''
       }`,
       {
@@ -75,6 +74,7 @@ const getGroupPosts = async (groupID, token, category = 'hot', cursor) => {
         },
       },
     );
+    console.log(res);
     const json = await res.json();
     return json;
   } catch (err) {
@@ -92,7 +92,7 @@ const getGroupPosts = async (groupID, token, category = 'hot', cursor) => {
  */
 const setVote = async (postID, token, action) => {
   try {
-    const res = await fetch(`${root}/posts/set_vote`, {
+    const res = await fetch(`https://api.sidechat.lol/v1/posts/set_vote`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -120,14 +120,17 @@ const setVote = async (postID, token, action) => {
  */
 const getPostComments = async (postID, token) => {
   try {
-    const res = await fetch(`${root}/posts/comments/?post_id=${postID}`, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+    const res = await fetch(
+      `https://api.sidechat.lol/v1/posts/comments/?post_id=${postID}`,
+      {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
       },
-    });
+    );
     const json = await res.json();
     return json.posts;
   } catch (err) {

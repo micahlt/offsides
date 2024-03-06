@@ -16,14 +16,13 @@ export default function App() {
   const [needsLogin, setNeedsLogin] = React.useState(null);
   const [appState, setAppState] = React.useState({});
   React.useEffect(() => {
-    AsyncStorage.getItem('userToken').then(res => {
-      if (res) {
-        setNeedsLogin(false);
-      } else setNeedsLogin(true);
-    });
     AsyncStorage.multiGet(['userToken', 'userID', 'groupID', 'groupName']).then(
       res => {
         let tempState = appState;
+        // If user token is defined
+        if (res[0][1]) {
+          setNeedsLogin(false);
+        } else setNeedsLogin(true);
         res.forEach(item => {
           tempState[item[0]] = item[1];
         });

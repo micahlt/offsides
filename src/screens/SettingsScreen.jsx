@@ -4,8 +4,10 @@ import { Appbar, Button, useTheme, Text } from 'react-native-paper';
 import RNRestart from 'react-native-restart';
 import { version } from '../../package.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AppContext } from '../App';
 
 function SettingsScreen({ navigation }) {
+  const appState = React.useContext(AppContext);
   const { colors } = useTheme();
   const signOut = () => {
     AsyncStorage.clear().then(() => RNRestart.restart());
@@ -24,8 +26,14 @@ function SettingsScreen({ navigation }) {
           </Text>
           <Text variant="headlineSmall">version {version}</Text>
         </Text>
-        <Text style={{ textAlign: 'center', marginBottom: 30 }}>
+        <Text style={{ textAlign: 'center', marginBottom: 10 }}>
           a third-party client for Sidechat
+        </Text>
+        <Text style={{ textAlign: 'center', marginBottom: 30 }}>
+          User ID: {appState.userID}
+        </Text>
+        <Text style={{ textAlign: 'center', marginBottom: 30 }}>
+          Group ID: {appState.groupID}
         </Text>
         <Button mode="contained" onPress={signOut}>
           Sign Out

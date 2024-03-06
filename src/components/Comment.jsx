@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
 import { Avatar, Card, IconButton, Text, useTheme } from 'react-native-paper';
 import timesago from 'timesago';
 import { AppContext } from '../App';
@@ -14,7 +14,6 @@ function Comment({ comment, nav }) {
   const [vote, setVote] = React.useState(comment.vote_status);
   const [voteCount, setVoteCount] = React.useState(comment.vote_total);
   const [width, setWidth] = React.useState();
-  console.log(comment);
 
   const upvote = () => {
     const action = vote == 'upvote' ? 'none' : 'upvote';

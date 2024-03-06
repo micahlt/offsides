@@ -14,7 +14,6 @@ import Post from './Post';
 
 function CommentModal({ navigation, route }) {
   const { postID, postObj } = route.params;
-  console.log(postID);
   const appState = React.useContext(AppContext);
   const { colors } = useTheme();
   const [comments, setComments] = React.useState([]);

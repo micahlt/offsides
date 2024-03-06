@@ -9,6 +9,7 @@ import {
   useTheme,
 } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import RNRestart from 'react-native-restart';
 import * as API from '../utils/sidechatAPI';
 
 function LoginScreen({ navigation }) {
@@ -61,7 +62,7 @@ function LoginScreen({ navigation }) {
                 'groupColor',
                 res.logged_in_user.group.color,
               );
-              navigation.push('Home');
+              RNRestart.restart();
             } else {
               setPhase('sendEmail');
             }

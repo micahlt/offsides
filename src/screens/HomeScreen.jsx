@@ -21,12 +21,15 @@ function HomeScreen({ navigation }) {
   const { colors } = useTheme();
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [loadingPosts, setLoadingPosts] = React.useState(true);
-  const [loadingBar, setLoadingBar] = React.useState(true);
   const [posts, setPosts] = React.useState([]);
   React.useEffect(() => {
-    setLoadingPosts(true);
-    fetchPosts(true);
-  }, [postCategory]);
+    if (appState.groupID && appState.userToken) {
+      setLoadingPosts(true);
+      fetchPosts(true);
+    } else {
+      console.log('App state is undefined, will load in a second');
+    }
+  }, [postCategory, appState]);
   const renderItem = React.useCallback(
     each => <Post post={each.item} nav={navigation} />,
     [],
