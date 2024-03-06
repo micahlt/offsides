@@ -305,7 +305,7 @@ const needsUpdate = async currentVersion => {
     const res = await fetch(`https://offsides.micahlindley.com/latest.json`);
     if (res.ok) {
       const json = await res.json();
-      if (semver.gte(json.latestVersion, currentVersion)) {
+      if (semver.gt(json.latestVersion, currentVersion)) {
         return json.latestVersion;
       } else {
         return false;
