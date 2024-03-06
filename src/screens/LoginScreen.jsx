@@ -200,6 +200,7 @@ function LoginScreen({}) {
                 style={{ ...s.fullWidth, marginBottom: 10 }}
                 value={phoneNumber}
                 textContentType="telephoneNumber"
+                maxLength={10}
                 onChangeText={phoneNumber => setPhoneNumber(phoneNumber)}
               />
               <Button
@@ -229,6 +230,7 @@ function LoginScreen({}) {
                 }}
                 value={smsCode}
                 textContentType="oneTimeCode"
+                maxLength={6}
                 onChangeText={smsCode => setSmsCode(smsCode)}
               />
               <View
