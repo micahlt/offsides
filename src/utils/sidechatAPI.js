@@ -295,6 +295,10 @@ const getPostComments = async (postID, token) => {
   }
 };
 
+// const needsUpdate = async () => {
+//     try {}
+// }
+
 export {
   loginViaSMS,
   verifySMSCode,
