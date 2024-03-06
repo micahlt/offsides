@@ -231,6 +231,8 @@ function LoginScreen({}) {
                 value={smsCode}
                 textContentType="oneTimeCode"
                 maxLength={6}
+                autoComplete="one-time-code"
+                keyboardType="number-pad"
                 onChangeText={smsCode => setSmsCode(smsCode)}
               />
               <View
@@ -264,6 +266,7 @@ function LoginScreen({}) {
                   textAlign: 'center',
                 }}
                 value={myAge}
+                keyboardType="number-pad"
                 onChangeText={a => setMyAge(a)}
               />
               <View
@@ -288,6 +291,7 @@ function LoginScreen({}) {
                 label="Your school email"
                 style={{ ...s.fullWidth, marginBottom: 10 }}
                 value={email}
+                keyboardType="email-address"
                 textContentType="emailAddress"
                 onChangeText={e => setEmail(e)}
               />
