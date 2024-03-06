@@ -27,7 +27,7 @@ function HomeScreen({ navigation }) {
       setLoadingPosts(true);
       fetchPosts(true);
     } else {
-      console.log('App state is undefined, will load in a second');
+      console.warn('App state is undefined, will load in a second');
     }
   }, [postCategory, appState]);
   const renderItem = React.useCallback(

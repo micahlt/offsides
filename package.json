@@ -1,6 +1,6 @@
 {
   "name": "offsides",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -28,6 +28,7 @@
     "react-native-screens": "^3.29.0",
     "react-native-storage": "^1.0.1",
     "react-native-vector-icons": "^10.0.3",
+    "semver": "^7.6.0",
     "timesago": "^1.0.1"
   },
   "devDependencies": {

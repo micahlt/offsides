@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { sha256 } from 'js-sha256';
 import DeviceInfo from 'react-native-device-info';
 const defaultHeaders = { 'Content-Type': 'application/json' };
+import semver from 'semver';
 
 /**
  * Initiate the login process with a phone number.  Should be followed up with verifySMSCode().
@@ -230,7 +231,6 @@ const getGroupPosts = async (groupID, token, category = 'hot', cursor) => {
         },
       },
     );
-    console.log(res);
     const json = await res.json();
     return json;
   } catch (err) {
@@ -295,9 +295,28 @@ const getPostComments = async (postID, token) => {
   }
 };
 
-// const needsUpdate = async () => {
-//     try {}
-// }
+/**
+ * Finds out if the user is running the latest version of Offsides
+ * @param {String} currentVersion - semver current version
+ * @returns {Boolean|String} - if app is up to date, false; if app needs an update, the semver of the latest version
+ */
+const needsUpdate = async currentVersion => {
+  try {
+    const res = await fetch(`https://offsides.micahlindley.com/latest.json`);
+    if (res.ok) {
+      const json = await res.json();
+      if (semver.gte(json.latestVersion, currentVersion)) {
+        return json.latestVersion;
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
+  } catch {
+    return false;
+  }
+};
 
 export {
   loginViaSMS,
@@ -310,4 +329,5 @@ export {
   getGroupPosts,
   setVote,
   getPostComments,
+  needsUpdate,
 };
