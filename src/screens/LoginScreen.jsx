@@ -27,7 +27,6 @@ function LoginScreen({ navigation }) {
         if (res.error_code) {
           setErrorMessage(res.message);
         } else {
-          console.log(res);
           setPhase('verifySMS');
           setErrorMessage(null);
         }
@@ -46,7 +45,6 @@ function LoginScreen({ navigation }) {
         if (res.error_code) {
           setErrorMessage(res.message);
         } else {
-          console.log(res);
           if (res.logged_in_user) {
             await AsyncStorage.setItem('userToken', res.logged_in_user.token);
             await AsyncStorage.setItem('userID', res.logged_in_user.user.id);

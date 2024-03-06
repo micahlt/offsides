@@ -8,16 +8,17 @@ import AutoImage from './AutoImage';
 
 const BORDER_RADIUS = 10;
 
-function Post({ post, nav, commentView = false }) {
+function Comment({ comment, nav }) {
   const appState = React.useContext(AppContext);
   const { colors } = useTheme();
-  const [vote, setVote] = React.useState(post.vote_status);
-  const [voteCount, setVoteCount] = React.useState(post.vote_total);
+  const [vote, setVote] = React.useState(comment.vote_status);
+  const [voteCount, setVoteCount] = React.useState(comment.vote_total);
   const [width, setWidth] = React.useState();
+  console.log(comment);
 
   const upvote = () => {
     const action = vote == 'upvote' ? 'none' : 'upvote';
-    API.setVote(post.id, appState.userToken, action).then(res => {
+    API.setVote(comment.id, appState.userToken, action).then(res => {
       setVote(action);
       setVoteCount(res.post.vote_total);
     });
@@ -25,7 +26,7 @@ function Post({ post, nav, commentView = false }) {
 
   const downvote = () => {
     const action = vote == 'downvote' ? 'none' : 'downvote';
-    API.setVote(post.id, appState.userToken, action).then(res => {
+    API.setVote(comment.id, appState.userToken, action).then(res => {
       setVote(action);
       setVoteCount(res.post.vote_total);
     });
@@ -38,43 +39,62 @@ function Post({ post, nav, commentView = false }) {
       }}>
       <Card.Content>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          {post?.identity?.conversation_icon ? (
+          {comment?.identity?.conversation_icon ? (
             <Avatar.Text
               size={46}
-              label={String(post?.identity?.conversation_icon?.emoji || '‼️')}
+              label={String(
+                comment?.identity?.conversation_icon?.emoji || '‼️',
+              )}
               color="white"
               style={{
                 backgroundColor:
-                  post.identity?.conversation_icon?.color || colors.primary,
+                  comment.identity?.conversation_icon?.color || colors.primary,
                 borderRadius: BORDER_RADIUS,
               }}
             />
           ) : (
-            <Avatar.Icon
+            <Avatar.Text
               size={46}
-              icon="account"
+              label={
+                comment.identity.name.length < 3 ? comment.identity.name : '💬'
+              }
               style={{ borderRadius: BORDER_RADIUS }}
             />
           )}
+          {comment.reply_comment_alias && (
+            <Text
+              variant="titleMedium"
+              style={{
+                marginLeft: 10,
+                paddingRight: 10,
+                color: colors.onSurfaceDisabled,
+                borderRightColor: colors.surfaceVariant,
+                borderRightWidth: 1,
+              }}>
+              ▶ {comment.reply_comment_alias}
+            </Text>
+          )}
           <Text variant="labelLarge" style={{ marginLeft: 10 }}>
-            {timesago(post.created_at)}
+            {timesago(comment.created_at)}
           </Text>
         </View>
 
-        {post.text.trim().length > 0 && (
+        {comment.text.trim().length > 0 && (
           <Text variant="bodyLarge" style={{ marginTop: 10, marginBottom: 10 }}>
-            {post.text}
+            {comment.text}
           </Text>
         )}
 
-        {post.assets.length > 0 && post.assets[0].type == 'image' && width && (
-          <AutoImage
-            src={post.assets[0].url}
-            fitWidth={width - 35}
-            token={appState.userToken}
-            style={post.text.trim().length < 1 ? { marginTop: 10 } : {}}
-          />
-        )}
+        {comment.assets.length > 0 &&
+          comment.assets[0].type == 'image' &&
+          width && (
+            <AutoImage
+              src={comment.assets[0].url}
+              fitWidth={width - 35}
+              token={appState.userToken}
+              style={comment.text.trim().length < 1 ? { marginTop: 10 } : {}}
+            />
+          )}
 
         <View
           style={{
@@ -83,25 +103,6 @@ function Post({ post, nav, commentView = false }) {
             marginLeft: -8,
             marginBottom: -2,
           }}>
-          {!commentView && (
-            <>
-              <IconButton
-                icon="message-outline"
-                onPress={() =>
-                  nav.navigate('Comments', {
-                    postID: post.id,
-                    postObj: post,
-                  })
-                }
-                style={{ margin: 0 }}
-                size={20}
-                iconColor={colors.onSurfaceDisabled}
-              />
-              <Text variant="titleMedium" style={{ marginRight: 10 }}>
-                {post.comment_count}
-              </Text>
-            </>
-          )}
           <IconButton
             icon="share-outline"
             onPress={() => {}}
@@ -122,13 +123,12 @@ function Post({ post, nav, commentView = false }) {
             onPress={upvote}
             style={{
               margin: 0,
-              borderRadius: BORDER_RADIUS,
-              borderColor: colors.onSurfaceDisabled,
-              borderWidth: 2,
             }}
-            size={20}
+            size={12}
             iconColor={colors.onSurface}
-            containerColor={vote == 'upvote' ? colors.inversePrimary : null}
+            containerColor={
+              vote == 'upvote' ? colors.inversePrimary : colors.surfaceDisabled
+            }
           />
           <Text
             variant="titleMedium"
@@ -144,13 +144,12 @@ function Post({ post, nav, commentView = false }) {
             onPress={downvote}
             style={{
               margin: 0,
-              borderRadius: BORDER_RADIUS,
-              borderColor: colors.onSurfaceDisabled,
-              borderWidth: 2,
             }}
-            size={20}
+            size={12}
             iconColor={colors.onSurface}
-            containerColor={vote == 'downvote' ? colors.onError : null}
+            containerColor={
+              vote == 'downvote' ? colors.onError : colors.surfaceDisabled
+            }
           />
         </View>
       </Card.Content>
@@ -158,18 +157,18 @@ function Post({ post, nav, commentView = false }) {
   );
 }
 
-export default Post;
+export default Comment;
 
 const obj = {
   index: 0,
   item: {
     alias: 'Anonymous',
-    assets: [[Object]],
+    assets: [],
     attachments: [],
     authored_by_user: false,
     comment_count: 0,
-    comments_disabled: false,
-    created_at: '2024-03-05T21:14:58.575Z',
+    context: '',
+    created_at: '2024-03-06T05:20:40.471Z',
     destination: 'group',
     dms_disabled: false,
     follow_status: 'not_following',
@@ -185,19 +184,17 @@ const obj = {
       roles: [Array],
     },
     group_id: 'e953e1cc-7e17-46b9-b11a-98441e4135fe',
-    id: '900a353f-52bc-4595-a58b-84f4c13b560c',
-    identity: {
-      conversation_icon: [Object],
-      name: 'Anonymous',
-      posted_with_username: false,
-    },
+    id: '3555428a-90a8-4046-b9a9-f37eea09ab19',
+    identity: { name: '#1', posted_with_username: false },
     is_saved: false,
+    parent_post_id: '3f918f1b-acaf-4746-9afd-3a10b97e1c6d',
     pinned: false,
+    reply_post_id: '3f918f1b-acaf-4746-9afd-3a10b97e1c6d',
     tags: [],
-    text: 'Me after my day of doing nothing all day',
-    type: 'post',
+    text: 'Fr',
+    type: 'comment',
     vote_status: 'none',
-    vote_total: 31,
+    vote_total: 1,
   },
   separators: {
     highlight: [Function],

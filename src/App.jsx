@@ -6,6 +6,7 @@ import HomeScreen from './screens/HomeScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import LoginScreen from './screens/LoginScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import CommentModal from './components/CommentModal';
 
 const Stack = createNativeStackNavigator();
 
@@ -38,8 +39,16 @@ export default function App() {
             initialRouteName={needsLogin ? 'Login' : 'Home'}
             screenOptions={{ headerShown: false }}>
             <Stack.Screen name="Home" component={HomeScreen} />
-            <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen
+              name="Comments"
+              component={CommentModal}
+              options={{
+                presentation: 'fullScreenModal',
+                animation: 'fade_from_bottom',
+              }}
+            />
           </Stack.Navigator>
         )}
       </NavigationContainer>

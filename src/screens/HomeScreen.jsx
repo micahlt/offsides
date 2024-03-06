@@ -1,6 +1,13 @@
 import React from 'react';
 import { View, StyleSheet, FlatList, StatusBar } from 'react-native';
-import { Appbar, Text, Avatar, useTheme, Menu } from 'react-native-paper';
+import {
+  Appbar,
+  Text,
+  Avatar,
+  useTheme,
+  Menu,
+  ProgressBar,
+} from 'react-native-paper';
 import { AppContext } from '../App';
 import Post from '../components/Post';
 import * as API from '../utils/sidechatAPI';
@@ -14,8 +21,10 @@ function HomeScreen({ navigation }) {
   const { colors } = useTheme();
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [loadingPosts, setLoadingPosts] = React.useState(true);
+  const [loadingBar, setLoadingBar] = React.useState(true);
   const [posts, setPosts] = React.useState([]);
   React.useEffect(() => {
+    setLoadingPosts(true);
     fetchPosts(true);
   }, [postCategory]);
   const renderItem = React.useCallback(
@@ -23,23 +32,29 @@ function HomeScreen({ navigation }) {
     [],
   );
   const fetchPosts = refresh => {
-    console.log('Loading posts');
+    setLoadingPosts(true);
     if (refresh) {
-      setLoadingPosts(true);
-      setPosts([]);
-      setCursor(null);
+      API.getGroupPosts(
+        appState.groupID,
+        appState.userToken,
+        postCategory,
+      ).then(res => {
+        setPosts(res.posts);
+        setCursor(res.cursor);
+        setLoadingPosts(false);
+      });
+    } else {
+      API.getGroupPosts(
+        appState.groupID,
+        appState.userToken,
+        postCategory,
+        cursor,
+      ).then(res => {
+        setPosts(posts.concat(res.posts));
+        setCursor(res.cursor);
+        setLoadingPosts(false);
+      });
     }
-    API.getGroupPosts(
-      appState.groupID,
-      appState.userToken,
-      postCategory,
-      cursor,
-    ).then(res => {
-      let newPosts = [...posts, ...res.posts];
-      setPosts(newPosts);
-      setCursor(res.cursor);
-      setLoadingPosts(false);
-    });
   };
   return (
     <>
@@ -128,6 +143,7 @@ function HomeScreen({ navigation }) {
         </Appbar.Header>
       )}
       <View style={{ ...style.container, backgroundColor: colors.background }}>
+        <ProgressBar indeterminate={true} visible={loadingPosts} />
         <FlatList
           style={{ padding: 10 }}
           contentContainerStyle={{ gap: 10 }}
@@ -138,7 +154,7 @@ function HomeScreen({ navigation }) {
           windowSize={10}
           onRefresh={() => fetchPosts(true)}
           refreshing={loadingPosts}
-          onEndReachedThreshold={1.5}
+          onEndReachedThreshold={0.5}
           onEndReached={() => fetchPosts(false)}
         />
       </View>

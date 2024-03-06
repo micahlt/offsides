@@ -112,4 +112,28 @@ const setVote = async (postID, token, action) => {
   }
 };
 
-export { loginViaSMS, verifySMSCode, getGroupPosts, setVote };
+/**
+ * Get all the commments on a post
+ * @param {*} postID - post ID to get comments for
+ * @param {*} token - user bearer token
+ * @returns
+ */
+const getPostComments = async (postID, token) => {
+  try {
+    const res = await fetch(`${root}/posts/comments/?post_id=${postID}`, {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const json = await res.json();
+    return json.posts;
+  } catch (err) {
+    console.error(err);
+    throw new Error(`Failed to get comments on post.`);
+  }
+};
+
+export { loginViaSMS, verifySMSCode, getGroupPosts, setVote, getPostComments };
