@@ -1,0 +1,51 @@
+name: Generate Android Development APK
+
+on: [push, pull_request]
+
+jobs:
+  apk_gen:
+    name: Generate debug app
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get code from the current repository
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+
+      - name: Reconfigure git to use HTTP
+        run: >
+          git config --global url."https://github.com/".insteadOf
+          ssh://git@github.com/
+      - name: Install Java
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Install Android SDK
+        uses: android-actions/setup-android@v2
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Install app dependencies
+        run: npm install
+
+      - name: Convert Windows line endings to Linux from the gradlew file
+        run: sudo apt update && sudo apt install dos2unix && cd android && dos2unix ./gradlew && cd ..
+
+      - name: Make ./gradlew command executable
+        run: cd android && chmod +x ./gradlew && cd ..
+
+      - name: Build React Native assets
+        run: npx react-native bundle --platform android --dev false --entry-file index.js --bundle-output android/app/src/main/assets/index.android.bundle --assets-dest android/app/src/main/res
+
+      - name: Generate APK
+        run: cd android && ./gradlew assembleDebug && cd ..
+
+      - name: Upload generated APK to Github
+        uses: actions/upload-artifact@v1
+        with:
+          name: offsides-nightly
+          path: android/app/build/outputs/apk/debug/app-debug.apk
