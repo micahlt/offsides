@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   apk_gen:
-    name: Generate debug APK
+    name: Nightly debug build
     runs-on: ubuntu-latest
     steps:
       - name: Get code from the current repository
@@ -27,9 +27,6 @@ jobs:
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@v1
 
-      - name: Install Android SDK
-        uses: android-actions/setup-android@v2
-
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
@@ -42,11 +39,11 @@ jobs:
         run: cd android && chmod +x ./gradlew && cd ..
 
       - name: Generate APK
-        run: cd android && ./gradlew assembleDebug
+        run: cd android && ./gradlew assembleRelease
 
       - name: Upload generated APK to Github
         uses: actions/upload-artifact@v2
         with:
           name: offsides-nightly
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
           retention-days: 7
