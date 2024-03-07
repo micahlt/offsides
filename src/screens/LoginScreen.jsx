@@ -29,7 +29,7 @@ function LoginScreen({}) {
       const res = await API.loginViaSMS(phoneNumber);
       if (res) {
         if (res.error_code) {
-          setErrorMessage(res.message);
+          throw new Error(res.message);
         } else {
           setPhase('verifySMS');
           setErrorMessage(null);
@@ -47,7 +47,7 @@ function LoginScreen({}) {
       const res = await API.verifySMSCode(phoneNumber, smsCode);
       if (res) {
         if (res.error_code) {
-          setErrorMessage(res.message);
+          throw new Error(res.message);
         } else {
           if (res.logged_in_user) {
             await AsyncStorage.setItem('userToken', res.logged_in_user.token);
@@ -94,7 +94,7 @@ function LoginScreen({}) {
       const res = await API.setAge(myAge, registrationID);
       if (res) {
         if (res.error_code) {
-          setErrorMessage(res.message);
+          throw new Error(res.message);
         } else {
           if (res.token) {
             setLocalToken(res.token);
@@ -102,7 +102,7 @@ function LoginScreen({}) {
             await API.setDeviceID(res.token);
             setPhase('verifyEmail');
           } else {
-            setErrorMessage('Failed to set age.');
+            throw new Error('Failed to set age.');
           }
         }
       }
@@ -118,7 +118,7 @@ function LoginScreen({}) {
       const res = await API.registerEmail(email, localToken);
       if (res) {
         if (res.error_code) {
-          setErrorMessage(res.message);
+          throw new Error(res.message);
         } else {
           setPhase('verifyEmail');
           setErrorMessage(null);
@@ -136,7 +136,7 @@ function LoginScreen({}) {
       const res = await API.checkEmailVerification(localToken);
       if (res) {
         if (res.error_code) {
-          setErrorMessage(res.message);
+          throw new Error(res.message);
         } else {
           if (res.user) {
             await AsyncStorage.setItem('userToken', res.token);
