@@ -33,9 +33,13 @@ function Comment({ comment, nav }) {
 
   return (
     <Card
+      style={{
+        marginLeft: comment.reply_post_id != comment.parent_post_id ? 20 : 0,
+      }}
       onLayout={event => {
         setWidth(event.nativeEvent.layout.width);
-      }}>
+      }}
+      mode="contained">
       <Card.Content>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {comment?.identity?.conversation_icon ? (

@@ -1,7 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { sha256 } from 'js-sha256';
 import DeviceInfo from 'react-native-device-info';
-const defaultHeaders = { 'Content-Type': 'application/json' };
+const defaultHeaders = {
+  Accept: 'application/json',
+  'Content-Type': 'application/json',
+};
 import semver from 'semver';
 
 /**
@@ -12,10 +15,7 @@ const loginViaSMS = async phoneNumber => {
   try {
     const res = await fetch(`https://api.sidechat.lol/v1/login_register`, {
       method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
+      headers: defaultHeaders,
       body: JSON.stringify({
         phone_number: `+1${phoneNumber}`,
         version: 3,
@@ -38,10 +38,7 @@ const verifySMSCode = async (phoneNumber, code) => {
   try {
     const res = await fetch(`https://api.sidechat.lol/v1/verify_phone_number`, {
       method: 'POST',
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
+      headers: defaultHeaders,
       body: JSON.stringify({
         phone_number: `+1${phoneNumber}`,
         code: code.toUpperCase(),
@@ -69,10 +66,7 @@ const setAge = async (age, registrationID) => {
       `https://api.sidechat.lol/v1/complete_registration`,
       {
         method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: defaultHeaders,
         body: JSON.stringify({
           age: Number(age),
           registration_id: registrationID,
@@ -99,8 +93,7 @@ const registerEmail = async (email, token) => {
       {
         method: 'POST',
         headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
+          ...defaultHeaders,
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
@@ -130,8 +123,7 @@ const checkEmailVerification = async token => {
       {
         method: 'GET',
         headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
+          ...defaultHeaders,
           Authorization: `Bearer ${token}`,
         },
       },
@@ -161,8 +153,7 @@ const setDeviceID = async token => {
       {
         method: 'POST',
         headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
+          ...defaultHeaders,
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
@@ -194,8 +185,7 @@ const getUserAndGroup = async (groupID, token) => {
       {
         method: 'GET',
         headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
+          ...defaultHeaders,
           Authorization: `Bearer ${token}`,
         },
       },
@@ -225,8 +215,7 @@ const getGroupPosts = async (groupID, token, category = 'hot', cursor) => {
       {
         method: 'GET',
         headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
+          ...defaultHeaders,
           Authorization: `Bearer ${token}`,
         },
       },
@@ -251,8 +240,7 @@ const setVote = async (postID, token, action) => {
     const res = await fetch(`https://api.sidechat.lol/v1/posts/set_vote`, {
       method: 'POST',
       headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
+        ...defaultHeaders,
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
@@ -281,14 +269,40 @@ const getPostComments = async (postID, token) => {
       {
         method: 'GET',
         headers: {
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
+          ...defaultHeaders,
           Authorization: `Bearer ${token}`,
         },
       },
     );
     const json = await res.json();
-    return json.posts;
+    const preprocessComments = apiComments => {
+      const commentMap = new Map();
+      const topLevelComments = [];
+
+      apiComments.forEach(comment => {
+        commentMap.set(comment.id, comment);
+        const parentComment = commentMap.get(comment.reply_post_id);
+        !parentComment || comment.reply_post_id === comment.parent_post_id
+          ? topLevelComments.push(comment)
+          : (!parentComment.replies ? (parentComment.replies = []) : null) &&
+            parentComment.replies.push(comment);
+      });
+
+      return topLevelComments.reduce((flatComments, comment) => {
+        flatComments.push(comment);
+        if (comment.replies)
+          flatComments.push(
+            ...comment.replies.reduce((flatReplies, reply) => {
+              flatReplies.push(reply);
+              if (reply.replies) flatReplies.push(...reply.replies);
+              return flatReplies;
+            }, []),
+          );
+        return flatComments;
+      }, []);
+    };
+    const sortedComments = preprocessComments(json.posts);
+    return sortedComments;
   } catch (err) {
     console.error(err);
     throw new Error(`Failed to get comments on post.`);
