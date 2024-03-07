@@ -54,6 +54,7 @@ function HomeScreen({ navigation }) {
   const fetchPosts = refresh => {
     setLoadingPosts(true);
     if (refresh) {
+      setPosts([]);
       API.getGroupPosts(
         appState.groupID,
         appState.userToken,
