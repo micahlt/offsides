@@ -1,5 +1,11 @@
 import React from 'react';
-import { View, StyleSheet, FlatList, StatusBar } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  StatusBar,
+  InteractionManager,
+} from 'react-native';
 import {
   Appbar,
   Text,
@@ -24,12 +30,14 @@ function HomeScreen({ navigation }) {
   const [renderedPostIds, setRenderedPostIds] = React.useState(new Set());
   const [posts, setPosts] = React.useState([]);
   React.useEffect(() => {
-    if (appState.groupID && appState.userToken) {
-      setLoadingPosts(true);
-      fetchPosts(true);
-    } else {
-      console.warn('App state is undefined, will load in a second');
-    }
+    InteractionManager.runAfterInteractions(() => {
+      if (appState.groupID && appState.userToken) {
+        setLoadingPosts(true);
+        fetchPosts(true);
+      } else {
+        console.warn('App state is undefined, will load in a second');
+      }
+    });
   }, [postCategory, appState]);
   React.useEffect(() => {
     const newRenderedPostIds = new Set(renderedPostIds);

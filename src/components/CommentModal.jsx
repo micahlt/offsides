@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   FlatList,
+  InteractionManager,
 } from 'react-native';
 import { Appbar, useTheme, Text, Divider } from 'react-native-paper';
 import { AppContext } from '../App';
@@ -20,24 +21,20 @@ function CommentModal({ navigation, route }) {
   const [loadingComments, setLoadingComments] = React.useState(true);
 
   useEffect(() => {
-    fetchComments(true);
+    InteractionManager.runAfterInteractions(() => {
+      fetchComments(true);
+    });
   }, []);
   const renderItem = React.useCallback(
     each => <Comment comment={each.item} nav={navigation} />,
     [],
   );
-  const fetchComments = refresh => {
-    if (refresh) {
-      API.getPostComments(postID, appState.userToken).then(res => {
-        setComments(res);
-        setLoadingComments(false);
-      });
-    } else {
-      API.getPostComments(postID, appState.userToken).then(res => {
-        setComments(comments.concat(res));
-        setLoadingComments(false);
-      });
-    }
+  const fetchComments = () => {
+    setLoadingComments(true);
+    API.getPostComments(postID, appState.userToken).then(res => {
+      setComments(res);
+      setLoadingComments(false);
+    });
   };
 
   return (
@@ -49,19 +46,21 @@ function CommentModal({ navigation, route }) {
       </Appbar.Header>
       <View style={{ ...style.container, backgroundColor: colors.background }}>
         <FlatList
-          style={{ padding: 10 }}
-          contentContainerStyle={{ gap: 10, paddingBottom: 10 }}
+          contentContainerStyle={{ gap: 10, padding: 10 }}
           data={comments}
           keyExtractor={item => item.id}
           renderItem={renderItem}
           estimatedItemSize={200}
           windowSize={10}
-          onRefresh={() => fetchComments(true)}
+          onRefresh={fetchComments}
           refreshing={loadingComments}
           ListHeaderComponent={
             <>
               <Post post={postObj} commentView={true} />
-              <Divider style={{ width: '100%', marginTop: 10 }} bold={true} />
+              <Divider
+                style={{ width: '100%', marginTop: 20, marginBottom: 10 }}
+                bold={true}
+              />
             </>
           }
           ListEmptyComponent={
