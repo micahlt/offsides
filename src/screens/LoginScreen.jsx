@@ -100,7 +100,7 @@ function LoginScreen({}) {
             setLocalToken(res.token);
             await AsyncStorage.setItem('userToken', res.token);
             await API.setDeviceID(res.token);
-            setPhase('verifyEmail');
+            setPhase('registerEmail');
           } else {
             throw new Error('Failed to set age.');
           }
