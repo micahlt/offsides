@@ -74,7 +74,12 @@ function LoginScreen({}) {
                 throw new Error('Unknown authentication error.');
               }
             }
-          } else setErrorMessage(null);
+          } else if (res.registration_id) {
+            setRegistrationID(res.registration_id);
+            setPhase('setAge');
+          } else {
+            throw new Error('Unknown authentication error.');
+          }
         }
       }
     } catch (e) {
@@ -306,7 +311,7 @@ function LoginScreen({}) {
               </View>
             </Card.Content>
           )}
-          {phase == 'registerEmail' && (
+          {phase == 'verifyEmail' && (
             <Card.Content style={{ ...s.centeredCard, padding: 10 }}>
               <Text variant="headlineSmall" style={{ color: colors.primary }}>
                 Verify Email
