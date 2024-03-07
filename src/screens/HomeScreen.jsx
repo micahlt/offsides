@@ -21,6 +21,7 @@ function HomeScreen({ navigation }) {
   const { colors } = useTheme();
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [loadingPosts, setLoadingPosts] = React.useState(true);
+  const [renderedPostIds, setRenderedPostIds] = React.useState(new Set());
   const [posts, setPosts] = React.useState([]);
   React.useEffect(() => {
     if (appState.groupID && appState.userToken) {
@@ -30,10 +31,18 @@ function HomeScreen({ navigation }) {
       console.warn('App state is undefined, will load in a second');
     }
   }, [postCategory, appState]);
-  const renderItem = React.useCallback(
-    each => <Post post={each.item} nav={navigation} />,
-    [],
-  );
+  React.useEffect(() => {
+    const newRenderedPostIds = new Set(renderedPostIds);
+    posts.forEach(post => newRenderedPostIds.add(post.id));
+    setRenderedPostIds(newRenderedPostIds);
+  }, [posts]);
+  const renderItem = React.useCallback(each => {
+    // Check if the post has already been rendered
+    if (renderedPostIds.has(each.id)) {
+      return null; // Skip rendering if the post is a duplicate
+    }
+    return <Post post={each.item} nav={navigation} />;
+  }, []);
   const fetchPosts = refresh => {
     setLoadingPosts(true);
     if (refresh) {
@@ -151,8 +160,7 @@ function HomeScreen({ navigation }) {
       <View style={{ ...style.container, backgroundColor: colors.background }}>
         <ProgressBar indeterminate={true} visible={loadingPosts} />
         <FlatList
-          style={{ padding: 10 }}
-          contentContainerStyle={{ gap: 10 }}
+          contentContainerStyle={{ gap: 10, padding: 10 }}
           data={posts}
           keyExtractor={item => item.id}
           renderItem={renderItem}
