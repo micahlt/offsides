@@ -208,12 +208,17 @@ function LoginScreen({}) {
                 maxLength={10}
                 onChangeText={phoneNumber => setPhoneNumber(phoneNumber)}
               />
-              <Button
-                mode="contained-tonal"
-                loading={loading}
-                onPress={sendSMS}>
-                Send code
-              </Button>
+              <View
+                style={{ display: 'flex', flexDirection: 'row', columnGap: 5 }}>
+                <Button mode="contained" loading={loading} onPress={sendSMS}>
+                  Send code
+                </Button>
+                <Button
+                  mode="contained-tonal"
+                  onPress={() => setPhase('verifySMS')}>
+                  I already have a code
+                </Button>
+              </View>
             </Card.Content>
           )}
           {phase == 'verifySMS' && (
@@ -233,11 +238,11 @@ function LoginScreen({}) {
                   marginBottom: 10,
                   textAlign: 'center',
                 }}
+                autoFocus={true}
                 value={smsCode}
                 textContentType="oneTimeCode"
                 maxLength={6}
                 autoComplete="one-time-code"
-                keyboardType="number-pad"
                 onChangeText={smsCode => setSmsCode(smsCode)}
               />
               <View
@@ -248,7 +253,13 @@ function LoginScreen({}) {
                 <Button
                   mode="contained-tonal"
                   loading={loading}
-                  onPress={sendSMS}>
+                  onPress={() => {
+                    if (phoneNumber?.length == 10) {
+                      sendSMS();
+                    } else {
+                      setPhase('sendSMS');
+                    }
+                  }}>
                   Resend
                 </Button>
               </View>

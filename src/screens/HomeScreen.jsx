@@ -141,6 +141,9 @@ function HomeScreen({ navigation }) {
             />
           </Menu>
           <Appbar.Action
+            icon="account"
+            onPress={() => navigation.push('MyProfile')}></Appbar.Action>
+          <Appbar.Action
             icon="cog"
             onPress={() => navigation.push('Settings')}></Appbar.Action>
         </Appbar.Header>

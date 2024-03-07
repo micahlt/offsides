@@ -45,7 +45,8 @@ function Post({ post, nav, commentView = false }) {
               color="white"
               style={{
                 backgroundColor:
-                  post.identity?.conversation_icon?.color || colors.primary,
+                  post.identity?.conversation_icon?.secondary_color ||
+                  colors.primary,
                 borderRadius: BORDER_RADIUS,
               }}
             />
