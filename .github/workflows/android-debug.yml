@@ -47,8 +47,9 @@ jobs:
       - name: Create prerelease
         uses: ncipollo/release-action@v1.14.0
         with:
-          name: Offsides [LATEST NIGHTLY]
+          name: Offsides [NIGHTLY] - ${{ github.event.release.tag_name }}
           artifacts: android/app/build/outputs/apk/release/offsides-nightly.apk
           body: This is a nightly release - do not use if you are not prepared for bugs and glitches.  Instead, try the latest versioned release.
           prerelease: true
           allowUpdates: true
+          tag: ${{ github.event.release.tag_name }}
