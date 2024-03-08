@@ -54,7 +54,7 @@ jobs:
         uses: ncipollo/release-action@v1.14.0
         with:
           name: Offsides [NIGHTLY] - ${{ env.COMMIT_SHORT_SHA }}
-          artifacts: android/app/build/outputs/apk/release/offsides-nightly.apk
+          artifacts: android/app/build/outputs/apk/release/offsides-nightly-${{ env.COMMIT_SHORT_SHA }}.apk
           body: This is a nightly release - do not use if you are not prepared for bugs and glitches.  Instead, try the latest versioned release.  Created from commit ${{ github.sha }}.
           prerelease: true
           allowUpdates: true
