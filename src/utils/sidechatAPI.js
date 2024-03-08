@@ -275,32 +275,51 @@ const getPostComments = async (postID, token) => {
       },
     );
     const json = await res.json();
-    const preprocessComments = apiComments => {
+    // Function to preprocess the comments and organize them into a nested structure
+    function preprocessComments(apiComments) {
+      // Map to store comments by their IDs for efficient lookup
       const commentMap = new Map();
+      // List to store top-level comments
       const topLevelComments = [];
 
+      // Iterate through the API comments
       apiComments.forEach(comment => {
+        // Store the comment in the map with its ID as the key
         commentMap.set(comment.id, comment);
+        // Get the parent comment using the reply_post_id
         const parentComment = commentMap.get(comment.reply_post_id);
-        !parentComment || comment.reply_post_id === comment.parent_post_id
-          ? topLevelComments.push(comment)
-          : (!parentComment.replies ? (parentComment.replies = []) : null) &&
-            parentComment.replies.push(comment);
+        // Check if the comment is a top-level comment
+        if (
+          !parentComment ||
+          comment.reply_post_id === comment.parent_post_id
+        ) {
+          // If it's a top-level comment, push it to the topLevelComments array
+          topLevelComments.push(comment);
+        } else {
+          // If it's a reply, add it to the parent comment's replies array
+          if (!parentComment.replies) parentComment.replies = [];
+          parentComment.replies.push(comment);
+        }
       });
 
-      return topLevelComments.reduce((flatComments, comment) => {
+      // Flatten the nested structure and return a single list of comments
+      return flattenComments(topLevelComments);
+    }
+
+    // Function to flatten nested comments into a single list
+    function flattenComments(comments) {
+      // Use reduce to flatten the nested comments array into a single list
+      return comments.reduce((flatComments, comment) => {
+        // Push the current comment to the flatComments array
         flatComments.push(comment);
+        // If the current comment has replies, recursively flatten them and push to the flatComments array
         if (comment.replies)
-          flatComments.push(
-            ...comment.replies.reduce((flatReplies, reply) => {
-              flatReplies.push(reply);
-              if (reply.replies) flatReplies.push(...reply.replies);
-              return flatReplies;
-            }, []),
-          );
+          flatComments.push(...flattenComments(comment.replies));
+        // Return the flatComments array
         return flatComments;
       }, []);
-    };
+    }
+
     const sortedComments = preprocessComments(json.posts);
     return sortedComments;
   } catch (err) {

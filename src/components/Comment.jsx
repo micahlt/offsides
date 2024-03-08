@@ -129,7 +129,9 @@ function Comment({ comment, nav }) {
               margin: 0,
             }}
             size={12}
-            iconColor={colors.onSurface}
+            iconColor={
+              vote == 'upvote' ? colors.onPrimaryContainer : colors.onSurface
+            }
             containerColor={
               vote == 'upvote' ? colors.inversePrimary : colors.surfaceDisabled
             }
@@ -150,9 +152,9 @@ function Comment({ comment, nav }) {
               margin: 0,
             }}
             size={12}
-            iconColor={colors.onSurface}
+            iconColor={vote == 'downvote' ? colors.onError : colors.onSurface}
             containerColor={
-              vote == 'downvote' ? colors.onError : colors.surfaceDisabled
+              vote == 'downvote' ? colors.error : colors.surfaceDisabled
             }
           />
         </View>

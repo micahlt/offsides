@@ -6,7 +6,7 @@ import { AppContext } from '../App';
 import * as API from '../utils/sidechatAPI';
 import AutoImage from './AutoImage';
 
-const BORDER_RADIUS = 10;
+const BORDER_RADIUS = 12;
 
 function Post({ post, nav, commentView = false }) {
   const appState = React.useContext(AppContext);
@@ -73,7 +73,11 @@ function Post({ post, nav, commentView = false }) {
             src={post.assets[0].url}
             fitWidth={width - 35}
             token={appState.userToken}
-            style={post.text.trim().length < 1 ? { marginTop: 10 } : {}}
+            style={
+              post.text.trim().length < 1
+                ? { marginTop: 10, marginBottom: 10 }
+                : { marginBottom: 10 }
+            }
           />
         )}
 
@@ -128,7 +132,9 @@ function Post({ post, nav, commentView = false }) {
               borderWidth: 2,
             }}
             size={20}
-            iconColor={colors.onSurface}
+            iconColor={
+              vote == 'upvote' ? colors.onPrimaryContainer : colors.onSurface
+            }
             containerColor={vote == 'upvote' ? colors.inversePrimary : null}
           />
           <Text
@@ -150,8 +156,8 @@ function Post({ post, nav, commentView = false }) {
               borderWidth: 2,
             }}
             size={20}
-            iconColor={colors.onSurface}
-            containerColor={vote == 'downvote' ? colors.onError : null}
+            iconColor={vote == 'downvote' ? colors.onError : colors.onSurface}
+            containerColor={vote == 'downvote' ? colors.error : null}
           />
         </View>
       </Card.Content>

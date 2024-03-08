@@ -49,7 +49,7 @@ function HomeScreen({ navigation }) {
     if (renderedPostIds.has(each.id)) {
       return null; // Skip rendering if the post is a duplicate
     }
-    return <Post post={each.item} nav={navigation} />;
+    return <Post post={each.item} nav={navigation} key={each.id} />;
   }, []);
   const fetchPosts = refresh => {
     setLoadingPosts(true);
@@ -171,9 +171,8 @@ function HomeScreen({ navigation }) {
         <FlatList
           contentContainerStyle={{ gap: 10, padding: 10 }}
           data={posts}
-          keyExtractor={item => item.id}
           renderItem={renderItem}
-          estimatedItemSize={250}
+          estimatedItemSize={350}
           windowSize={10}
           onRefresh={() => fetchPosts(true)}
           refreshing={loadingPosts}

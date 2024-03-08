@@ -41,10 +41,10 @@ function LoginScreen({}) {
     }
     setLoading(false);
   };
-  const verifySMS = async () => {
+  const verifySMS = async codeOverride => {
     setLoading(true);
     try {
-      const res = await API.verifySMSCode(phoneNumber, smsCode);
+      const res = await API.verifySMSCode(phoneNumber, codeOverride || smsCode);
       if (res) {
         if (res.error_code) {
           throw new Error(res.message);
@@ -208,17 +208,10 @@ function LoginScreen({}) {
                 maxLength={10}
                 onChangeText={phoneNumber => setPhoneNumber(phoneNumber)}
               />
-              <View
-                style={{ display: 'flex', flexDirection: 'row', columnGap: 5 }}>
-                <Button mode="contained" loading={loading} onPress={sendSMS}>
-                  Send code
-                </Button>
-                <Button
-                  mode="contained-tonal"
-                  onPress={() => setPhase('verifySMS')}>
-                  I already have a code
-                </Button>
-              </View>
+
+              <Button mode="contained" loading={loading} onPress={sendSMS}>
+                Send code
+              </Button>
             </Card.Content>
           )}
           {phase == 'verifySMS' && (
@@ -243,13 +236,15 @@ function LoginScreen({}) {
                 textContentType="oneTimeCode"
                 maxLength={6}
                 autoComplete="one-time-code"
-                onChangeText={smsCode => setSmsCode(smsCode)}
+                onChangeText={code => {
+                  setSmsCode(code);
+                  if (code.length == 6) {
+                    verifySMS(code);
+                  }
+                }}
               />
               <View
                 style={{ display: 'flex', flexDirection: 'row', columnGap: 5 }}>
-                <Button mode="contained" loading={loading} onPress={verifySMS}>
-                  Verify
-                </Button>
                 <Button
                   mode="contained-tonal"
                   loading={loading}
@@ -260,7 +255,7 @@ function LoginScreen({}) {
                       setPhase('sendSMS');
                     }
                   }}>
-                  Resend
+                  Resend code
                 </Button>
               </View>
             </Card.Content>

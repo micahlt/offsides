@@ -97,6 +97,7 @@ function MyProfileScreen({ navigation }) {
             <Card.Content>
               {data.groups.map(group => (
                 <List.Item
+                  key={group.id}
                   style={{
                     backgroundColor: colors.elevation.level4,
                     borderRadius: 10,

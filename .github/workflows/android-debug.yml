@@ -41,15 +41,21 @@ jobs:
       - name: Generate APK
         run: cd android && ./gradlew assembleRelease
 
+      - name: Set short git commit SHA
+        id: vars
+        run: |
+          calculatedSha=$(git rev-parse --short ${{ github.sha }})
+          echo "COMMIT_SHORT_SHA=$calculatedSha" >> $GITHUB_ENV
+
       - name: Rename APK
-        run: mv android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/release/offsides-nightly.apk
+        run: mv android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/release/offsides-nightly-${{ env.COMMIT_SHORT_SHA }}.apk
 
       - name: Create prerelease
         uses: ncipollo/release-action@v1.14.0
         with:
-          name: Offsides [NIGHTLY] - ${{ github.event.release.tag_name }}
+          name: Offsides [NIGHTLY] - ${{ env.COMMIT_SHORT_SHA }}
           artifacts: android/app/build/outputs/apk/release/offsides-nightly.apk
-          body: This is a nightly release - do not use if you are not prepared for bugs and glitches.  Instead, try the latest versioned release.
+          body: This is a nightly release - do not use if you are not prepared for bugs and glitches.  Instead, try the latest versioned release.  Created from commit ${{ github.sha }}.
           prerelease: true
           allowUpdates: true
-          tag: ${{ github.event.release.tag_name }}
+          tag: ${{ env.COMMIT_SHORT_SHA }}
