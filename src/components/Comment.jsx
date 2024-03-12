@@ -1,15 +1,19 @@
+import '../types/OffsidesTypes.js';
 import React from 'react';
 import { View } from 'react-native';
 import { Avatar, Card, IconButton, Text, useTheme } from 'react-native-paper';
 import timesago from 'timesago';
 import { AppContext } from '../App';
-import * as API from '../utils/sidechatAPI';
 import AutoImage from './AutoImage';
 
 const BORDER_RADIUS = 10;
 
+/**
+ * @param {{ comment: SidechatPostOrComment }} props
+ * @returns
+ */
 function Comment({ comment, nav }) {
-  const appState = React.useContext(AppContext);
+  const { API } = React.useContext(AppContext);
   const { colors } = useTheme();
   const [vote, setVote] = React.useState(comment.vote_status);
   const [voteCount, setVoteCount] = React.useState(comment.vote_total);
@@ -17,7 +21,7 @@ function Comment({ comment, nav }) {
 
   const upvote = () => {
     const action = vote == 'upvote' ? 'none' : 'upvote';
-    API.setVote(comment.id, appState.userToken, action).then(res => {
+    API.setVote(comment.id, action).then(res => {
       setVote(action);
       setVoteCount(res.post.vote_total);
     });
@@ -25,7 +29,7 @@ function Comment({ comment, nav }) {
 
   const downvote = () => {
     const action = vote == 'downvote' ? 'none' : 'downvote';
-    API.setVote(comment.id, appState.userToken, action).then(res => {
+    API.setVote(comment.id, action).then(res => {
       setVote(action);
       setVoteCount(res.post.vote_total);
     });
@@ -95,7 +99,7 @@ function Comment({ comment, nav }) {
             <AutoImage
               src={comment.assets[0].url}
               fitWidth={width - 35}
-              token={appState.userToken}
+              token={API.userToken}
               style={comment.text.trim().length < 1 ? { marginTop: 10 } : {}}
             />
           )}

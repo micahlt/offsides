@@ -12,8 +12,8 @@ import RNRestart from 'react-native-restart';
 import { version } from '../../package.json';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppContext } from '../App';
-import * as API from '../utils/sidechatAPI';
 import offsidesLogo from '../assets/Offsides.png';
+import { needsUpdate } from '../utils';
 
 function SettingsScreen({ navigation }) {
   const appState = React.useContext(AppContext);
@@ -23,7 +23,8 @@ function SettingsScreen({ navigation }) {
     checkForUpdate();
   }, []);
   const checkForUpdate = async () => {
-    setUpdateAvailable(await API.needsUpdate(version));
+    const needs = await needsUpdate(version);
+    setUpdateAvailable(needs);
   };
   const signOut = () => {
     AsyncStorage.clear().then(() => RNRestart.restart());

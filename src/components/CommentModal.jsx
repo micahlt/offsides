@@ -8,15 +8,17 @@ import {
 } from 'react-native';
 import { Appbar, useTheme, Text, Divider } from 'react-native-paper';
 import { AppContext } from '../App';
-import * as API from '../utils/sidechatAPI';
 import Comment from './Comment';
 import Post from './Post';
 
 function CommentModal({ navigation, route }) {
+  /** @type {{postID: String, postObj: SidechatPostOrComment}} */
   const { postID, postObj } = route.params;
-  const appState = React.useContext(AppContext);
+  const { API } = React.useContext(AppContext);
   const { colors } = useTheme();
-  const [comments, setComments] = React.useState([]);
+  const [comments, setComments] = React.useState(
+    /** @type {SidechatPostOrComment[]} */ ([]),
+  );
   const [loadingComments, setLoadingComments] = React.useState(true);
 
   useEffect(() => {
@@ -30,7 +32,7 @@ function CommentModal({ navigation, route }) {
   );
   const fetchComments = () => {
     setLoadingComments(true);
-    API.getPostComments(postID, appState.userToken).then(res => {
+    API.getPostComments(postID).then(res => {
       setComments(res);
       setLoadingComments(false);
     });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StatusBar, ScrollView } from 'react-native';
+import { View, StatusBar, ScrollView, Image } from 'react-native';
 import {
   Appbar,
   useTheme,
@@ -10,22 +10,37 @@ import {
   ProgressBar,
 } from 'react-native-paper';
 import { AppContext } from '../App';
-import * as API from '../utils/sidechatAPI';
 import timesago from 'timesago';
 
 const BORDER_RADIUS = 15;
 
 function MyProfileScreen({ navigation }) {
   const appState = React.useContext(AppContext);
-  const [data, setData] = React.useState(false);
+  const API = appState.API;
+  const [updates, setUpdates] = React.useState(false);
+  const [groups, setGroups] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const { colors } = useTheme();
   React.useEffect(() => {
-    API.getUserAndGroup(appState.groupID, appState.userToken).then(d => {
-      setData(d);
+    loadProfile();
+  }, []);
+  const loadProfile = async () => {
+    const group = await API.getUpdates(appState.groupID);
+    const user = await API.getCurrentUser();
+    Promise.all(
+      user.memberships.map(m => {
+        return API.getGroupMetadata(m.groupId);
+      }),
+    ).then(data => {
+      data = data.filter(g => {
+        if (g) return true;
+        else return false;
+      });
+      setGroups(data);
+      setUpdates(group);
       setLoading(false);
     });
-  }, []);
+  };
   return (
     <View style={{ backgroundColor: colors.background, flex: 1 }}>
       <StatusBar animated={true} backgroundColor={colors.elevation.level2} />
@@ -38,17 +53,17 @@ function MyProfileScreen({ navigation }) {
         />
       </Appbar.Header>
       <ProgressBar indeterminate={true} visible={loading} />
-      {data?.user && (
+      {updates?.user && (
         <ScrollView contentContainerStyle={{ rowGap: 10, padding: 20 }}>
           <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-            {data.user?.conversation_icon ? (
+            {updates.user?.conversation_icon ? (
               <Avatar.Text
                 size={64}
-                label={String(data.user?.conversation_icon?.emoji || '‼️')}
+                label={String(updates.user?.conversation_icon?.emoji || '‼️')}
                 color="white"
                 style={{
                   backgroundColor:
-                    data.user?.conversation_icon?.secondary_color ||
+                    updates.user?.conversation_icon?.secondary_color ||
                     colors.primary,
                   borderRadius: BORDER_RADIUS,
                 }}
@@ -63,7 +78,7 @@ function MyProfileScreen({ navigation }) {
             <Text
               variant="titleMedium"
               style={{ textAlign: 'right', flexGrow: 1, marginRight: 10 }}>
-              joined {timesago(data.user.created_at)}
+              joined {timesago(updates.user.created_at)}
             </Text>
           </View>
           <View style={{ flexDirection: 'row', gap: 10 }}>
@@ -74,7 +89,7 @@ function MyProfileScreen({ navigation }) {
                 titleStyle={{ minHeight: 10 }}
               />
               <Card.Content>
-                <Text variant="titleLarge">{data.user.follower_count}</Text>
+                <Text variant="titleLarge">{updates.user.follower_count}</Text>
               </Card.Content>
             </Card>
             <Card style={{ flexGrow: 1 }}>
@@ -84,7 +99,9 @@ function MyProfileScreen({ navigation }) {
                 titleStyle={{ minHeight: 10 }}
               />
               <Card.Content>
-                <Text variant="titleLarge">{data.karma.groups[0].yakarma}</Text>
+                <Text variant="titleLarge">
+                  {updates.karma.groups[0].yakarma}
+                </Text>
               </Card.Content>
             </Card>
           </View>
@@ -95,31 +112,50 @@ function MyProfileScreen({ navigation }) {
               titleStyle={{ minHeight: 10 }}
             />
             <Card.Content>
-              {data.groups.map(group => (
+              {groups.map(group => (
                 <List.Item
                   key={group.id}
                   style={{
                     backgroundColor: colors.elevation.level4,
                     borderRadius: 10,
+                    marginBottom: 10,
                   }}
-                  titleStyle={{ alignItems: 'center' }}
+                  titleStyle={{
+                    alignItems: 'center',
+                    borderRadius: 10,
+                  }}
                   title={
                     <View
                       style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Avatar.Text
-                        size={45}
-                        label={
-                          group.name.length < 3
-                            ? group.name
-                            : group.name.substring(0, 2)
-                        }
-                        style={{
-                          borderRadius: 10,
-                          marginRight: 15,
-                          backgroundColor:
-                            group.color || colors.primaryContainer,
-                        }}
-                      />
+                      {group.icon_url ? (
+                        <Image
+                          width={45}
+                          height={45}
+                          resizeMode="cover"
+                          source={{ uri: group.icon_url }}
+                          style={{
+                            borderRadius: 10,
+                            marginRight: 15,
+                            backgroundColor:
+                              group.color || colors.primaryContainer,
+                          }}
+                        />
+                      ) : (
+                        <Avatar.Text
+                          size={45}
+                          label={
+                            group.name.length < 3
+                              ? group.name
+                              : group.name.substring(0, 2)
+                          }
+                          style={{
+                            borderRadius: 10,
+                            marginRight: 15,
+                            backgroundColor:
+                              group.color || colors.primaryContainer,
+                          }}
+                        />
+                      )}
                       <Text>{group.name}</Text>
                     </View>
                   }
@@ -131,7 +167,9 @@ function MyProfileScreen({ navigation }) {
                           group.membership_type.slice(1)}{' '}
                         •{' '}
                         {group.group_visibility[0].toUpperCase() +
-                          group.group_visibility.slice(1)}{' '}
+                          group.group_visibility
+                            .slice(1)
+                            .replaceAll('_', ' ')}{' '}
                         group
                       </Text>
                     </>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { View, StyleSheet } from 'react-native';
 import {
   Button,
@@ -10,9 +10,12 @@ import {
 } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNRestart from 'react-native-restart';
-import * as API from '../utils/sidechatAPI';
+import { AppContext } from '../App';
+import DeviceInfo from 'react-native-device-info';
+import { sha256 } from 'js-sha256';
 
 function LoginScreen({}) {
+  const { API } = useContext(AppContext);
   const { colors } = useTheme();
   const [errorMessage, setErrorMessage] = React.useState();
   const [phase, setPhase] = React.useState('sendSMS');
@@ -22,7 +25,6 @@ function LoginScreen({}) {
   const [myAge, setMyAge] = React.useState();
   const [email, setEmail] = React.useState();
   const [loading, setLoading] = React.useState(false);
-  const [localToken, setLocalToken] = React.useState(null);
   const sendSMS = async () => {
     setLoading(true);
     try {
@@ -97,9 +99,10 @@ function LoginScreen({}) {
           throw new Error(res.message);
         } else {
           if (res.token) {
-            setLocalToken(res.token);
             await AsyncStorage.setItem('userToken', res.token);
-            await API.setDeviceID(res.token);
+            const id = await DeviceInfo.getAndroidId();
+            const deviceID = sha256(id);
+            await API.setDeviceID(deviceID);
             setPhase('registerEmail');
           } else {
             throw new Error('Failed to set age.');
@@ -115,7 +118,7 @@ function LoginScreen({}) {
   const registerEmail = async () => {
     setLoading(true);
     try {
-      const res = await API.registerEmail(email, localToken);
+      const res = await API.registerEmail(email);
       if (res) {
         if (res.error_code) {
           throw new Error(res.message);
@@ -133,7 +136,7 @@ function LoginScreen({}) {
   const verifyEmail = async () => {
     setLoading(true);
     try {
-      const res = await API.checkEmailVerification(localToken);
+      const res = await API.checkEmailVerification();
       if (res) {
         if (res.error_code) {
           throw new Error(res.message);

@@ -1,31 +1,43 @@
 import 'react-native-gesture-handler';
-import React from 'react';
+import React, { Context } from 'react';
+import { OffsidesAppState } from './types/OffsidesTypes';
 import { StatusBar, useColorScheme } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SidechatAPIClient } from 'sidechat.js';
 import HomeScreen from './screens/HomeScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import LoginScreen from './screens/LoginScreen';
 import MyProfileScreen from './screens/MyProfileScreen';
 import CommentModal from './components/CommentModal';
+import GroupsScreen from './screens/GroupsScreen';
 
 const Stack = createNativeStackNavigator();
 
+/**
+ * Global app context for Offsides.  Contains API as well as current app state.
+ * @type {Context<OffsidesAppState>}
+ */
 const AppContext = React.createContext();
 
 export default function App() {
   const colorScheme = useColorScheme();
   const [needsLogin, setNeedsLogin] = React.useState(null);
   const [appState, setAppState] = React.useState({});
+
   React.useEffect(() => {
     AsyncStorage.multiGet(['userToken', 'userID', 'groupID', 'groupName']).then(
       res => {
-        let tempState = appState;
+        let tempState = {};
         // If user token is defined
         if (res[0][1]) {
+          tempState.API = new SidechatAPIClient(res[0][1]);
           setNeedsLogin(false);
-        } else setNeedsLogin(true);
+        } else {
+          tempState.API = new SidechatAPIClient();
+          setNeedsLogin(true);
+        }
         res.forEach(item => {
           tempState[item[0]] = item[1];
         });
@@ -47,6 +59,7 @@ export default function App() {
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="MyProfile" component={MyProfileScreen} />
+            <Stack.Screen name="Groups" component={GroupsScreen} />
             <Stack.Screen
               name="Comments"
               component={CommentModal}

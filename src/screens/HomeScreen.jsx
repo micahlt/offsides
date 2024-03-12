@@ -1,3 +1,7 @@
+import {
+  SidechatCursorString,
+  SidechatPostOrComment,
+} from 'sidechat.js/src/types';
 import React from 'react';
 import {
   View,
@@ -13,22 +17,28 @@ import {
   useTheme,
   Menu,
   ProgressBar,
+  TouchableRipple,
 } from 'react-native-paper';
 import { AppContext } from '../App';
 import Post from '../components/Post';
-import * as API from '../utils/sidechatAPI';
 
 const BORDER_RADIUS = 12;
 
 function HomeScreen({ navigation }) {
   const appState = React.useContext(AppContext);
+  const API = appState.API;
   const [postCategory, setPostCategory] = React.useState('hot');
-  const [cursor, setCursor] = React.useState(null);
+
+  const [cursor, setCursor] = React.useState(
+    /** @type {SidechatCursorString} */ (null),
+  );
   const { colors } = useTheme();
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [loadingPosts, setLoadingPosts] = React.useState(true);
   const [renderedPostIds, setRenderedPostIds] = React.useState(new Set());
-  const [posts, setPosts] = React.useState([]);
+  const [posts, setPosts] = React.useState(
+    /** @type {SidechatPostOrComment[]} */ ([]),
+  );
   React.useEffect(() => {
     InteractionManager.runAfterInteractions(() => {
       if (appState.groupID && appState.userToken) {
@@ -55,22 +65,13 @@ function HomeScreen({ navigation }) {
     setLoadingPosts(true);
     if (refresh) {
       setPosts([]);
-      API.getGroupPosts(
-        appState.groupID,
-        appState.userToken,
-        postCategory,
-      ).then(res => {
+      API.getGroupPosts(appState.groupID, postCategory).then(res => {
         setPosts(res.posts);
         setCursor(res.cursor);
         setLoadingPosts(false);
       });
     } else {
-      API.getGroupPosts(
-        appState.groupID,
-        appState.userToken,
-        postCategory,
-        cursor,
-      ).then(res => {
+      API.getGroupPosts(appState.groupID, postCategory, cursor).then(res => {
         setPosts(posts.concat(res.posts));
         setCursor(res.cursor);
         setLoadingPosts(false);
@@ -85,20 +86,22 @@ function HomeScreen({ navigation }) {
           <Appbar.Content
             title={
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Avatar.Text
-                  size={45}
-                  label={
-                    appState.groupName.length < 3
-                      ? appState.groupName
-                      : appState.groupName.substring(0, 2)
-                  }
-                  style={{
-                    borderRadius: BORDER_RADIUS,
-                    marginRight: 15,
-                    backgroundColor:
-                      appState.groupColor || colors.primaryContainer,
-                  }}
-                />
+                <TouchableRipple onPress={() => navigation.navigate('Groups')}>
+                  <Avatar.Text
+                    size={45}
+                    label={
+                      appState.groupName.length < 3
+                        ? appState.groupName
+                        : appState.groupName.substring(0, 2)
+                    }
+                    style={{
+                      borderRadius: BORDER_RADIUS,
+                      marginRight: 15,
+                      backgroundColor:
+                        appState.groupColor || colors.primaryContainer,
+                    }}
+                  />
+                </TouchableRipple>
                 {appState.groupName.length > 2 ? (
                   <Text>{appState.groupName}</Text>
                 ) : (
@@ -161,9 +164,6 @@ function HomeScreen({ navigation }) {
           <Appbar.Action
             icon="account"
             onPress={() => navigation.push('MyProfile')}></Appbar.Action>
-          <Appbar.Action
-            icon="cog"
-            onPress={() => navigation.push('Settings')}></Appbar.Action>
         </Appbar.Header>
       )}
       <View style={{ ...style.container, backgroundColor: colors.background }}>
