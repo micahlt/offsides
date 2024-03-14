@@ -3,6 +3,7 @@ import { View, StatusBar, FlatList } from 'react-native';
 import { Appbar, useTheme, Card, ProgressBar } from 'react-native-paper';
 import { AppContext } from '../App';
 import Group from '../components/Group';
+import useUniqueList from '../hooks/useUniqueList';
 
 const BORDER_RADIUS = 15;
 

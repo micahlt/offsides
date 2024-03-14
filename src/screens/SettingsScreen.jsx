@@ -82,10 +82,7 @@ function SettingsScreen({ navigation }) {
               mode="contained-tonal"
               onPress={() => {
                 Linking.openURL(
-                  `https://github.com/micahlt/offsides/releases/download/${updateAvailable}/offsides-${updateAvailable.replaceAll(
-                    '.',
-                    '-',
-                  )}.apk`,
+                  `https://github.com/micahlt/offsides/releases/${updateAvailable}/`,
                 );
               }}
               style={{

@@ -10,6 +10,7 @@ import { Appbar, useTheme, Text, Divider } from 'react-native-paper';
 import { AppContext } from '../App';
 import Comment from './Comment';
 import Post from './Post';
+import useUniqueList from '../hooks/useUniqueList';
 
 function CommentModal({ navigation, route }) {
   /** @type {{postID: String, postObj: SidechatPostOrComment}} */
@@ -39,6 +40,8 @@ function CommentModal({ navigation, route }) {
     });
   };
 
+  const uniqueComments = useUniqueList(comments);
+
   return (
     <View style={{ backgroundColor: colors.background, flex: 1 }}>
       <StatusBar animated={true} backgroundColor={colors.elevation.level2} />
@@ -49,7 +52,7 @@ function CommentModal({ navigation, route }) {
       <View style={{ ...style.container, backgroundColor: colors.background }}>
         <FlatList
           contentContainerStyle={{ gap: 10, padding: 10 }}
-          data={comments}
+          data={uniqueComments}
           keyExtractor={item => item.id}
           renderItem={renderItem}
           estimatedItemSize={200}

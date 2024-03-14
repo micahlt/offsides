@@ -24,6 +24,7 @@ import { AppContext } from '../App';
 import { useFocusEffect } from '@react-navigation/native';
 import Post from '../components/Post';
 import GroupPicker from '../components/GroupPicker';
+import useUniqueList from '../hooks/useUniqueList';
 
 const BORDER_RADIUS = 12;
 
@@ -62,16 +63,9 @@ function HomeScreen({ navigation }) {
       });
     }
   }, [postCategory, currentGroupId]);
-  React.useEffect(() => {
-    const newRenderedPostIds = new Set(renderedPostIds);
-    posts.forEach(post => newRenderedPostIds.add(post.id));
-    setRenderedPostIds(newRenderedPostIds);
-  }, [posts]);
+  const uniquePosts = useUniqueList(posts);
   const renderItem = React.useCallback(each => {
     // Check if the post has already been rendered
-    if (renderedPostIds.has(each.id)) {
-      return null; // Skip rendering if the post is a duplicate
-    }
     return <Post post={each.item} nav={navigation} key={each.id} />;
   });
   const fetchPosts = refresh => {
@@ -210,7 +204,7 @@ function HomeScreen({ navigation }) {
         <ProgressBar indeterminate={true} visible={loadingPosts} />
         <FlatList
           contentContainerStyle={{ gap: 10, padding: 10 }}
-          data={posts}
+          data={uniquePosts}
           renderItem={renderItem}
           estimatedItemSize={350}
           windowSize={10}
