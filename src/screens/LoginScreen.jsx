@@ -15,7 +15,8 @@ import DeviceInfo from 'react-native-device-info';
 import { sha256 } from 'js-sha256';
 
 function LoginScreen({}) {
-  const { API } = useContext(AppContext);
+  const { appState } = React.useContext(AppContext);
+  const API = appState.API;
   const { colors } = useTheme();
   const [errorMessage, setErrorMessage] = React.useState();
   const [phase, setPhase] = React.useState('sendSMS');
@@ -66,6 +67,10 @@ function LoginScreen({}) {
               await AsyncStorage.setItem(
                 'groupColor',
                 res.logged_in_user.group.color,
+              );
+              await AsyncStorage.setItem(
+                'groupImage',
+                res.logged_in_user.group.icon_url || false,
               );
               RNRestart.restart();
             } else {
@@ -148,6 +153,10 @@ function LoginScreen({}) {
               await AsyncStorage.setItem('groupID', res.group.id);
               await AsyncStorage.setItem('groupName', res.group.name);
               await AsyncStorage.setItem('groupColor', res.group.color);
+              await AsyncStorage.setItem(
+                'groupImage',
+                res.group.icon_url || false,
+              );
               RNRestart.restart();
             } else {
               throw new Error('Try clicking the link in your email again.');

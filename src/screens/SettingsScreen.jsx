@@ -16,7 +16,7 @@ import offsidesLogo from '../assets/Offsides.png';
 import { needsUpdate } from '../utils';
 
 function SettingsScreen({ navigation }) {
-  const appState = React.useContext(AppContext);
+  const { appState } = React.useContext(AppContext);
   const [updateAvailable, setUpdateAvailable] = React.useState(false);
   const { colors } = useTheme();
   React.useEffect(() => {

@@ -14,7 +14,8 @@ import Post from './Post';
 function CommentModal({ navigation, route }) {
   /** @type {{postID: String, postObj: SidechatPostOrComment}} */
   const { postID, postObj } = route.params;
-  const { API } = React.useContext(AppContext);
+  const { appState } = React.useContext(AppContext);
+  const API = appState.API;
   const { colors } = useTheme();
   const [comments, setComments] = React.useState(
     /** @type {SidechatPostOrComment[]} */ ([]),

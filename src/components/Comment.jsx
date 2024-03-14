@@ -13,7 +13,8 @@ const BORDER_RADIUS = 10;
  * @returns
  */
 function Comment({ comment, nav }) {
-  const { API } = React.useContext(AppContext);
+  const { appState } = React.useContext(AppContext);
+  const API = appState.API;
   const { colors } = useTheme();
   const [vote, setVote] = React.useState(comment.vote_status);
   const [voteCount, setVoteCount] = React.useState(comment.vote_total);

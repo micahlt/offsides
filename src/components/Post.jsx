@@ -8,7 +8,11 @@ import AutoImage from './AutoImage';
 const BORDER_RADIUS = 12;
 
 function Post({ post, nav, commentView = false }) {
-  const { API } = React.useContext(AppContext);
+  if (!post) {
+    return <></>;
+  }
+  const { appState } = React.useContext(AppContext);
+  const API = appState.API;
   const { colors } = useTheme();
   const [vote, setVote] = React.useState(post.vote_status);
   const [voteCount, setVoteCount] = React.useState(post.vote_total);

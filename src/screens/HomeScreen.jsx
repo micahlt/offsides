@@ -7,6 +7,7 @@ import {
   View,
   StyleSheet,
   FlatList,
+  Image,
   StatusBar,
   InteractionManager,
 } from 'react-native';
@@ -20,12 +21,14 @@ import {
   TouchableRipple,
 } from 'react-native-paper';
 import { AppContext } from '../App';
+import { useFocusEffect } from '@react-navigation/native';
 import Post from '../components/Post';
+import GroupPicker from '../components/GroupPicker';
 
 const BORDER_RADIUS = 12;
 
 function HomeScreen({ navigation }) {
-  const appState = React.useContext(AppContext);
+  const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const [postCategory, setPostCategory] = React.useState('hot');
 
@@ -34,21 +37,31 @@ function HomeScreen({ navigation }) {
   );
   const { colors } = useTheme();
   const [filterOpen, setFilterOpen] = React.useState(false);
-  const [loadingPosts, setLoadingPosts] = React.useState(true);
+  const [loadingPosts, setLoadingPosts] = React.useState(false);
   const [renderedPostIds, setRenderedPostIds] = React.useState(new Set());
+  const [currentGroupId, setCurrentGroupId] = React.useState(appState.groupID);
   const [posts, setPosts] = React.useState(
     /** @type {SidechatPostOrComment[]} */ ([]),
   );
+  const [groupPickerShown, setGroupPickerShown] = React.useState(false);
+  useFocusEffect(() => {
+    if (appState.groupID != currentGroupId) {
+      setCurrentGroupId(appState.groupID);
+    }
+  });
   React.useEffect(() => {
-    InteractionManager.runAfterInteractions(() => {
-      if (appState.groupID && appState.userToken) {
-        setLoadingPosts(true);
-        fetchPosts(true);
-      } else {
-        console.warn('App state is undefined, will load in a second');
-      }
-    });
-  }, [postCategory, appState]);
+    if (!loadingPosts) {
+      InteractionManager.runAfterInteractions(() => {
+        if (appState.groupID && appState.userToken) {
+          setCurrentGroupId(currentGroupId);
+          setLoadingPosts(true);
+          fetchPosts(true);
+        } else {
+          console.log('App state is undefined, will load in a second');
+        }
+      });
+    }
+  }, [postCategory, currentGroupId]);
   React.useEffect(() => {
     const newRenderedPostIds = new Set(renderedPostIds);
     posts.forEach(post => newRenderedPostIds.add(post.id));
@@ -60,20 +73,25 @@ function HomeScreen({ navigation }) {
       return null; // Skip rendering if the post is a duplicate
     }
     return <Post post={each.item} nav={navigation} key={each.id} />;
-  }, []);
+  });
   const fetchPosts = refresh => {
+    if (loadingPosts) return false;
     setLoadingPosts(true);
     if (refresh) {
       setPosts([]);
       API.getGroupPosts(appState.groupID, postCategory).then(res => {
-        setPosts(res.posts);
-        setCursor(res.cursor);
+        if (res.posts) {
+          setPosts(res.posts.filter(i => i.id));
+          setCursor(res.cursor);
+        }
         setLoadingPosts(false);
       });
     } else {
       API.getGroupPosts(appState.groupID, postCategory, cursor).then(res => {
-        setPosts(posts.concat(res.posts));
-        setCursor(res.cursor);
+        if (res.posts) {
+          setPosts(posts.concat(res.posts.filter(i => i.id)));
+          setCursor(res.cursor);
+        }
         setLoadingPosts(false);
       });
     }
@@ -81,29 +99,51 @@ function HomeScreen({ navigation }) {
   return (
     <>
       <StatusBar animated={true} backgroundColor={colors.background} />
+      <GroupPicker
+        visible={groupPickerShown}
+        hide={() => setGroupPickerShown(false)}
+      />
       {appState.groupName && (
         <Appbar.Header style={{ zIndex: 1 }}>
           <Appbar.Content
             title={
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <TouchableRipple onPress={() => navigation.navigate('Groups')}>
-                  <Avatar.Text
-                    size={45}
-                    label={
-                      appState.groupName.length < 3
-                        ? appState.groupName
-                        : appState.groupName.substring(0, 2)
-                    }
-                    style={{
-                      borderRadius: BORDER_RADIUS,
-                      marginRight: 15,
-                      backgroundColor:
-                        appState.groupColor || colors.primaryContainer,
-                    }}
-                  />
+                <TouchableRipple
+                  onPress={() => setGroupPickerShown(true)}
+                  style={{ borderRadius: BORDER_RADIUS, marginRight: 15 }}
+                  borderless={true}>
+                  {appState.groupImage ? (
+                    <Image
+                      style={{
+                        height: 45,
+                        width: 45,
+                        borderRadius: BORDER_RADIUS,
+                      }}
+                      source={{ uri: appState.groupImage }}
+                    />
+                  ) : (
+                    <Avatar.Text
+                      size={45}
+                      label={
+                        appState.groupName.length < 3
+                          ? appState.groupName
+                          : appState.groupName.substring(0, 2)
+                      }
+                      style={{
+                        borderRadius: BORDER_RADIUS,
+                        backgroundColor:
+                          appState.groupColor || colors.primaryContainer,
+                      }}
+                    />
+                  )}
                 </TouchableRipple>
                 {appState.groupName.length > 2 ? (
-                  <Text>{appState.groupName}</Text>
+                  <Text
+                    variant="headlineSmall"
+                    numberOfLines={1}
+                    style={{ marginRight: 50 }}>
+                    {appState.groupName}
+                  </Text>
                 ) : (
                   <Text variant="headlineSmall">
                     {postCategory[0].toUpperCase() + postCategory.slice(1)}{' '}
