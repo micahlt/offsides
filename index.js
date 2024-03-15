@@ -8,7 +8,7 @@ import App from './src/App';
 
 export default function Main() {
   const colorScheme = useColorScheme();
-  const { theme } = useMaterial3Theme({ sourceColor: '#62d2b3' });
+  const { theme } = useMaterial3Theme({ fallbackSourceColor: '#62d2b3' });
 
   const paperTheme =
     colorScheme === 'dark'
