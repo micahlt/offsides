@@ -48,7 +48,10 @@ function LoginScreen({}) {
   const verifySMS = async codeOverride => {
     setLoading(true);
     try {
-      const res = await API.verifySMSCode(phoneNumber, codeOverride || smsCode);
+      const res = await API.verifySMSCode(
+        phoneNumber,
+        codeOverride ? codeOverride : smsCode,
+      );
       if (res) {
         if (res.error_code) {
           throw new Error(res.message);
@@ -71,7 +74,7 @@ function LoginScreen({}) {
               );
               await AsyncStorage.setItem(
                 'groupImage',
-                res.logged_in_user.group.icon_url || false,
+                res.logged_in_user.group.icon_url || '',
               );
               RNRestart.restart();
             } else {
@@ -156,7 +159,7 @@ function LoginScreen({}) {
               await AsyncStorage.setItem('groupColor', res.group.color);
               await AsyncStorage.setItem(
                 'groupImage',
-                res.group.icon_url || false,
+                res.group.icon_url || '',
               );
               RNRestart.restart();
             } else {
