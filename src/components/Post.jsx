@@ -110,16 +110,18 @@ function Post({ post, nav, commentView = false }) {
               </Text>
             </>
           )}
-          <IconButton
-            icon="share-outline"
-            onPress={() => {}}
-            style={{ margin: 0 }}
-            size={24}
-            iconColor={colors.onSurfaceDisabled}
-          />
+          {!post.dms_disabled && (
+            <IconButton
+              icon="share-outline"
+              onPress={() => alert("DM's aren't enabled yet.")}
+              style={{ margin: 0 }}
+              size={24}
+              iconColor={colors.onSurfaceDisabled}
+            />
+          )}
           <IconButton
             icon="repeat-variant"
-            onPress={() => {}}
+            onPress={() => alert("Reposting isn't enabled yet.")}
             style={{ margin: 0 }}
             size={24}
             iconColor={colors.onSurfaceDisabled}
