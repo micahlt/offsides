@@ -7,10 +7,13 @@ import {
   Card,
   Avatar,
   ProgressBar,
+  TouchableRipple,
+  IconButton,
 } from 'react-native-paper';
 import { AppContext } from '../App';
 import timesago from 'timesago';
 import Group from '../components/Group';
+import { useFocusEffect } from '@react-navigation/native';
 
 const BORDER_RADIUS = 15;
 
@@ -21,9 +24,9 @@ function MyProfileScreen({ navigation }) {
   const [groups, setGroups] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const { colors } = useTheme();
-  React.useEffect(() => {
+  useFocusEffect(() => {
     loadProfile();
-  }, []);
+  });
   const loadProfile = async () => {
     const group = await API.getUpdates(appState.groupID);
     const user = await API.getCurrentUser();
@@ -56,25 +59,36 @@ function MyProfileScreen({ navigation }) {
       {updates?.user && (
         <ScrollView contentContainerStyle={{ rowGap: 10, padding: 10 }}>
           <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-            {updates.user?.conversation_icon ? (
-              <Avatar.Text
-                size={64}
-                label={String(updates.user?.conversation_icon?.emoji || '‼️')}
-                color="white"
-                style={{
-                  backgroundColor:
-                    updates.user?.conversation_icon?.secondary_color ||
-                    colors.primary,
-                  borderRadius: BORDER_RADIUS,
-                }}
-              />
-            ) : (
-              <Avatar.Icon
-                size={64}
-                icon="account"
-                style={{ borderRadius: BORDER_RADIUS }}
-              />
-            )}
+            <TouchableRipple
+              borderless={true}
+              style={{ borderRadius: BORDER_RADIUS }}
+              onPress={() => navigation.navigate('EditIcon')}>
+              {updates.user?.conversation_icon ? (
+                <Avatar.Text
+                  size={64}
+                  label={String(updates.user?.conversation_icon?.emoji || '‼️')}
+                  color="white"
+                  style={{
+                    backgroundColor:
+                      updates.user?.conversation_icon?.secondary_color ||
+                      colors.primary,
+                    borderRadius: BORDER_RADIUS,
+                  }}
+                />
+              ) : (
+                <Avatar.Icon
+                  size={64}
+                  icon="account"
+                  style={{ borderRadius: BORDER_RADIUS }}
+                />
+              )}
+            </TouchableRipple>
+            <IconButton
+              icon="pencil"
+              size={16}
+              mode="contained-tonal"
+              onPress={() => navigation.navigate('EditIcon')}
+            />
             <Text
               variant="titleMedium"
               style={{ textAlign: 'right', flexGrow: 1, marginRight: 10 }}>

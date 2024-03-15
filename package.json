@@ -1,6 +1,6 @@
 {
   "name": "offsides",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -21,15 +21,16 @@
     "react": "18.2.0",
     "react-native": "0.73.5",
     "react-native-device-info": "^10.13.1",
-    "react-native-gesture-handler": "^2.15.0",
     "react-native-paper": "^5.12.3",
     "react-native-restart": "^0.0.27",
     "react-native-safe-area-context": "^4.9.0",
     "react-native-screens": "^3.29.0",
     "react-native-storage": "^1.0.1",
     "react-native-vector-icons": "^10.0.3",
+    "reanimated-color-picker": "^3.0.3",
+    "rn-emoji-keyboard": "^1.6.1",
     "semver": "^7.6.0",
-    "sidechat.js": "^2.1.0",
+    "sidechat.js": "^2.2.1",
     "timesago": "^1.0.1"
   },
   "devDependencies": {
