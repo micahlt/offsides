@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, ImageBackground } from 'react-native';
 import {
   Button,
   Card,
@@ -13,6 +13,7 @@ import RNRestart from 'react-native-restart';
 import { AppContext } from '../App';
 import DeviceInfo from 'react-native-device-info';
 import { sha256 } from 'js-sha256';
+import PatternBG from '../assets/bgpattern.png';
 
 function LoginScreen({}) {
   const { appState } = React.useContext(AppContext);
@@ -174,183 +175,207 @@ function LoginScreen({}) {
   };
   return (
     <>
-      <View style={{ ...s.container, backgroundColor: colors.background }}>
-        {errorMessage && (
-          <Card
-            style={{
-              backgroundColor: colors.errorContainer,
-              marginBottom: 10,
-            }}>
-            <Card.Content>
-              <Text style={{ color: colors.onErrorContainer }}>
-                {errorMessage}
-              </Text>
-            </Card.Content>
-          </Card>
-        )}
-        <Card mode="elevated">
-          {phase == 'sendSMS' && (
-            <Card.Content style={s.centeredCard}>
-              <Text variant="headlineMedium" style={{ color: colors.primary }}>
-                Hi there
-              </Text>
-              <Text variant="labelLarge" style={s.subtitle}>
-                Welcome to{' '}
-                <Text variant="labelLarge" style={{ color: colors.primary }}>
-                  Offsides
+      <View style={{ backgroundColor: colors.background, flex: 1 }}>
+        <ImageBackground
+          source={PatternBG}
+          resizeMode="repeat"
+          style={{ flex: 1, ...s.container }}
+          imageStyle={{ opacity: 0.2 }}>
+          {errorMessage && (
+            <Card
+              style={{
+                backgroundColor: colors.errorContainer,
+                marginBottom: 10,
+              }}>
+              <Card.Content>
+                <Text style={{ color: colors.onErrorContainer }}>
+                  {errorMessage}
                 </Text>
-                , a third-party client for Sidechat/YikYak
-              </Text>
-              <Divider
-                bold={true}
-                style={{ width: '100%', marginBottom: 10 }}
-              />
-              <Text
-                variant="bodyMedium"
-                style={{ ...s.subtitle, width: '90%' }}>
-                Enter your phone number and Sidechat will send you a text
-                message with a code.
-              </Text>
-              <TextInput
-                mode="outlined"
-                label="Your phone number"
-                style={{ ...s.fullWidth, marginBottom: 10 }}
-                value={phoneNumber}
-                textContentType="telephoneNumber"
-                maxLength={10}
-                onChangeText={phoneNumber => setPhoneNumber(phoneNumber)}
-              />
+              </Card.Content>
+            </Card>
+          )}
+          <Card mode="elevated">
+            {phase == 'sendSMS' && (
+              <Card.Content style={s.centeredCard}>
+                <Text
+                  variant="headlineMedium"
+                  style={{ color: colors.primary }}>
+                  Hi there
+                </Text>
+                <Text variant="labelLarge" style={s.subtitle}>
+                  Welcome to{' '}
+                  <Text variant="labelLarge" style={{ color: colors.primary }}>
+                    Offsides
+                  </Text>
+                  , a third-party client for Sidechat/YikYak
+                </Text>
+                <Divider
+                  bold={true}
+                  style={{ width: '100%', marginBottom: 10 }}
+                />
+                <Text
+                  variant="bodyMedium"
+                  style={{ ...s.subtitle, width: '90%' }}>
+                  Enter your phone number and Sidechat will send you a text
+                  message with a code.
+                </Text>
+                <TextInput
+                  mode="outlined"
+                  label="Your phone number"
+                  style={{ ...s.fullWidth, marginBottom: 10 }}
+                  value={phoneNumber}
+                  textContentType="telephoneNumber"
+                  maxLength={10}
+                  onChangeText={phoneNumber => setPhoneNumber(phoneNumber)}
+                />
 
-              <Button mode="contained" loading={loading} onPress={sendSMS}>
-                Send code
-              </Button>
-            </Card.Content>
-          )}
-          {phase == 'verifySMS' && (
-            <Card.Content style={{ ...s.centeredCard, padding: 10 }}>
-              <Text variant="headlineSmall" style={{ color: colors.primary }}>
-                SMS Verification
-              </Text>
-              <Divider bold={true} />
-              <Text variant="labelLarge" style={s.subtitle}>
-                Enter the code that you recieved at{' '}
-                {phoneNumber || 'your phone number.'}
-              </Text>
-              <TextInput
-                mode="outlined"
-                placeholder="— — — — — —"
-                style={{
-                  marginBottom: 10,
-                  textAlign: 'center',
-                }}
-                autoFocus={true}
-                value={smsCode}
-                textContentType="oneTimeCode"
-                maxLength={6}
-                autoComplete="one-time-code"
-                onChangeText={code => {
-                  setSmsCode(code);
-                  if (code.length == 6) {
-                    verifySMS(code);
-                  }
-                }}
-              />
-              <View
-                style={{ display: 'flex', flexDirection: 'row', columnGap: 5 }}>
-                <Button
-                  mode="contained-tonal"
-                  loading={loading}
-                  onPress={() => {
-                    if (phoneNumber?.length == 10) {
-                      sendSMS();
-                    } else {
-                      setPhase('sendSMS');
+                <Button mode="contained" loading={loading} onPress={sendSMS}>
+                  Send code
+                </Button>
+              </Card.Content>
+            )}
+            {phase == 'verifySMS' && (
+              <Card.Content style={{ ...s.centeredCard, padding: 10 }}>
+                <Text variant="headlineSmall" style={{ color: colors.primary }}>
+                  SMS Verification
+                </Text>
+                <Divider bold={true} />
+                <Text variant="labelLarge" style={s.subtitle}>
+                  Enter the code that you recieved at{' '}
+                  {phoneNumber || 'your phone number.'}
+                </Text>
+                <TextInput
+                  mode="outlined"
+                  placeholder="— — — — — —"
+                  style={{
+                    marginBottom: 10,
+                    textAlign: 'center',
+                  }}
+                  autoFocus={true}
+                  value={smsCode}
+                  textContentType="oneTimeCode"
+                  maxLength={6}
+                  autoComplete="one-time-code"
+                  onChangeText={code => {
+                    setSmsCode(code);
+                    if (code.length == 6) {
+                      verifySMS(code);
                     }
+                  }}
+                />
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    columnGap: 5,
                   }}>
-                  Resend code
-                </Button>
-              </View>
-            </Card.Content>
-          )}
-          {phase == 'setAge' && (
-            <Card.Content style={{ ...s.centeredCard, padding: 10 }}>
-              <Text variant="headlineSmall" style={{ color: colors.primary }}>
-                Verify Your Age
-              </Text>
-              <Divider bold={true} />
-              <Text variant="labelLarge" style={s.subtitle}>
-                How old are you?
-              </Text>
-              <TextInput
-                mode="outlined"
-                placeholder="Age"
-                style={{
-                  marginBottom: 10,
-                  textAlign: 'center',
-                }}
-                value={myAge}
-                keyboardType="number-pad"
-                onChangeText={a => setMyAge(a)}
-              />
-              <View
-                style={{ display: 'flex', flexDirection: 'row', columnGap: 5 }}>
-                <Button mode="contained" loading={loading} onPress={setAge}>
-                  Verify
-                </Button>
-              </View>
-            </Card.Content>
-          )}
-          {phase == 'registerEmail' && (
-            <Card.Content style={{ ...s.centeredCard, padding: 10 }}>
-              <Text variant="headlineSmall" style={{ color: colors.primary }}>
-                Set Email
-              </Text>
-              <Divider bold={true} />
-              <Text variant="labelLarge" style={s.subtitle}>
-                Use your school (.edu) email address
-              </Text>
-              <TextInput
-                mode="outlined"
-                label="Your school email"
-                style={{ ...s.fullWidth, marginBottom: 10 }}
-                value={email}
-                keyboardType="email-address"
-                textContentType="emailAddress"
-                onChangeText={e => setEmail(e)}
-              />
-              <View
-                style={{ display: 'flex', flexDirection: 'row', columnGap: 5 }}>
-                <Button
-                  mode="contained"
-                  loading={loading}
-                  onPress={registerEmail}>
-                  Verify
-                </Button>
-              </View>
-            </Card.Content>
-          )}
-          {phase == 'verifyEmail' && (
-            <Card.Content style={{ ...s.centeredCard, padding: 10 }}>
-              <Text variant="headlineSmall" style={{ color: colors.primary }}>
-                Verify Email
-              </Text>
-              <Divider bold={true} />
-              <Text variant="labelLarge" style={s.subtitle}>
-                Go click the verification link in your email address, then come
-                back here and click continue.
-              </Text>
-              <View
-                style={{ display: 'flex', flexDirection: 'row', columnGap: 5 }}>
-                <Button
-                  mode="contained"
-                  loading={loading}
-                  onPress={verifyEmail}>
-                  Continue
-                </Button>
-              </View>
-            </Card.Content>
-          )}
-        </Card>
+                  <Button
+                    mode="contained-tonal"
+                    loading={loading}
+                    onPress={() => {
+                      if (phoneNumber?.length == 10) {
+                        sendSMS();
+                      } else {
+                        setPhase('sendSMS');
+                      }
+                    }}>
+                    Resend code
+                  </Button>
+                </View>
+              </Card.Content>
+            )}
+            {phase == 'setAge' && (
+              <Card.Content style={{ ...s.centeredCard, padding: 10 }}>
+                <Text variant="headlineSmall" style={{ color: colors.primary }}>
+                  Verify Your Age
+                </Text>
+                <Divider bold={true} />
+                <Text variant="labelLarge" style={s.subtitle}>
+                  How old are you?
+                </Text>
+                <TextInput
+                  mode="outlined"
+                  placeholder="Age"
+                  style={{
+                    marginBottom: 10,
+                    textAlign: 'center',
+                  }}
+                  value={myAge}
+                  keyboardType="number-pad"
+                  onChangeText={a => setMyAge(a)}
+                />
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    columnGap: 5,
+                  }}>
+                  <Button mode="contained" loading={loading} onPress={setAge}>
+                    Verify
+                  </Button>
+                </View>
+              </Card.Content>
+            )}
+            {phase == 'registerEmail' && (
+              <Card.Content style={{ ...s.centeredCard, padding: 10 }}>
+                <Text variant="headlineSmall" style={{ color: colors.primary }}>
+                  Set Email
+                </Text>
+                <Divider bold={true} />
+                <Text variant="labelLarge" style={s.subtitle}>
+                  Use your school (.edu) email address
+                </Text>
+                <TextInput
+                  mode="outlined"
+                  label="Your school email"
+                  style={{ ...s.fullWidth, marginBottom: 10 }}
+                  value={email}
+                  keyboardType="email-address"
+                  textContentType="emailAddress"
+                  onChangeText={e => setEmail(e)}
+                />
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    columnGap: 5,
+                  }}>
+                  <Button
+                    mode="contained"
+                    loading={loading}
+                    onPress={registerEmail}>
+                    Verify
+                  </Button>
+                </View>
+              </Card.Content>
+            )}
+            {phase == 'verifyEmail' && (
+              <Card.Content style={{ ...s.centeredCard, padding: 10 }}>
+                <Text variant="headlineSmall" style={{ color: colors.primary }}>
+                  Verify Email
+                </Text>
+                <Divider bold={true} />
+                <Text variant="labelLarge" style={s.subtitle}>
+                  Go click the verification link in your email address, then
+                  come back here and click continue.
+                </Text>
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    columnGap: 5,
+                  }}>
+                  <Button
+                    mode="contained"
+                    loading={loading}
+                    onPress={verifyEmail}>
+                    Continue
+                  </Button>
+                </View>
+              </Card.Content>
+            )}
+          </Card>
+        </ImageBackground>
       </View>
     </>
   );

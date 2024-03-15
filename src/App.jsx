@@ -1,6 +1,5 @@
 import 'react-native-gesture-handler';
 import React, { Context } from 'react';
-import { Portal } from 'react-native-paper';
 import { OffsidesAppState } from './types/OffsidesTypes';
 import { StatusBar, useColorScheme } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
