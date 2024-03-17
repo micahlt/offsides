@@ -1,7 +1,14 @@
 import '../types/OffsidesTypes.js';
 import React from 'react';
 import { View } from 'react-native';
-import { Avatar, Card, IconButton, Text, useTheme } from 'react-native-paper';
+import {
+  Avatar,
+  Button,
+  Card,
+  IconButton,
+  Text,
+  useTheme,
+} from 'react-native-paper';
 import timesago from 'timesago';
 import { AppContext } from '../App';
 import AutoImage from './AutoImage';
@@ -119,13 +126,17 @@ function Comment({ comment, nav }) {
             size={24}
             iconColor={colors.onSurfaceDisabled}
           />
-          <IconButton
-            icon="repeat-variant"
-            onPress={() => {}}
-            style={{ margin: 0 }}
-            size={24}
-            iconColor={colors.onSurfaceDisabled}
-          />
+          <Button
+            mode="text"
+            onPress={() =>
+              nav.navigate('Writer', {
+                mode: 'comment',
+                postID: comment.parent_post_id,
+                replyID: comment.id,
+              })
+            }>
+            Reply
+          </Button>
           <View style={{ flexGrow: 1 }}></View>
           <IconButton
             icon="arrow-up-thick"

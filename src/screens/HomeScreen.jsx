@@ -19,6 +19,7 @@ import {
   Menu,
   ProgressBar,
   TouchableRipple,
+  FAB,
 } from 'react-native-paper';
 import { AppContext } from '../App';
 import { useFocusEffect } from '@react-navigation/native';
@@ -212,6 +213,17 @@ function HomeScreen({ navigation }) {
           refreshing={loadingPosts}
           onEndReachedThreshold={0.5}
           onEndReached={() => fetchPosts(false)}
+        />
+        <FAB
+          icon="plus"
+          label="Post"
+          style={{ position: 'absolute', bottom: 20, right: 20 }}
+          onPress={() =>
+            navigation.navigate('Writer', {
+              mode: 'post',
+              groupID: currentGroupId,
+            })
+          }
         />
       </View>
     </>

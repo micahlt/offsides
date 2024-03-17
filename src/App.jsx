@@ -13,6 +13,7 @@ import MyProfileScreen from './screens/MyProfileScreen';
 import CommentModal from './components/CommentModal';
 import ExploreGroupsScreen from './screens/ExploreGroupsScreen';
 import EditIconScreen from './screens/EditIconScreen';
+import WriterScreen from './screens/WriterScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -64,14 +65,22 @@ export default function App() {
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="MyProfile" component={MyProfileScreen} />
+            <Stack.Screen name="EditIcon" component={EditIconScreen} />
             <Stack.Screen
               name="ExploreGroups"
               component={ExploreGroupsScreen}
             />
-            <Stack.Screen name="EditIcon" component={EditIconScreen} />
             <Stack.Screen
               name="Comments"
               component={CommentModal}
+              options={{
+                presentation: 'fullScreenModal',
+                animation: 'fade_from_bottom',
+              }}
+            />
+            <Stack.Screen
+              name="Writer"
+              component={WriterScreen}
               options={{
                 presentation: 'fullScreenModal',
                 animation: 'fade_from_bottom',

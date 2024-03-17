@@ -6,7 +6,7 @@ import {
   FlatList,
   InteractionManager,
 } from 'react-native';
-import { Appbar, useTheme, Text, Divider } from 'react-native-paper';
+import { Appbar, useTheme, Text, FAB, Divider } from 'react-native-paper';
 import { AppContext } from '../App';
 import Comment from './Comment';
 import Post from './Post';
@@ -51,7 +51,7 @@ function CommentModal({ navigation, route }) {
       </Appbar.Header>
       <View style={{ ...style.container, backgroundColor: colors.background }}>
         <FlatList
-          contentContainerStyle={{ gap: 10, padding: 10 }}
+          contentContainerStyle={{ gap: 10, padding: 10, paddingBottom: 90 }}
           data={uniqueComments}
           keyExtractor={item => item.id}
           renderItem={renderItem}
@@ -73,6 +73,17 @@ function CommentModal({ navigation, route }) {
               style={{ textAlign: 'center', color: colors.onSurfaceDisabled }}>
               No comments yet.
             </Text>
+          }
+        />
+        <FAB
+          icon="comment-outline"
+          label="Comment"
+          style={{ position: 'absolute', bottom: 20, right: 20 }}
+          onPress={() =>
+            navigation.navigate('Writer', {
+              mode: 'comment',
+              postID: postID,
+            })
           }
         />
       </View>

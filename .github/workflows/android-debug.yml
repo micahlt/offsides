@@ -2,6 +2,8 @@ name: Nightly debug build
 
 on: [push, pull_request]
 
+permissions: write-all
+
 jobs:
   apk_gen:
     name: Nightly debug build
