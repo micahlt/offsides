@@ -101,6 +101,8 @@ function ExploreGroupsScreen({ navigation }) {
           />
           <FlatList
             style={{ marginTop: 30 }}
+            estimatedItemSize={110}
+            windowSize={13}
             contentContainerStyle={{
               rowGap: 10,
               padding: 10,
