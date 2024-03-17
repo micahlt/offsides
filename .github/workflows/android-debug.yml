@@ -55,9 +55,9 @@ jobs:
       - name: Create prerelease
         uses: ncipollo/release-action@v1.14.0
         with:
-          name: Offsides [NIGHTLY] - ${{ env.COMMIT_SHORT_SHA }}
-          artifacts: offsides-nightly-${{ env.COMMIT_SHORT_SHA }}.apk
-          body: This is a nightly release - do not use if you are not prepared for bugs and glitches.  Instead, try the latest versioned release.  Created from commit ${{ github.sha }}.
+          name: ${{ env.COMMIT_SHORT_SHA }} [NIGHTLY]
+          artifacts: offsides-${{ env.COMMIT_SHORT_SHA }}-nightly.apk
+          body: This is a release created automatically from commit ${{ github.sha }}.  It has not been tested - do not use if you are not prepared for bugs and glitches.  Instead, try the [latest versioned release](https://github.com/micahlt/offsides/releases/latest).
           prerelease: true
           allowUpdates: true
           tag: ${{ env.COMMIT_SHORT_SHA }}
