@@ -4,6 +4,7 @@ import { Avatar, Card, IconButton, Text, useTheme } from 'react-native-paper';
 import timesago from 'timesago';
 import { AppContext } from '../App';
 import AutoImage from './AutoImage';
+import GroupAvatar from './GroupAvatar';
 
 const BORDER_RADIUS = 12;
 
@@ -54,10 +55,10 @@ function Post({ post, nav, commentView = false }) {
               }}
             />
           ) : (
-            <Avatar.Icon
-              size={46}
-              icon="account"
-              style={{ borderRadius: BORDER_RADIUS }}
+            <GroupAvatar
+              groupColor={post.group.color}
+              groupImage={post.group.icon_url}
+              groupName={post.group.name}
             />
           )}
           <Text variant="labelLarge" style={{ marginLeft: 10 }}>

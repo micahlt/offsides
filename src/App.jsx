@@ -1,7 +1,7 @@
 import 'react-native-gesture-handler';
 import React, { Context } from 'react';
 import { OffsidesAppState } from './types/OffsidesTypes';
-import { StatusBar, useColorScheme } from 'react-native';
+import { InteractionManager, StatusBar, useColorScheme } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -35,6 +35,11 @@ export default function App() {
       'groupID',
       'groupName',
       'groupImage',
+      'groupColor',
+      'schoolGroupID',
+      'schoolGroupName',
+      'schoolGroupImage',
+      'schoolGroupColor',
     ]).then(res => {
       let tempState = {};
       // If user token is defined
@@ -51,6 +56,22 @@ export default function App() {
       setAppState(tempState);
     });
   }, []);
+  React.useEffect(() => {
+    InteractionManager.runAfterInteractions(() => {
+      if (!appState.groupName || !appState.groupID) return;
+      AsyncStorage.multiSet([
+        ['groupID', String(appState.groupID)],
+        ['groupName', String(appState.groupName)],
+        ['groupColor', String(appState.groupColor)],
+        ['groupImage', String(appState.groupImage)],
+      ]);
+    });
+  }, [
+    appState.groupName,
+    appState.groupID,
+    appState.groupColor,
+    appState.groupImage,
+  ]);
   return (
     <AppContext.Provider value={{ appState, setAppState }}>
       <NavigationContainer>

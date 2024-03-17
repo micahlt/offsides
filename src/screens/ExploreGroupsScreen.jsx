@@ -1,9 +1,14 @@
 import React from 'react';
 import { View, StatusBar, FlatList } from 'react-native';
-import { Appbar, useTheme, Card, ProgressBar } from 'react-native-paper';
+import {
+  Appbar,
+  useTheme,
+  Card,
+  ProgressBar,
+  Searchbar,
+} from 'react-native-paper';
 import { AppContext } from '../App';
 import Group from '../components/Group';
-import useUniqueList from '../hooks/useUniqueList';
 
 const BORDER_RADIUS = 15;
 
@@ -12,6 +17,7 @@ function ExploreGroupsScreen({ navigation }) {
   const API = appState.API;
   const [groups, setGroups] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
+  const [searchQuery, setSearchQuery] = React.useState('');
   const { colors } = useTheme();
   React.useEffect(() => {
     loadGroups();
@@ -39,10 +45,37 @@ function ExploreGroupsScreen({ navigation }) {
       ...appState,
       groupID: group.id,
       groupName: group.name,
-      groupImage: group?.icon_url || '',
+      groupImage: group.icon_url || '',
+      groupColor: group.color,
     });
     navigation.navigate('Home');
   };
+
+  const groupsSearched = React.useMemo(() => {
+    if (groups) {
+      return groups.filter(item => {
+        if (
+          item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          searchQuery.toLowerCase().includes(item.name.toLowerCase()) ||
+          searchQuery.toLowerCase() == item.name.toLowerCase()
+        ) {
+          return true;
+        } else if (item.description) {
+          if (
+            item.description.toLowerCase().includes(searchQuery.toLowerCase())
+          ) {
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      });
+    } else {
+      return [];
+    }
+  }, [groups, searchQuery]);
 
   return (
     <View style={{ backgroundColor: colors.background, flex: 1 }}>
@@ -53,15 +86,31 @@ function ExploreGroupsScreen({ navigation }) {
       </Appbar.Header>
       <ProgressBar indeterminate={true} visible={loading} />
       {groups && (
-        <FlatList
-          contentContainerStyle={{
-            rowGap: 10,
-            padding: 10,
-          }}
-          data={groups}
-          keyExtractor={g => g.id}
-          renderItem={renderGroup}
-        />
+        <View style={{ flex: 1 }}>
+          <Searchbar
+            placeholder="Search groups"
+            onChangeText={setSearchQuery}
+            value={searchQuery}
+            style={{
+              position: 'absolute',
+              zIndex: 1,
+              marginHorizontal: 5,
+              marginTop: 10,
+              backgroundColor: colors.secondaryContainer,
+            }}
+          />
+          <FlatList
+            style={{ marginTop: 30 }}
+            contentContainerStyle={{
+              rowGap: 10,
+              padding: 10,
+              paddingTop: 50,
+            }}
+            data={groupsSearched}
+            keyExtractor={g => g.id}
+            renderItem={renderGroup}
+          />
+        </View>
       )}
     </View>
   );

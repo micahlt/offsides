@@ -10,6 +10,7 @@ import {
   Image,
   StatusBar,
   InteractionManager,
+  useColorScheme,
 } from 'react-native';
 import {
   Appbar,
@@ -20,16 +21,22 @@ import {
   ProgressBar,
   TouchableRipple,
   FAB,
+  ThemeProvider,
 } from 'react-native-paper';
 import { AppContext } from '../App';
 import { useFocusEffect } from '@react-navigation/native';
 import Post from '../components/Post';
 import GroupPicker from '../components/GroupPicker';
 import useUniqueList from '../hooks/useUniqueList';
+import GroupAvatar from '../components/GroupAvatar';
+import { createMaterial3Theme } from '@pchmn/expo-material3-theme';
+import BottomSheet, { BottomSheetMethods } from '@devvie/bottom-sheet';
 
 const BORDER_RADIUS = 12;
 
 function HomeScreen({ navigation }) {
+  const sheetRef = React.useRef(null);
+  const [customTheme, setCustomTheme] = React.useState(false);
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const [postCategory, setPostCategory] = React.useState('hot');
@@ -37,15 +44,16 @@ function HomeScreen({ navigation }) {
   const [cursor, setCursor] = React.useState(
     /** @type {SidechatCursorString} */ (null),
   );
-  const { colors } = useTheme();
+  const theme = useTheme();
+  const colorScheme = useColorScheme();
+  const colors = theme.colors;
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [loadingPosts, setLoadingPosts] = React.useState(false);
-  const [renderedPostIds, setRenderedPostIds] = React.useState(new Set());
   const [currentGroupId, setCurrentGroupId] = React.useState(appState.groupID);
+  const [sheetIsOpen, setSheetIsOpen] = React.useState(false);
   const [posts, setPosts] = React.useState(
     /** @type {SidechatPostOrComment[]} */ ([]),
   );
-  const [groupPickerShown, setGroupPickerShown] = React.useState(false);
   useFocusEffect(() => {
     if (appState.groupID != currentGroupId) {
       setCurrentGroupId(appState.groupID);
@@ -54,6 +62,10 @@ function HomeScreen({ navigation }) {
   React.useEffect(() => {
     if (!loadingPosts) {
       InteractionManager.runAfterInteractions(() => {
+        if (appState.groupColor) {
+          const t = createMaterial3Theme(appState.groupColor);
+          setCustomTheme(colorScheme == 'dark' ? t.dark : t.light);
+        }
         if (appState.groupID && appState.userToken) {
           setCurrentGroupId(currentGroupId);
           setLoadingPosts(true);
@@ -66,7 +78,6 @@ function HomeScreen({ navigation }) {
   }, [postCategory, currentGroupId]);
   const uniquePosts = useUniqueList(posts);
   const renderItem = React.useCallback(each => {
-    // Check if the post has already been rendered
     return <Post post={each.item} nav={navigation} key={each.id} />;
   });
   const fetchPosts = refresh => {
@@ -92,46 +103,28 @@ function HomeScreen({ navigation }) {
     }
   };
   return (
-    <>
-      <StatusBar animated={true} backgroundColor={colors.background} />
-      <GroupPicker
-        visible={groupPickerShown}
-        hide={() => setGroupPickerShown(false)}
+    <ThemeProvider
+      theme={customTheme ? { ...theme, colors: { ...customTheme } } : theme}>
+      <StatusBar
+        animated={true}
+        backgroundColor={
+          customTheme ? customTheme.background : colors.background
+        }
       />
       {appState.groupName && (
         <Appbar.Header style={{ zIndex: 1 }}>
           <Appbar.Content
             title={
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <TouchableRipple
-                  onPress={() => setGroupPickerShown(true)}
-                  style={{ borderRadius: BORDER_RADIUS, marginRight: 15 }}
-                  borderless={true}>
-                  {appState.groupImage ? (
-                    <Image
-                      style={{
-                        height: 45,
-                        width: 45,
-                        borderRadius: BORDER_RADIUS,
-                      }}
-                      source={{ uri: appState.groupImage }}
-                    />
-                  ) : (
-                    <Avatar.Text
-                      size={45}
-                      label={
-                        appState.groupName.length < 3
-                          ? appState.groupName
-                          : appState.groupName.substring(0, 2)
-                      }
-                      style={{
-                        borderRadius: BORDER_RADIUS,
-                        backgroundColor:
-                          appState.groupColor || colors.primaryContainer,
-                      }}
-                    />
-                  )}
-                </TouchableRipple>
+                <GroupAvatar
+                  groupColor={appState.groupColor}
+                  groupImage={appState.groupImage}
+                  groupName={appState.groupName}
+                  onPress={() => sheetRef.current?.open()}
+                  onLongPress={() => sheetRef.current?.open()}
+                  borderRadius={BORDER_RADIUS}
+                  style={{ marginRight: 15 }}
+                />
                 {appState.groupName.length > 2 ? (
                   <Text
                     variant="headlineSmall"
@@ -162,7 +155,11 @@ function HomeScreen({ navigation }) {
               leadingIcon={postCategory == 'hot' ? 'check' : 'fire'}
               style={{
                 backgroundColor:
-                  postCategory == 'hot' ? colors.primaryContainer : null,
+                  postCategory == 'hot'
+                    ? customTheme
+                      ? customTheme.primaryContainer
+                      : colors.primaryContainer
+                    : null,
               }}
               onPress={() => {
                 setPostCategory('hot');
@@ -201,7 +198,13 @@ function HomeScreen({ navigation }) {
             onPress={() => navigation.push('MyProfile')}></Appbar.Action>
         </Appbar.Header>
       )}
-      <View style={{ ...style.container, backgroundColor: colors.background }}>
+      <View
+        style={{
+          ...style.container,
+          backgroundColor: customTheme
+            ? customTheme.background
+            : colors.background,
+        }}>
         <ProgressBar indeterminate={true} visible={loadingPosts} />
         <FlatList
           contentContainerStyle={{ gap: 10, padding: 10 }}
@@ -226,7 +229,22 @@ function HomeScreen({ navigation }) {
           }
         />
       </View>
-    </>
+      <BottomSheet
+        ref={sheetRef}
+        backdropMaskColor={colors.backdrop}
+        dragHandleStyle={{ backgroundColor: colors.outline }}
+        openDuration={250}
+        closeDuration={200}
+        height="80%"
+        style={{
+          backgroundColor: colors.surface,
+        }}
+        animationType="slide"
+        onClose={() => setSheetIsOpen(false)}
+        onOpen={() => setSheetIsOpen(true)}>
+        {sheetIsOpen && <GroupPicker sheetRef={sheetRef} />}
+      </BottomSheet>
+    </ThemeProvider>
   );
 }
 

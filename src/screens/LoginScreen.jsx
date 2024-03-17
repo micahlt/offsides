@@ -76,6 +76,22 @@ function LoginScreen({}) {
                 'groupImage',
                 res.logged_in_user.group.icon_url || '',
               );
+              await AsyncStorage.setItem(
+                'schoolGroupID',
+                res.logged_in_user.group.id,
+              );
+              await AsyncStorage.setItem(
+                'schoolGroupName',
+                res.logged_in_user.group.name,
+              );
+              await AsyncStorage.setItem(
+                'schoolGroupColor',
+                res.logged_in_user.group.color,
+              );
+              await AsyncStorage.setItem(
+                'schoolGroupImage',
+                res.logged_in_user.group.icon_url || '',
+              );
               RNRestart.restart();
             } else {
               if (res.registration_id) {
@@ -155,10 +171,17 @@ function LoginScreen({}) {
             await AsyncStorage.setItem('userID', res.user.id);
             if (res.group) {
               await AsyncStorage.setItem('groupID', res.group.id);
+              await AsyncStorage.setItem('schoolGroupID', res.group.id);
               await AsyncStorage.setItem('groupName', res.group.name);
+              await AsyncStorage.setItem('schoolGroupName', res.group.name);
               await AsyncStorage.setItem('groupColor', res.group.color);
+              await AsyncStorage.setItem('schoolGroupColor', res.group.color);
               await AsyncStorage.setItem(
                 'groupImage',
+                res.group.icon_url || '',
+              );
+              await AsyncStorage.setItem(
+                'schoolGroupImage',
                 res.group.icon_url || '',
               );
               RNRestart.restart();

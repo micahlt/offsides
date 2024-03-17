@@ -1,28 +1,29 @@
 import * as React from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import {
-  Dialog,
-  Portal,
+  ActivityIndicator,
   Button,
-  ProgressBar,
+  Card,
+  IconButton,
+  Text,
   useTheme,
 } from 'react-native-paper';
 import { AppContext } from '../App';
 import Group from './Group';
 
-function GroupPicker({ visible, hide }) {
+function GroupPicker({ sheetRef }) {
   const nav = useNavigation();
   const { colors } = useTheme();
   const { appState, setAppState } = React.useContext(AppContext);
   const API = appState.API;
   const [groups, setGroups] = React.useState(false);
-  const [loading, setLoading] = React.useState(true);
+  const [removeMode, setRemoveMode] = React.useState(false);
   React.useEffect(() => {
-    if (API && visible) {
+    if (API) {
       loadGroups();
     }
-  }, [visible, API]);
+  }, [API]);
   const loadGroups = async () => {
     const user = await API.getCurrentUser();
     Promise.all(
@@ -35,7 +36,6 @@ function GroupPicker({ visible, hide }) {
         else return false;
       });
       setGroups(data);
-      setLoading(false);
     });
   };
   const selectGroup = group => {
@@ -44,53 +44,79 @@ function GroupPicker({ visible, hide }) {
       groupID: group.id,
       groupName: group.name,
       groupImage: group?.icon_url || '',
+      groupColor: group.color,
     });
-    hide();
+    sheetRef?.current?.close();
+    setRemoveMode(false);
   };
   const explore = () => {
     nav.navigate('ExploreGroups');
-    hide();
+    sheetRef?.current?.close();
+    setRemoveMode(false);
   };
   return (
-    <Portal>
-      <Dialog
-        visible={visible}
-        onDismiss={hide}
-        style={{
-          backgroundColor: colors.elevation.level5,
-          marginTop: 150,
-          marginBottom: 150,
-        }}>
-        <Dialog.Title>Switch groups</Dialog.Title>
-        <ProgressBar indeterminate={true} visible={loading} />
-        <Dialog.ScrollArea style={{ paddingHorizontal: 0 }}>
-          {groups && (
-            <ScrollView
-              contentContainerStyle={{
-                padding: 10,
-                rowGap: 10,
-              }}>
-              {groups.map(group => (
-                <Group
-                  group={group}
-                  key={group.id}
-                  onPress={() => selectGroup(group)}
-                />
-              ))}
-            </ScrollView>
-          )}
-        </Dialog.ScrollArea>
-        <Dialog.Actions>
-          <Button onPress={hide}>Cancel</Button>
-          <Button
-            onPress={explore}
-            mode="contained-tonal"
-            style={{ paddingHorizontal: 5 }}>
-            Find more
-          </Button>
-        </Dialog.Actions>
-      </Dialog>
-    </Portal>
+    <View>
+      {groups ? (
+        <ScrollView
+          contentContainerStyle={{
+            padding: 10,
+            paddingBottom: 50,
+            rowGap: 10,
+          }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text variant="headlineMedium" style={{ paddingLeft: 10, flex: 1 }}>
+              Your groups
+            </Text>
+            <IconButton
+              icon={removeMode ? 'check' : 'pencil'}
+              mode={removeMode ? 'contained' : 'contained-tonal'}
+              style={{ marginRight: 10 }}
+              size={24}
+              onPress={() => setRemoveMode(!removeMode)}
+            />
+            <Button
+              icon="earth"
+              mode="contained"
+              onPress={explore}
+              style={{ marginLeft: 'auto', marginRight: 5 }}>
+              Explore
+            </Button>
+          </View>
+          <Card mode="elevated">
+            <Card.Title
+              title="Notice"
+              titleVariant="titleMedium"
+              titleStyle={{
+                color: colors.primary,
+                marginBottom: 0,
+              }}
+              style={{ paddingBottom: 0, marginBottom: -10 }}
+            />
+            <Card.Content>
+              <Text>
+                In future releases of Offsides, this modal will only appear when
+                you long press the group's icon.
+              </Text>
+            </Card.Content>
+          </Card>
+          {groups.map(group => (
+            <Group
+              group={group}
+              key={group.id}
+              onPress={() => selectGroup(group)}
+              removeMode={removeMode}
+              onRemove={() => alert('This feature is coming soon!')}
+            />
+          ))}
+        </ScrollView>
+      ) : (
+        <ActivityIndicator
+          animating={true}
+          size={64}
+          style={{ marginTop: '55%' }}
+        />
+      )}
+    </View>
   );
 }
 
