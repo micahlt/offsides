@@ -9,6 +9,7 @@ import {
   IconButton,
   useTheme,
 } from 'react-native-paper';
+import GroupAvatar from './GroupAvatar';
 
 function Group({
   group,
@@ -27,33 +28,14 @@ function Group({
       <Card mode={cardMode}>
         <Card.Content>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            {group.icon_url ? (
-              <Image
-                width={45}
-                height={45}
-                resizeMode="cover"
-                source={{ uri: group.icon_url }}
-                style={{
-                  borderRadius: 10,
-                  marginRight: 15,
-                  backgroundColor: group.color || colors.primaryContainer,
-                }}
-              />
-            ) : (
-              <Avatar.Text
-                size={45}
-                label={
-                  group.name.length < 3
-                    ? group.name
-                    : group.name.substring(0, 2)
-                }
-                style={{
-                  borderRadius: 10,
-                  marginRight: 15,
-                  backgroundColor: group.color || colors.primaryContainer,
-                }}
-              />
-            )}
+            <GroupAvatar
+              groupImage={group.icon_url}
+              groupColor={group.color}
+              groupName={group.name}
+              onPress={null}
+              onLongPress={null}
+              style={{ marginRight: 15 }}
+            />
             <Text variant="titleMedium" style={{ flex: 1 }}>
               {group.name}
             </Text>
