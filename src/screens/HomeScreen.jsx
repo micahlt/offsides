@@ -242,7 +242,10 @@ function HomeScreen({ navigation, route }) {
           onPress={() =>
             navigation.navigate('Writer', {
               mode: 'post',
-              groupID: currentGroupId,
+              groupID:
+                appState.groupName == 'Home'
+                  ? appState.schoolGroupID
+                  : currentGroupId,
             })
           }
         />

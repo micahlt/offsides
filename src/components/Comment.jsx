@@ -43,6 +43,21 @@ function Comment({ comment, nav }) {
     });
   };
 
+  const deleteComment = () => {
+    Alert.alert('Are you sure?', 'This will permanently delete this comment.', [
+      {
+        text: 'Confirm',
+        onPress: async () => {
+          await API.deletePostOrComment(post.id);
+          nav.navigate('Home');
+        },
+      },
+      {
+        text: 'Cancel',
+      },
+    ]);
+  };
+
   return (
     <Card
       style={{
@@ -90,9 +105,17 @@ function Comment({ comment, nav }) {
               ▶ {comment.reply_comment_alias}
             </Text>
           )}
-          <Text variant="labelLarge" style={{ marginLeft: 10 }}>
+          <Text variant="labelLarge" style={{ marginLeft: 10, flex: 1 }}>
             {timesago(comment.created_at)}
           </Text>
+          {comment.authored_by_user && (
+            <IconButton
+              icon="delete"
+              size={20}
+              style={{ marginRight: 0 }}
+              onPress={deleteComment}
+            />
+          )}
         </View>
 
         {comment.text.trim().length > 0 && (

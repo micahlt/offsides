@@ -1,5 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
+import { Alert, View } from 'react-native';
 import { Avatar, Card, IconButton, Text, useTheme } from 'react-native-paper';
 import timesago from 'timesago';
 import { AppContext } from '../App';
@@ -33,6 +33,25 @@ function Post({ post, nav, commentView = false }) {
       setVote(action);
       setVoteCount(res.post.vote_total);
     });
+  };
+
+  const deletePost = () => {
+    Alert.alert(
+      'Are you sure?',
+      'This will permanently delete this post and its associated comments.',
+      [
+        {
+          text: 'Confirm',
+          onPress: async () => {
+            await API.deletePostOrComment(post.id);
+            nav.navigate('Home');
+          },
+        },
+        {
+          text: 'Cancel',
+        },
+      ],
+    );
   };
 
   return (
@@ -69,9 +88,17 @@ function Post({ post, nav, commentView = false }) {
               }
             />
           )}
-          <Text variant="labelLarge" style={{ marginLeft: 10 }}>
+          <Text variant="labelLarge" style={{ marginLeft: 10, flex: 1 }}>
             {timesago(post.created_at)}
           </Text>
+          {post.authored_by_user && (
+            <IconButton
+              icon="delete"
+              size={20}
+              style={{ marginRight: 0 }}
+              onPress={deletePost}
+            />
+          )}
         </View>
 
         {post.text.trim().length > 0 && (

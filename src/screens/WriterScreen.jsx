@@ -11,8 +11,6 @@ import {
   TouchableRipple,
 } from 'react-native-paper';
 import { AppContext } from '../App';
-import { Image } from 'react-native-paper/lib/typescript/components/Avatar/Avatar';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BORDER_RADIUS = 10;
 
@@ -31,7 +29,6 @@ function WriterScreen({ navigation, route }) {
         navigation.navigate('Home');
       }
     } else if (mode == 'comment') {
-      const groupID = await AsyncStorage.getItem('groupID');
       const c = await API.createComment(postID, textContent, groupID, replyID);
       if (!c?.message) {
         navigation.goBack();

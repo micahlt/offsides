@@ -83,6 +83,7 @@ function CommentModal({ navigation, route }) {
             navigation.navigate('Writer', {
               mode: 'comment',
               postID: postID,
+              groupID: postObj.group.id,
             })
           }
         />
