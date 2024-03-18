@@ -41,14 +41,12 @@ function ExploreGroupsScreen({ navigation }) {
   };
 
   const selectGroup = group => {
-    setAppState({
-      ...appState,
+    navigation.navigate('Home', {
       groupID: group.id,
       groupName: group.name,
       groupImage: group.icon_url || '',
       groupColor: group.color,
     });
-    navigation.navigate('Home');
   };
 
   const groupsSearched = React.useMemo(() => {

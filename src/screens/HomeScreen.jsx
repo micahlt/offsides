@@ -31,13 +31,15 @@ import useUniqueList from '../hooks/useUniqueList';
 import GroupAvatar from '../components/GroupAvatar';
 import { createMaterial3Theme } from '@pchmn/expo-material3-theme';
 import BottomSheet, { BottomSheetMethods } from '@devvie/bottom-sheet';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BORDER_RADIUS = 12;
 
-function HomeScreen({ navigation }) {
+function HomeScreen({ navigation, route }) {
+  const { params } = route;
   const sheetRef = React.useRef(null);
   const [customTheme, setCustomTheme] = React.useState(false);
-  const { appState } = React.useContext(AppContext);
+  const { appState, setAppState } = React.useContext(AppContext);
   const API = appState.API;
   const [postCategory, setPostCategory] = React.useState('hot');
 
@@ -49,7 +51,9 @@ function HomeScreen({ navigation }) {
   const colors = theme.colors;
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [loadingPosts, setLoadingPosts] = React.useState(false);
-  const [currentGroupId, setCurrentGroupId] = React.useState(appState.groupID);
+  const [currentGroupId, setCurrentGroupId] = React.useState(
+    params?.groupID || appState.groupID,
+  );
   const [sheetIsOpen, setSheetIsOpen] = React.useState(false);
   const [posts, setPosts] = React.useState(
     /** @type {SidechatPostOrComment[]} */ ([]),
@@ -76,16 +80,28 @@ function HomeScreen({ navigation }) {
       });
     }
   }, [postCategory, currentGroupId]);
+  React.useEffect(() => {
+    if (params?.groupID) {
+      setAppState({
+        ...appState,
+        groupID: params.groupID,
+        groupName: params.groupName,
+        groupImage: params.groupImage || '',
+        groupColor: params.groupColor,
+      });
+      fetchPosts(true, params.groupID);
+    }
+  }, [params]);
   const uniquePosts = useUniqueList(posts);
   const renderItem = React.useCallback(each => {
     return <Post post={each.item} nav={navigation} key={each.id} />;
   });
-  const fetchPosts = refresh => {
+  const fetchPosts = (refresh, override) => {
     if (loadingPosts) return false;
     setLoadingPosts(true);
     if (refresh) {
       setPosts([]);
-      API.getGroupPosts(appState.groupID, postCategory).then(res => {
+      API.getGroupPosts(override || currentGroupId, postCategory).then(res => {
         if (res.posts) {
           setPosts(res.posts.filter(i => i.id));
           setCursor(res.cursor);
@@ -93,13 +109,15 @@ function HomeScreen({ navigation }) {
         setLoadingPosts(false);
       });
     } else {
-      API.getGroupPosts(appState.groupID, postCategory, cursor).then(res => {
-        if (res.posts) {
-          setPosts(posts.concat(res.posts.filter(i => i.id)));
-          setCursor(res.cursor);
-        }
-        setLoadingPosts(false);
-      });
+      API.getGroupPosts(override || currentGroupId, postCategory, cursor).then(
+        res => {
+          if (res.posts) {
+            setPosts(posts.concat(res.posts.filter(i => i.id)));
+            setCursor(res.cursor);
+          }
+          setLoadingPosts(false);
+        },
+      );
     }
   };
   return (

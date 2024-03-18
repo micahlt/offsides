@@ -59,6 +59,14 @@ function Post({ post, nav, commentView = false }) {
               groupColor={post.group.color}
               groupImage={post.group.icon_url}
               groupName={post.group.name}
+              onPress={() =>
+                nav.navigate('Home', {
+                  groupID: post.group.id,
+                  groupColor: post.group.color,
+                  groupImage: post.group.icon_url,
+                  groupName: post.group.name,
+                })
+              }
             />
           )}
           <Text variant="labelLarge" style={{ marginLeft: 10 }}>

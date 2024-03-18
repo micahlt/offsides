@@ -15,7 +15,7 @@ import Group from './Group';
 function GroupPicker({ sheetRef }) {
   const nav = useNavigation();
   const { colors } = useTheme();
-  const { appState, setAppState } = React.useContext(AppContext);
+  const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const [groups, setGroups] = React.useState(false);
   const [removeMode, setRemoveMode] = React.useState(false);
@@ -39,14 +39,13 @@ function GroupPicker({ sheetRef }) {
     });
   };
   const selectGroup = group => {
-    setAppState({
-      ...appState,
+    sheetRef?.current?.close();
+    nav.navigate('Home', {
       groupID: group.id,
       groupName: group.name,
       groupImage: group?.icon_url || '',
       groupColor: group.color,
     });
-    sheetRef?.current?.close();
     setRemoveMode(false);
   };
   const explore = () => {
