@@ -8118,10 +8118,10 @@ side-channel@^1.0.4:
     get-intrinsic "^1.2.4"
     object-inspect "^1.13.1"
 
-sidechat.js@^2.3.3:
-  version "2.3.3"
-  resolved "https://registry.npmjs.org/sidechat.js/-/sidechat.js-2.3.3.tgz"
-  integrity sha512-7A9skzTUdo2oqED6KlePsXPP1WYx8HzmLCxEYzub6H7bunsf+8nNY3MP8YwjXIAm7SSW+A0s4a1ep4RDohnd3w==
+sidechat.js@^2.3.7:
+  version "2.3.7"
+  resolved "https://registry.npmjs.org/sidechat.js/-/sidechat.js-2.3.7.tgz"
+  integrity sha512-2RlEbZesQ7eOC6LKL5STiIR0TLTuUPY58ZzOB77C4RQYthf8mxXAybA7jgWCnCAS75BKhpN5EDBrxvn7icLRUQ==
 
 signal-exit@^3.0.0, signal-exit@^3.0.2, signal-exit@^3.0.3, signal-exit@^3.0.7:
   version "3.0.7"

@@ -11,6 +11,7 @@ import {
   IconButton,
   Divider,
   Icon,
+  Button,
 } from 'react-native-paper';
 import { AppContext } from '../App';
 import timesago from 'timesago';
@@ -41,7 +42,13 @@ function MyProfileScreen({ navigation }) {
       <StatusBar animated={true} backgroundColor={colors.elevation.level2} />
       <Appbar.Header elevated={true}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content title="Your Profile" />
+        <Appbar.Content
+          title={
+            updates?.user?.username
+              ? `@${updates.user.username}`
+              : 'Your Profile'
+          }
+        />
         <Appbar.Action
           onPress={() => navigation.navigate('Settings')}
           icon="cog"
@@ -54,7 +61,7 @@ function MyProfileScreen({ navigation }) {
             <TouchableRipple
               borderless={true}
               style={{ borderRadius: BORDER_RADIUS }}
-              onPress={() => navigation.navigate('EditIcon')}>
+              onPress={() => navigation.navigate('EditProfile')}>
               {updates.user?.conversation_icon ? (
                 <Avatar.Text
                   size={64}
@@ -62,8 +69,7 @@ function MyProfileScreen({ navigation }) {
                   color="white"
                   style={{
                     backgroundColor:
-                      updates.user?.conversation_icon?.secondary_color ||
-                      colors.primary,
+                      updates.user?.conversation_icon?.color || colors.primary,
                     borderRadius: BORDER_RADIUS,
                   }}
                 />
@@ -75,12 +81,13 @@ function MyProfileScreen({ navigation }) {
                 />
               )}
             </TouchableRipple>
-            <IconButton
+            <Button
               icon="pencil"
               size={16}
               mode="contained-tonal"
-              onPress={() => navigation.navigate('EditIcon')}
-            />
+              onPress={() => navigation.navigate('EditProfile')}>
+              Edit
+            </Button>
             <Text
               variant="titleMedium"
               style={{ textAlign: 'right', flexGrow: 1, marginRight: 10 }}>

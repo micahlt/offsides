@@ -68,8 +68,7 @@ function Post({ post, nav, commentView = false }) {
               color="white"
               style={{
                 backgroundColor:
-                  post.identity?.conversation_icon?.secondary_color ||
-                  colors.primary,
+                  post.identity?.conversation_icon?.color || colors.primary,
                 borderRadius: BORDER_RADIUS,
               }}
             />
@@ -88,9 +87,23 @@ function Post({ post, nav, commentView = false }) {
               }
             />
           )}
-          <Text variant="labelLarge" style={{ marginLeft: 10, flex: 1 }}>
-            {timesago(post.created_at)}
-          </Text>
+          <View
+            style={{
+              justifyContent: 'center',
+              flexDirection: 'column',
+              flex: 1,
+            }}>
+            <Text variant="labelLarge" style={{ marginLeft: 10 }}>
+              {timesago(post.created_at)}
+            </Text>
+            {post.identity.name != 'Anonymous' && (
+              <Text
+                variant="labelSmall"
+                style={{ marginLeft: 10, opacity: 0.75 }}>
+                @{post.identity.name}
+              </Text>
+            )}
+          </View>
           {post.authored_by_user && (
             <IconButton
               icon="delete"

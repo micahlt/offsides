@@ -78,8 +78,7 @@ function Comment({ comment, nav }) {
               color="white"
               style={{
                 backgroundColor:
-                  comment.identity?.conversation_icon?.secondary_color ||
-                  colors.primary,
+                  comment.identity?.conversation_icon?.color || colors.primary,
                 borderRadius: BORDER_RADIUS,
               }}
             />
