@@ -62,7 +62,7 @@ function WriterScreen({ navigation, route }) {
               flex: 1,
               borderRadius: BORDER_RADIUS,
               borderBottomWidth: 0,
-              backgroundColor: colors.secondaryContainer,
+              backgroundColor: colors.elevation.level3,
               fontSize: 20,
               marginHorizontal: 10,
               marginVertical: 15,
