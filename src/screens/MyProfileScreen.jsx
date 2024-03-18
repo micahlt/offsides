@@ -128,7 +128,7 @@ function MyProfileScreen({ navigation }) {
             </Card>
             <Card style={{ flexGrow: 1 }}>
               <Card.Title
-                title="Karma from Posts"
+                title="Post Karma"
                 titleVariant="labelLarge"
                 titleStyle={{ minHeight: 10 }}
               />
@@ -146,7 +146,9 @@ function MyProfileScreen({ navigation }) {
               titleVariant="labelLarge"
               titleStyle={{ minHeight: 10 }}
             />
-            {updates.activity_items?.items ? (
+            {updates.activity_items?.items &&
+            updates.activity_items?.items?.filter(i => !i.is_seen).length >
+              0 ? (
               <Card.Content style={{ rowGap: 8 }}>
                 {updates.activity_items.items
                   .filter(i => !i.is_seen)
@@ -162,7 +164,7 @@ function MyProfileScreen({ navigation }) {
                   iconColor={colors.outline}
                 />
                 <Text style={{ marginBottom: 20, color: colors.outline }}>
-                  No activity yet.
+                  No recent activity
                 </Text>
               </Card.Content>
             )}

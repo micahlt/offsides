@@ -15,6 +15,7 @@ import useUniqueList from '../hooks/useUniqueList';
 function CommentModal({ navigation, route }) {
   /** @type {{postID: String, postObj: SidechatPostOrComment}} */
   const { postID, postObj } = route.params;
+  const [localPost, setLocalPost] = React.useState(postObj);
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const { colors } = useTheme();
@@ -34,6 +35,11 @@ function CommentModal({ navigation, route }) {
   );
   const fetchComments = () => {
     setLoadingComments(true);
+    if (!localPost && postID) {
+      API.getPost(postID).then(post => {
+        setLocalPost(post);
+      });
+    }
     API.getPostComments(postID).then(res => {
       setComments(res);
       setLoadingComments(false);
@@ -61,7 +67,7 @@ function CommentModal({ navigation, route }) {
           refreshing={loadingComments}
           ListHeaderComponent={
             <>
-              <Post post={postObj} commentView={true} />
+              <Post post={localPost} commentView={true} />
               <Divider
                 style={{ width: '100%', marginTop: 20, marginBottom: 10 }}
                 bold={true}
@@ -83,7 +89,7 @@ function CommentModal({ navigation, route }) {
             navigation.navigate('Writer', {
               mode: 'comment',
               postID: postID,
-              groupID: postObj.group.id,
+              groupID: localPost.group.id,
             })
           }
         />

@@ -64,12 +64,14 @@ function HomeScreen({ navigation, route }) {
     }
   });
   React.useEffect(() => {
+    if (appState.groupColor) {
+      const t = createMaterial3Theme(appState.groupColor);
+      setCustomTheme(colorScheme == 'dark' ? t.dark : t.light);
+    }
+  }, [appState?.groupColor]);
+  React.useEffect(() => {
     if (!loadingPosts) {
       InteractionManager.runAfterInteractions(() => {
-        if (appState.groupColor) {
-          const t = createMaterial3Theme(appState.groupColor);
-          setCustomTheme(colorScheme == 'dark' ? t.dark : t.light);
-        }
         if (appState.groupID && appState.userToken) {
           setCurrentGroupId(currentGroupId);
           setLoadingPosts(true);
