@@ -25,18 +25,8 @@ function GroupPicker({ sheetRef }) {
     }
   }, [API]);
   const loadGroups = async () => {
-    const user = await API.getCurrentUser();
-    Promise.all(
-      user.memberships.map(m => {
-        return API.getGroupMetadata(m.groupId);
-      }),
-    ).then(data => {
-      data = data.filter(g => {
-        if (g) return true;
-        else return false;
-      });
-      setGroups(data);
-    });
+    const updates = await API.getUpdates(appState.schoolGroupID);
+    setGroups(updates.groups);
   };
   const selectGroup = group => {
     sheetRef?.current?.close();

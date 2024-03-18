@@ -15,6 +15,7 @@ import {
 import { AppContext } from '../App';
 import timesago from 'timesago';
 import { useFocusEffect } from '@react-navigation/native';
+import ActivityItem from '../components/ActivityItem';
 
 const BORDER_RADIUS = 15;
 
@@ -22,28 +23,15 @@ function MyProfileScreen({ navigation }) {
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const [updates, setUpdates] = React.useState(false);
-  const [groups, setGroups] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const { colors } = useTheme();
   useFocusEffect(() => {
     loadProfile();
   });
   const loadProfile = async () => {
-    const group = await API.getUpdates(appState.groupID);
-    const user = await API.getCurrentUser();
-    Promise.all(
-      user.memberships.map(m => {
-        return API.getGroupMetadata(m.groupId);
-      }),
-    ).then(data => {
-      data = data.filter(g => {
-        if (g) return true;
-        else return false;
-      });
-      setGroups(data);
-      setUpdates(group);
-      setLoading(false);
-    });
+    const u = await API.getUpdates(appState.groupID);
+    setUpdates(u);
+    setLoading(false);
   };
   const s = StyleSheet.create({
     stat: { fontWeight: 900, color: colors.primary },
@@ -158,16 +146,26 @@ function MyProfileScreen({ navigation }) {
               titleVariant="labelLarge"
               titleStyle={{ minHeight: 10 }}
             />
-            <Card.Content style={{ alignItems: 'center' }}>
-              <IconButton
-                icon="bell-badge"
-                size={64}
-                iconColor={colors.outline}
-              />
-              <Text style={{ marginBottom: 20, color: colors.outline }}>
-                Activity coming soon!
-              </Text>
-            </Card.Content>
+            {updates.activity_items?.items ? (
+              <Card.Content style={{ rowGap: 8 }}>
+                {updates.activity_items.items
+                  .filter(i => !i.is_seen)
+                  .map(activity => (
+                    <ActivityItem activity={activity} key={activity.id} />
+                  ))}
+              </Card.Content>
+            ) : (
+              <Card.Content style={{ alignItems: 'center' }}>
+                <IconButton
+                  icon="bell-badge"
+                  size={64}
+                  iconColor={colors.outline}
+                />
+                <Text style={{ marginBottom: 20, color: colors.outline }}>
+                  No activity yet.
+                </Text>
+              </Card.Content>
+            )}
           </Card>
         </ScrollView>
       )}
