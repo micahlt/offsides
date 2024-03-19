@@ -129,6 +129,8 @@ function Post({ post, nav, commentView = false }) {
                 <AutoImage
                   src={asset.url}
                   fitWidth={width - 35}
+                  srcWidth={asset.width}
+                  srcHeight={asset.height}
                   token={API.userToken}
                   style={
                     post.text.trim().length < 1
@@ -144,7 +146,13 @@ function Post({ post, nav, commentView = false }) {
                   srcHeight={asset.height}
                   token={API.userToken}
                   src={asset.url}
+                  format={asset.content_type}
                   poster={asset.thumbnail_asset.url}
+                  style={
+                    post.text.trim().length < 1
+                      ? { marginTop: 10, marginBottom: 10 }
+                      : { marginBottom: 10 }
+                  }
                 />
               )}
             </React.Fragment>

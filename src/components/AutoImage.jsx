@@ -1,8 +1,17 @@
 import * as React from 'react';
 import { Image } from 'react-native';
-const AutoImage = ({ src, fitWidth = 0, token, style = {} }) => {
-  const [aspect, setAspect] = React.useState(0);
-  return (
+const AutoImage = ({
+  src,
+  fitWidth = 0,
+  srcWidth,
+  srcHeight,
+  token,
+  style = {},
+}) => {
+  const aspect = React.useMemo(() => {
+    return srcHeight / srcWidth;
+  }, []);
+  return React.useCallback(
     <Image
       source={{
         uri: src,
@@ -14,18 +23,11 @@ const AutoImage = ({ src, fitWidth = 0, token, style = {} }) => {
         width: fitWidth,
         height: fitWidth * aspect,
         borderRadius: 7,
-        marginBottom: 5,
         ...style,
       }}
       resizeMode="cover"
-      onLoad={({
-        nativeEvent: {
-          source: { width, height },
-        },
-      }) => {
-        setAspect(height / width);
-      }}
-    />
+    />,
+    [],
   );
 };
 

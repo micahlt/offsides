@@ -123,16 +123,41 @@ function Comment({ comment, nav }) {
           </Text>
         )}
 
-        {comment.assets.length > 0 &&
-          comment.assets[0].type == 'image' &&
-          width && (
-            <AutoImage
-              src={comment.assets[0].url}
-              fitWidth={width - 35}
-              token={API.userToken}
-              style={comment.text.trim().length < 1 ? { marginTop: 10 } : {}}
-            />
-          )}
+        {width &&
+          comment.assets.map(asset => (
+            <React.Fragment key={asset.id}>
+              {asset.type == 'image' && (
+                <AutoImage
+                  src={asset.url}
+                  fitWidth={width - 35}
+                  srcWidth={asset.width}
+                  srcHeight={asset.height}
+                  token={API.userToken}
+                  style={
+                    comment.text.trim().length < 1
+                      ? { marginTop: 10, marginBottom: 10 }
+                      : { marginBottom: 10 }
+                  }
+                />
+              )}
+              {asset.type == 'video' && (
+                <AutoVideo
+                  fitWidth={width - 35}
+                  srcWidth={asset.width}
+                  srcHeight={asset.height}
+                  token={API.userToken}
+                  src={asset.url}
+                  format={asset.content_type}
+                  poster={asset.thumbnail_asset.url}
+                  style={
+                    comment.text.trim().length < 1
+                      ? { marginTop: 10, marginBottom: 10 }
+                      : { marginBottom: 10 }
+                  }
+                />
+              )}
+            </React.Fragment>
+          ))}
 
         <View
           style={{

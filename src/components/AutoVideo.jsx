@@ -9,6 +9,7 @@ const AutoVideo = ({
   token,
   style = {},
   poster,
+  format,
 }) => {
   const aspect = React.useMemo(() => {
     return srcHeight / srcWidth;
@@ -16,12 +17,12 @@ const AutoVideo = ({
   return React.useCallback(
     <View
       style={{
-        borderRadius: 15,
+        borderRadius: 7,
         overflow: 'hidden',
         borderRadius: 10,
-        marginBottom: 8,
         width: fitWidth,
         height: fitWidth * aspect,
+        ...style,
       }}>
       <Video
         paused={true}
@@ -30,6 +31,7 @@ const AutoVideo = ({
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          type: 'm3u8',
         }}
         style={{ width: '100%', height: '100%' }}
         poster={poster || ''}
