@@ -5,6 +5,8 @@ import timesago from 'timesago';
 import { AppContext } from '../App';
 import AutoImage from './AutoImage';
 import GroupAvatar from './GroupAvatar';
+import Video from 'react-native-video';
+import AutoVideo from './AutoVideo';
 
 const BORDER_RADIUS = 12;
 
@@ -120,18 +122,33 @@ function Post({ post, nav, commentView = false }) {
           </Text>
         )}
 
-        {post.assets.length > 0 && post.assets[0].type == 'image' && width && (
-          <AutoImage
-            src={post.assets[0].url}
-            fitWidth={width - 35}
-            token={API.userToken}
-            style={
-              post.text.trim().length < 1
-                ? { marginTop: 10, marginBottom: 10 }
-                : { marginBottom: 10 }
-            }
-          />
-        )}
+        {width &&
+          post.assets.map(asset => (
+            <React.Fragment key={asset.id}>
+              {asset.type == 'image' && (
+                <AutoImage
+                  src={asset.url}
+                  fitWidth={width - 35}
+                  token={API.userToken}
+                  style={
+                    post.text.trim().length < 1
+                      ? { marginTop: 10, marginBottom: 10 }
+                      : { marginBottom: 10 }
+                  }
+                />
+              )}
+              {asset.type == 'video' && (
+                <AutoVideo
+                  fitWidth={width - 35}
+                  srcWidth={asset.width}
+                  srcHeight={asset.height}
+                  token={API.userToken}
+                  src={asset.url}
+                  poster={asset.thumbnail_asset.url}
+                />
+              )}
+            </React.Fragment>
+          ))}
 
         <View
           style={{
