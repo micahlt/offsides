@@ -8,6 +8,7 @@ import {
   TouchableRipple,
   IconButton,
   useTheme,
+  Button,
 } from 'react-native-paper';
 import GroupAvatar from './GroupAvatar';
 
@@ -40,13 +41,13 @@ function Group({
               {group.name}
             </Text>
             {removeMode ? (
-              <IconButton
-                icon="delete"
-                size={24}
-                style={{ height: 30, width: 30 }}
+              <Button
+                icon="account-minus"
                 onPress={() => onRemove(group.id)}
                 iconColor={colors.error}
-              />
+                mode="outlined">
+                Leave
+              </Button>
             ) : (
               <>
                 {group.membership_type == 'member' && (

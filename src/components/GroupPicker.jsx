@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Button,
   Card,
+  Chip,
   IconButton,
   Text,
   useTheme,
@@ -18,15 +19,21 @@ function GroupPicker({ sheetRef }) {
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const [groups, setGroups] = React.useState(false);
+  const [currentGroup, setCurrentGroup] = React.useState(false);
   const [removeMode, setRemoveMode] = React.useState(false);
   React.useEffect(() => {
     if (API) {
       loadGroups();
+      getCurrentGroup();
     }
   }, [API]);
   const loadGroups = async () => {
     const updates = await API.getUpdates(appState.schoolGroupID);
     setGroups(updates.groups);
+  };
+  const getCurrentGroup = async () => {
+    const g = await API.getGroupMetadata(appState.groupID);
+    setCurrentGroup(g);
   };
   const selectGroup = group => {
     sheetRef?.current?.close();
@@ -43,9 +50,26 @@ function GroupPicker({ sheetRef }) {
     sheetRef?.current?.close();
     setRemoveMode(false);
   };
+
+  const changeCurrentMembership = async () => {
+    const isCurrentlyMember = currentGroup.membership_type == 'member';
+    const a = await API.setGroupMembership(currentGroup.id, !isCurrentlyMember);
+    await a;
+    setCurrentGroup({
+      ...currentGroup,
+      membership_type: isCurrentlyMember ? 'non_member' : 'member',
+    });
+  };
+
+  const leaveGroup = async id => {
+    const leaveReq = await API.setGroupMembership(id);
+    await leaveReq;
+    setGroups(groups.filter(g => g.id != id));
+  };
+
   return (
     <View>
-      {groups ? (
+      {groups && currentGroup ? (
         <ScrollView
           contentContainerStyle={{
             padding: 10,
@@ -71,32 +95,64 @@ function GroupPicker({ sheetRef }) {
               Explore
             </Button>
           </View>
-          <Card mode="elevated">
+          <Card mode="elevated" style={{ marginBottom: 7 }}>
             <Card.Title
-              title="Notice"
+              title={appState.groupName}
+              right={() => (
+                <View style={{ flexDirection: 'row' }}>
+                  {appState.groupName != 'Home' &&
+                  appState.groupID != appState.schoolGroupID ? (
+                    <Chip
+                      icon={
+                        currentGroup.membership_type == 'member'
+                          ? 'account-remove'
+                          : 'plus'
+                      }
+                      style={{ marginRight: 5 }}
+                      onPress={changeCurrentMembership}>
+                      {currentGroup.membership_type == 'member'
+                        ? 'Leave'
+                        : 'Join'}
+                    </Chip>
+                  ) : (
+                    appState.groupID == appState.schoolGroupID && (
+                      <Chip
+                        icon="school"
+                        style={{ marginRight: 5 }}
+                        mode="outlined">
+                        School
+                      </Chip>
+                    )
+                  )}
+                  <Chip style={{ marginRight: 15 }} mode="outlined">
+                    Current
+                  </Chip>
+                </View>
+              )}
               titleVariant="titleMedium"
               titleStyle={{
                 color: colors.primary,
                 marginBottom: 0,
               }}
-              style={{ paddingBottom: 0, marginBottom: -10 }}
+              style={{ paddingBottom: 0, marginBottom: -2 }}
             />
-            <Card.Content>
-              <Text>
-                In future releases of Offsides, this modal will only appear when
-                you long press the group's icon.
-              </Text>
-            </Card.Content>
+            {currentGroup.description && (
+              <Card.Content style={{ marginTop: -5 }}>
+                <Text>{currentGroup.description}</Text>
+              </Card.Content>
+            )}
           </Card>
-          {groups.map(group => (
-            <Group
-              group={group}
-              key={group.id}
-              onPress={() => selectGroup(group)}
-              removeMode={removeMode}
-              onRemove={() => alert('This feature is coming soon!')}
-            />
-          ))}
+          {groups
+            .filter(g => g.id != currentGroup.id)
+            .map(group => (
+              <Group
+                group={group}
+                key={group.id}
+                onPress={() => selectGroup(group)}
+                removeMode={removeMode}
+                onRemove={() => leaveGroup(group.id)}
+              />
+            ))}
         </ScrollView>
       ) : (
         <ActivityIndicator

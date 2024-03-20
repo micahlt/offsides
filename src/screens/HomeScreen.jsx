@@ -141,7 +141,6 @@ function HomeScreen({ navigation, route }) {
                   groupImage={appState.groupImage}
                   groupName={appState.groupName}
                   onPress={() => sheetRef.current?.open()}
-                  onLongPress={() => sheetRef.current?.open()}
                   borderRadius={BORDER_RADIUS}
                   style={{ marginRight: 15 }}
                 />
@@ -257,7 +256,7 @@ function HomeScreen({ navigation, route }) {
         backdropMaskColor={colors.backdrop}
         dragHandleStyle={{ backgroundColor: colors.outline }}
         openDuration={550}
-        closeDuration={200}
+        closeDuration={250}
         height="80%"
         style={{
           backgroundColor: colors.surface,
