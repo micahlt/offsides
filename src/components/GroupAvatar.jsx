@@ -6,10 +6,12 @@ function GroupAvatar({
   groupName,
   groupImage,
   groupColor,
-  onPress = () => {},
-  onLongPress = () => {},
+  onPress,
+  onLongPress,
   borderRadius = 12,
   style = {},
+  size = 45,
+  clickableByDefault = true,
 }) {
   const { colors } = useTheme();
   const ComponentOption = React.useCallback(() => {
@@ -17,7 +19,7 @@ function GroupAvatar({
       return (
         <Avatar.Icon
           icon="home"
-          size={45}
+          size={size}
           style={{
             borderRadius: borderRadius,
             backgroundColor: groupColor || colors.primaryContainer,
@@ -28,8 +30,8 @@ function GroupAvatar({
       return (
         <Image
           style={{
-            height: 45,
-            width: 45,
+            height: size,
+            width: size,
             borderRadius: borderRadius,
           }}
           source={{ uri: groupImage }}
@@ -38,7 +40,7 @@ function GroupAvatar({
     } else {
       return (
         <Avatar.Text
-          size={45}
+          size={size}
           label={groupName.length < 3 ? groupName : groupName.substring(0, 2)}
           style={{
             borderRadius: borderRadius,
@@ -50,8 +52,8 @@ function GroupAvatar({
   }, [groupName]);
   return (
     <TouchableRipple
-      onPress={onPress}
-      onLongPress={onLongPress}
+      onPress={clickableByDefault ? onPress : null}
+      onLongPress={clickableByDefault ? onLongPress : null}
       style={{ borderRadius: borderRadius, ...style }}
       borderless={true}>
       <ComponentOption />

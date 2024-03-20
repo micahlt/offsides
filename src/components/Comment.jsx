@@ -12,6 +12,7 @@ import {
 import timesago from 'timesago';
 import { AppContext } from '../App';
 import AutoImage from './AutoImage';
+import UserAvatar from './UserAvatar.jsx';
 
 const BORDER_RADIUS = 10;
 
@@ -69,28 +70,12 @@ function Comment({ comment, nav }) {
       mode="contained">
       <Card.Content>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          {comment?.identity?.conversation_icon ? (
-            <Avatar.Text
-              size={46}
-              label={String(
-                comment?.identity?.conversation_icon?.emoji || '‼️',
-              )}
-              color="white"
-              style={{
-                backgroundColor:
-                  comment.identity?.conversation_icon?.color || colors.primary,
-                borderRadius: BORDER_RADIUS,
-              }}
-            />
-          ) : (
-            <Avatar.Text
-              size={46}
-              label={
-                comment.identity.name.length < 3 ? comment.identity.name : '💬'
-              }
-              style={{ borderRadius: BORDER_RADIUS }}
-            />
-          )}
+          <UserAvatar
+            group={comment.group}
+            conversationIcon={comment?.identity?.conversation_icon}
+            size={46}
+            borderRadius={BORDER_RADIUS}
+          />
           {comment.reply_comment_alias && (
             <Text
               variant="titleMedium"

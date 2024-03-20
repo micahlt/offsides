@@ -5,8 +5,8 @@ import timesago from 'timesago';
 import { AppContext } from '../App';
 import AutoImage from './AutoImage';
 import GroupAvatar from './GroupAvatar';
-import Video from 'react-native-video';
 import AutoVideo from './AutoVideo';
+import UserAvatar from './UserAvatar';
 
 const BORDER_RADIUS = 12;
 
@@ -65,32 +65,12 @@ function Post({ post, nav, commentView = false, repost = false }) {
       style={repost ? { marginBottom: 10 } : {}}>
       <Card.Content>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          {post?.identity?.conversation_icon ? (
-            <Avatar.Text
-              size={46}
-              label={String(post?.identity?.conversation_icon?.emoji || '‼️')}
-              color="white"
-              style={{
-                backgroundColor:
-                  post.identity?.conversation_icon?.color || colors.primary,
-                borderRadius: BORDER_RADIUS,
-              }}
-            />
-          ) : (
-            <GroupAvatar
-              groupColor={post.group.color}
-              groupImage={post.group.icon_url}
-              groupName={post.group.name}
-              onPress={() =>
-                nav.navigate('Home', {
-                  groupID: post.group.id,
-                  groupColor: post.group.color,
-                  groupImage: post.group.icon_url,
-                  groupName: post.group.name,
-                })
-              }
-            />
-          )}
+          <UserAvatar
+            group={post.group}
+            conversationIcon={post?.identity?.conversation_icon}
+            size={46}
+            borderRadius={BORDER_RADIUS}
+          />
           <View
             style={{
               justifyContent: 'center',

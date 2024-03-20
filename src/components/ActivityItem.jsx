@@ -11,6 +11,7 @@ import {
 } from 'react-native-paper';
 import timesago from 'timesago';
 import { AppContext } from '../App';
+import UserAvatar from './UserAvatar';
 
 function ActivityItem({ activity }) {
   const {
@@ -112,24 +113,7 @@ function ActivityItem({ activity }) {
             <Text variant="bodySmall">{timesago(activity.timestamp)}</Text>
           </View>
           <View style={{ flexDirection: 'row' }}>
-            {activity.conversation_icon ? (
-              <Avatar.Text
-                size={46}
-                label={String(activity.conversation_icon?.emoji || '‼️')}
-                color="white"
-                style={{
-                  backgroundColor:
-                    activity.conversation_icon?.color || colors.primary,
-                  borderRadius: 10,
-                }}
-              />
-            ) : (
-              <Avatar.Text
-                size={46}
-                label={activity.username.length < 3 ? activity.username : '💬'}
-                style={{ borderRadius: 10 }}
-              />
-            )}
+            <UserAvatar conversationIcon={activity.conversation_icon} />
             <Text
               variant="bodyMedium"
               style={{ marginLeft: 10, color: colors.secondary }}>
