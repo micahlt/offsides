@@ -5,6 +5,7 @@ import {
   Card,
   Icon,
   Text,
+  Avatar,
   TouchableRipple,
   useTheme,
 } from 'react-native-paper';
@@ -79,6 +80,62 @@ function ActivityItem({ activity }) {
           <Text variant="bodyMedium" style={{ color: colors.secondary }}>
             {activity.text.replaceAll('📈 ', '')}
           </Text>
+        </Card.Content>
+      );
+    } else if (activity.type.includes('comment')) {
+      return (
+        <Card.Content style={{ padding: 15 }}>
+          <View style={{ flexDirection: 'row', marginBottom: 5 }}>
+            <Icon source="message" color={colors.primary} size={20}></Icon>
+            <Text
+              variant="labelLarge"
+              style={{ marginLeft: 5, color: colors.primary, flex: 1 }}>
+              {activity.type == 'comment_reply' ? 'Comment reply' : 'Comment'}
+            </Text>
+            <Text variant="bodySmall">{timesago(activity.timestamp)}</Text>
+          </View>
+          <Text variant="bodyMedium" style={{ color: colors.secondary }}>
+            {activity.text}
+          </Text>
+        </Card.Content>
+      );
+    } else if (activity.type == 'new_follower') {
+      return (
+        <Card.Content style={{ padding: 15 }}>
+          <View style={{ flexDirection: 'row', marginBottom: 5 }}>
+            <Icon source="account-plus" color={colors.primary} size={20}></Icon>
+            <Text
+              variant="labelLarge"
+              style={{ marginLeft: 5, color: colors.primary, flex: 1 }}>
+              New follower
+            </Text>
+            <Text variant="bodySmall">{timesago(activity.timestamp)}</Text>
+          </View>
+          <View style={{ flexDirection: 'row' }}>
+            {activity.conversation_icon ? (
+              <Avatar.Text
+                size={46}
+                label={String(activity.conversation_icon?.emoji || '‼️')}
+                color="white"
+                style={{
+                  backgroundColor:
+                    activity.conversation_icon?.color || colors.primary,
+                  borderRadius: 10,
+                }}
+              />
+            ) : (
+              <Avatar.Text
+                size={46}
+                label={activity.username.length < 3 ? activity.username : '💬'}
+                style={{ borderRadius: 10 }}
+              />
+            )}
+            <Text
+              variant="bodyMedium"
+              style={{ marginLeft: 10, color: colors.secondary }}>
+              {activity.text}
+            </Text>
+          </View>
         </Card.Content>
       );
     }
