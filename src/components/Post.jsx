@@ -10,7 +10,7 @@ import AutoVideo from './AutoVideo';
 
 const BORDER_RADIUS = 12;
 
-function Post({ post, nav, commentView = false }) {
+function Post({ post, nav, commentView = false, repost = false }) {
   if (!post) {
     return <></>;
   }
@@ -60,7 +60,9 @@ function Post({ post, nav, commentView = false }) {
     <Card
       onLayout={event => {
         setWidth(event.nativeEvent.layout.width);
-      }}>
+      }}
+      mode={repost ? 'outlined' : 'elevated'}
+      style={repost ? { marginBottom: 10 } : {}}>
       <Card.Content>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {post?.identity?.conversation_icon ? (
@@ -157,6 +159,10 @@ function Post({ post, nav, commentView = false }) {
               )}
             </React.Fragment>
           ))}
+
+        {post.quote_post && !repost && (
+          <Post post={post.quote_post.post} nav={nav} repost={true} />
+        )}
 
         <View
           style={{

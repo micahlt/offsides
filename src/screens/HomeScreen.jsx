@@ -229,8 +229,7 @@ function HomeScreen({ navigation, route }) {
           contentContainerStyle={{ gap: 10, padding: 10 }}
           data={uniquePosts}
           renderItem={renderItem}
-          estimatedItemSize={350}
-          windowSize={10}
+          estimatedItemSize={450}
           onRefresh={() => fetchPosts(true)}
           refreshing={loadingPosts}
           onEndReachedThreshold={0.5}
