@@ -200,7 +200,7 @@ function EditProfileScreen({ navigation }) {
               Choose a theme
             </Text>
             <ScrollView horizontal={true} style={{ gap: 10, padding: 15 }}>
-              {SidechatColorList.colors.map((theme, i) => (
+              {new SidechatColorList().colors.map((theme, i) => (
                 <ThemeCard
                   colors={theme}
                   key={i}
