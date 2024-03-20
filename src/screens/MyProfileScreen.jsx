@@ -94,7 +94,7 @@ function MyProfileScreen({ navigation }) {
               joined {timesago(updates.user.created_at)}
             </Text>
           </View>
-          <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
             <Card style={{ flexGrow: 1 }}>
               <Card.Title
                 title="Followers"
@@ -109,18 +109,18 @@ function MyProfileScreen({ navigation }) {
             </Card>
             <Card style={{ flexGrow: 1 }}>
               <Card.Title
-                title="Yakarma"
+                title="Post Karma"
                 titleVariant="labelLarge"
                 titleStyle={{ minHeight: 10 }}
               />
               <Card.Content>
                 <Text variant="titleLarge" style={s.stat}>
-                  {updates.karma?.groups[0]?.yakarma}
+                  {updates.karma.post}
                 </Text>
               </Card.Content>
             </Card>
           </View>
-          <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
             <Card style={{ flexGrow: 1 }}>
               <Card.Title
                 title="Groups"
@@ -135,13 +135,13 @@ function MyProfileScreen({ navigation }) {
             </Card>
             <Card style={{ flexGrow: 1 }}>
               <Card.Title
-                title="Post Karma"
+                title="Comment Karma"
                 titleVariant="labelLarge"
                 titleStyle={{ minHeight: 10 }}
               />
               <Card.Content>
                 <Text variant="titleLarge" style={s.stat}>
-                  {updates.karma.post}
+                  {updates.karma.comment}
                 </Text>
               </Card.Content>
             </Card>

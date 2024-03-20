@@ -180,6 +180,7 @@ function Comment({ comment, nav }) {
                 mode: 'comment',
                 postID: comment.parent_post_id,
                 replyID: comment.id,
+                groupID: comment.group.id,
               })
             }>
             Reply
