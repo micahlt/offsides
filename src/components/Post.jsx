@@ -1,16 +1,21 @@
 import React from 'react';
 import { Alert, View } from 'react-native';
-import { Avatar, Card, IconButton, Text, useTheme } from 'react-native-paper';
+import { Card, IconButton, Text, useTheme } from 'react-native-paper';
 import timesago from 'timesago';
 import { AppContext } from '../App';
 import AutoImage from './AutoImage';
-import GroupAvatar from './GroupAvatar';
 import AutoVideo from './AutoVideo';
 import UserAvatar from './UserAvatar';
 
 const BORDER_RADIUS = 12;
 
-function Post({ post, nav, commentView = false, repost = false }) {
+function Post({
+  post,
+  nav,
+  commentView = false,
+  repost = false,
+  cardMode = repost ? 'outlined' : 'elevated',
+}) {
   if (!post) {
     return <></>;
   }
@@ -61,7 +66,7 @@ function Post({ post, nav, commentView = false, repost = false }) {
       onLayout={event => {
         setWidth(event.nativeEvent.layout.width);
       }}
-      mode={repost ? 'outlined' : 'elevated'}
+      mode={cardMode}
       style={repost ? { marginBottom: 10 } : {}}>
       <Card.Content>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>

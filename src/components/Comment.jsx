@@ -20,7 +20,7 @@ const BORDER_RADIUS = 10;
  * @param {{ comment: SidechatPostOrComment }} props
  * @returns
  */
-function Comment({ comment, nav }) {
+function Comment({ comment, nav, isolated = false }) {
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const { colors } = useTheme();
@@ -62,7 +62,11 @@ function Comment({ comment, nav }) {
   return (
     <Card
       style={{
-        marginLeft: comment.reply_post_id != comment.parent_post_id ? 20 : 0,
+        marginLeft: isolated
+          ? 0
+          : comment.reply_post_id != comment.parent_post_id
+          ? 20
+          : 0,
       }}
       onLayout={event => {
         setWidth(event.nativeEvent.layout.width);
@@ -151,25 +155,29 @@ function Comment({ comment, nav }) {
             marginLeft: -8,
             marginBottom: -2,
           }}>
-          <IconButton
-            icon="share-outline"
-            onPress={() => {}}
-            style={{ margin: 0 }}
-            size={24}
-            iconColor={colors.onSurfaceDisabled}
-          />
-          <Button
-            mode="text"
-            onPress={() =>
-              nav.navigate('Writer', {
-                mode: 'comment',
-                postID: comment.parent_post_id,
-                replyID: comment.id,
-                groupID: comment.group.id,
-              })
-            }>
-            Reply
-          </Button>
+          {!isolated && (
+            <IconButton
+              icon="share-outline"
+              onPress={() => {}}
+              style={{ margin: 0 }}
+              size={24}
+              iconColor={colors.onSurfaceDisabled}
+            />
+          )}
+          {!isolated && (
+            <Button
+              mode="text"
+              onPress={() =>
+                nav.navigate('Writer', {
+                  mode: 'comment',
+                  postID: comment.parent_post_id,
+                  replyID: comment.id,
+                  groupID: comment.group.id,
+                })
+              }>
+              Reply
+            </Button>
+          )}
           <View style={{ flexGrow: 1 }}></View>
           <IconButton
             icon="arrow-up-thick"

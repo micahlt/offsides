@@ -10,6 +10,7 @@ import {
   Snackbar,
   TextInput,
   Text,
+  HelperText,
 } from 'react-native-paper';
 import { AppContext } from '../App';
 import EmojiPicker from 'rn-emoji-keyboard';
@@ -106,11 +107,14 @@ function EditProfileScreen({ navigation }) {
             <TextInput
               label="username"
               mode="outlined"
-              style={{ width: '100%', marginBottom: 20, minWidth: 200 }}
+              style={{ width: '100%', minWidth: 200 }}
               value={username}
               onChangeText={setUsername}
               error={usernameError}
             />
+            <HelperText visible={usernameError} type="error">
+              You can't set that as your username.
+            </HelperText>
             <TouchableRipple
               borderless={true}
               style={{
@@ -199,7 +203,11 @@ function EditProfileScreen({ navigation }) {
             <Text variant="headlineMedium" style={{ paddingLeft: 15 }}>
               Choose a theme
             </Text>
-            <ScrollView horizontal={true} style={{ gap: 10, padding: 15 }}>
+            <ScrollView
+              horizontal={true}
+              style={{ gap: 10, paddingTop: 15 }}
+              contentContainerStyle={{ paddingLeft: 10, paddingRight: 10 }}
+              showsHorizontalScrollIndicator={false}>
               {new SidechatColorList().colors.map((theme, i) => (
                 <ThemeCard
                   colors={theme}

@@ -18,27 +18,29 @@ function UserAvatar({ conversationIcon, group, size = 45, borderRadius = 12 }) {
               backgroundColor: conversationIcon.color || colors.primary,
               borderRadius: borderRadius,
             }}></Avatar.Text>
-          <GroupAvatar
-            groupColor={group.color}
-            groupImage={group.icon_url}
-            groupName={group.name}
-            onPress={() =>
-              nav.navigate('Home', {
-                groupID: group.id,
-                groupColor: group.color,
-                groupImage: group.icon_url,
-                groupName: group.name,
-              })
-            }
-            style={{
-              position: 'absolute',
-              bottom: 5 - size / 5,
-              left: size - 5 - size / 5,
-              overflow: 'hidden',
-            }}
-            size={20}
-            borderRadius={borderRadius / 2}
-          />
+          {group && (
+            <GroupAvatar
+              groupColor={group.color}
+              groupImage={group.icon_url}
+              groupName={group.name}
+              onPress={() =>
+                nav.navigate('Home', {
+                  groupID: group.id,
+                  groupColor: group.color,
+                  groupImage: group.icon_url,
+                  groupName: group.name,
+                })
+              }
+              style={{
+                position: 'absolute',
+                bottom: 5 - size / 5,
+                left: size - 5 - size / 5,
+                overflow: 'hidden',
+              }}
+              size={20}
+              borderRadius={borderRadius / 2}
+            />
+          )}
         </>
       ) : (
         <GroupAvatar

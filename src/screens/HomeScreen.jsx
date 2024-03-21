@@ -234,6 +234,7 @@ function HomeScreen({ navigation, route }) {
           refreshing={loadingPosts}
           onEndReachedThreshold={0.5}
           onEndReached={() => fetchPosts(false)}
+          windowSize={10}
         />
         <FAB
           icon="plus"

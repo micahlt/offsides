@@ -12,11 +12,12 @@ import {
   Divider,
   Icon,
   Button,
+  Chip,
 } from 'react-native-paper';
 import { AppContext } from '../App';
 import timesago from 'timesago';
 import { useFocusEffect } from '@react-navigation/native';
-import ActivityItem from '../components/ActivityItem';
+import UserContent from '../components/UserContent';
 
 const BORDER_RADIUS = 15;
 
@@ -38,7 +39,11 @@ function MyProfileScreen({ navigation }) {
     stat: { fontWeight: 900, color: colors.primary },
   });
   return (
-    <View style={{ backgroundColor: colors.background, flex: 1 }}>
+    <View
+      style={{
+        backgroundColor: colors.background,
+        flex: 1,
+      }}>
       <StatusBar animated={true} backgroundColor={colors.elevation.level2} />
       <Appbar.Header elevated={true}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
@@ -54,9 +59,16 @@ function MyProfileScreen({ navigation }) {
           icon="cog"
         />
       </Appbar.Header>
-      <ProgressBar indeterminate={true} visible={loading} />
+      {loading && <ProgressBar indeterminate={true} visible={true} />}
       {updates?.user && (
-        <ScrollView contentContainerStyle={{ rowGap: 10, padding: 10 }}>
+        <View
+          style={{
+            rowGap: 10,
+            padding: 10,
+            flex: 1,
+            justifyContent: 'flex-start',
+            flexDirection: 'column',
+          }}>
           <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
             <TouchableRipple
               borderless={true}
@@ -147,36 +159,8 @@ function MyProfileScreen({ navigation }) {
             </Card>
           </View>
           <Divider />
-          <Card>
-            <Card.Title
-              title="Activity"
-              titleVariant="labelLarge"
-              titleStyle={{ minHeight: 10 }}
-            />
-            {updates.activity_items?.items &&
-            updates.activity_items?.items?.filter(i => !i.is_seen).length >
-              0 ? (
-              <Card.Content style={{ rowGap: 8 }}>
-                {updates.activity_items.items
-                  .filter(i => !i.is_seen)
-                  .map(activity => (
-                    <ActivityItem activity={activity} key={activity.id} />
-                  ))}
-              </Card.Content>
-            ) : (
-              <Card.Content style={{ alignItems: 'center' }}>
-                <IconButton
-                  icon="bell-badge"
-                  size={64}
-                  iconColor={colors.outline}
-                />
-                <Text style={{ marginBottom: 20, color: colors.outline }}>
-                  No recent activity
-                </Text>
-              </Card.Content>
-            )}
-          </Card>
-        </ScrollView>
+          <UserContent updates={updates} />
+        </View>
       )}
     </View>
   );
