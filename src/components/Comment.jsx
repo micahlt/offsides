@@ -77,7 +77,13 @@ function Comment({ comment, nav, isolated = false }) {
           <UserAvatar
             group={comment.group}
             conversationIcon={comment?.identity?.conversation_icon}
+            numberAlias={
+              !comment?.identity?.posted_with_username
+                ? comment.identity.name
+                : false
+            }
             size={46}
+            hideGroup={true}
             borderRadius={BORDER_RADIUS}
           />
           {comment.reply_comment_alias && (

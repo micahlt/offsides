@@ -33,7 +33,7 @@
     "reanimated-color-picker": "^3.0.3",
     "rn-emoji-keyboard": "^1.6.1",
     "semver": "^7.6.0",
-    "sidechat.js": "^2.3.8",
+    "sidechat.js": "^2.4.0",
     "timesago": "^1.0.1"
   },
   "devDependencies": {

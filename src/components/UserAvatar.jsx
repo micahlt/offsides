@@ -3,22 +3,30 @@ import { Avatar, Badge, useTheme } from 'react-native-paper';
 import GroupAvatar from './GroupAvatar';
 import { useNavigation } from '@react-navigation/native';
 
-function UserAvatar({ conversationIcon, group, size = 45, borderRadius = 12 }) {
+function UserAvatar({
+  conversationIcon,
+  group,
+  size = 45,
+  borderRadius = 12,
+  numberAlias,
+  hideGroup = false,
+}) {
   const nav = useNavigation();
   const { colors } = useTheme();
   return React.useCallback(
     <>
-      {conversationIcon?.emoji ? (
+      {conversationIcon?.emoji || numberAlias ? (
         <>
           <Avatar.Text
             size={size}
-            label={String(conversationIcon.emoji)}
-            color="white"
+            label={String(conversationIcon?.emoji || numberAlias)}
+            color={conversationIcon ? 'white' : undefined}
             style={{
-              backgroundColor: conversationIcon.color || colors.primary,
+              backgroundColor:
+                conversationIcon?.color || group?.color || colors.primary,
               borderRadius: borderRadius,
             }}></Avatar.Text>
-          {group && (
+          {group && !hideGroup && (
             <GroupAvatar
               groupColor={group.color}
               groupImage={group.icon_url}
