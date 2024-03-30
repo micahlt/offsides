@@ -79,8 +79,8 @@ android {
         applicationId "com.micahlindley.offsides"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 24
-        versionName "0.5.8"
+        versionCode 25
+        versionName "0.5.9"
     }
     signingConfigs {
         debug {
