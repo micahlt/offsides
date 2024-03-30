@@ -1,12 +1,12 @@
 import React from 'react';
-import { FlatList, ScrollView, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 import {
   Card,
-  Chip,
   Text,
   IconButton,
   useTheme,
   SegmentedButtons,
+  Button,
 } from 'react-native-paper';
 import ActivityItem from '../components/ActivityItem';
 import Post from './Post';
@@ -67,6 +67,7 @@ const ItemList = ({ updates, view, style }) => {
                   paddingTop: 15,
                   paddingBottom: 15,
                 }}
+                keyExtractor={item => item.id}
                 renderItem={a => (
                   <ActivityItem activity={a.item} key={a.item.id} />
                 )}

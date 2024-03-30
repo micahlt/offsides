@@ -32,7 +32,7 @@ function UserAvatar({
               groupImage={group.icon_url}
               groupName={group.name}
               onPress={() =>
-                nav.navigate('Home', {
+                nav.push('Home', {
                   groupID: group.id,
                   groupColor: group.color,
                   groupImage: group.icon_url,
@@ -56,7 +56,7 @@ function UserAvatar({
           groupImage={group.icon_url}
           groupName={group.name}
           onPress={() =>
-            nav.navigate('Home', {
+            nav.push('Home', {
               groupID: group.id,
               groupColor: group.color,
               groupImage: group.icon_url,

@@ -67,7 +67,7 @@ function CommentModal({ navigation, route }) {
           refreshing={loadingComments}
           ListHeaderComponent={
             <>
-              <Post post={localPost} commentView={true} />
+              <Post post={localPost} commentView={true} nav={navigation} />
               <Divider
                 style={{ width: '100%', marginTop: 20, marginBottom: 10 }}
                 bold={true}
@@ -86,7 +86,7 @@ function CommentModal({ navigation, route }) {
           label="Comment"
           style={{ position: 'absolute', bottom: 20, right: 20 }}
           onPress={() =>
-            navigation.navigate('Writer', {
+            navigation.push('Writer', {
               mode: 'comment',
               postID: postID,
               groupID: localPost.group.id,

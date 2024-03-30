@@ -50,7 +50,7 @@ function Comment({ comment, nav, isolated = false }) {
         text: 'Confirm',
         onPress: async () => {
           await API.deletePostOrComment(post.id);
-          nav.navigate('Home');
+          nav.replace('Home');
         },
       },
       {
@@ -174,7 +174,7 @@ function Comment({ comment, nav, isolated = false }) {
             <Button
               mode="text"
               onPress={() =>
-                nav.navigate('Writer', {
+                nav.push('Writer', {
                   mode: 'comment',
                   postID: comment.parent_post_id,
                   replyID: comment.id,

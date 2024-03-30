@@ -37,16 +37,17 @@ function GroupPicker({ sheetRef }) {
   };
   const selectGroup = group => {
     sheetRef?.current?.close();
-    nav.navigate('Home', {
+    nav.push('Home', {
       groupID: group.id,
       groupName: group.name,
       groupImage: group?.icon_url || '',
       groupColor: group.color,
+      animation: 'none',
     });
     setRemoveMode(false);
   };
   const explore = () => {
-    nav.navigate('ExploreGroups');
+    nav.push('ExploreGroups');
     sheetRef?.current?.close();
     setRemoveMode(false);
   };

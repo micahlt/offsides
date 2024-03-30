@@ -128,7 +128,7 @@ function ActivityItem({ activity }) {
     <TouchableRipple
       onPress={() => {
         API.readActivity(activity.id).then(() => {
-          nav.navigate(linkRoute, linkProps);
+          nav.push(linkRoute, linkProps);
         });
       }}
       borderless={true}

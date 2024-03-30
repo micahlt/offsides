@@ -54,10 +54,7 @@ function MyProfileScreen({ navigation }) {
               : 'Your Profile'
           }
         />
-        <Appbar.Action
-          onPress={() => navigation.navigate('Settings')}
-          icon="cog"
-        />
+        <Appbar.Action onPress={() => navigation.push('Settings')} icon="cog" />
       </Appbar.Header>
       {loading && <ProgressBar indeterminate={true} visible={true} />}
       {updates?.user && (
@@ -73,7 +70,7 @@ function MyProfileScreen({ navigation }) {
             <TouchableRipple
               borderless={true}
               style={{ borderRadius: BORDER_RADIUS }}
-              onPress={() => navigation.navigate('EditProfile')}>
+              onPress={() => navigation.push('EditProfile')}>
               {updates.user?.conversation_icon ? (
                 <Avatar.Text
                   size={64}
@@ -97,7 +94,7 @@ function MyProfileScreen({ navigation }) {
               icon="pencil"
               size={16}
               mode="contained-tonal"
-              onPress={() => navigation.navigate('EditProfile')}>
+              onPress={() => navigation.push('EditProfile')}>
               Edit
             </Button>
             <Text

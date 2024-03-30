@@ -51,7 +51,7 @@ function Post({
           text: 'Confirm',
           onPress: async () => {
             await API.deletePostOrComment(post.id);
-            nav.navigate('Home');
+            nav.replace('Home');
           },
         },
         {
@@ -161,7 +161,7 @@ function Post({
               <IconButton
                 icon="message-outline"
                 onPress={() =>
-                  nav.navigate('Comments', {
+                  nav.push('Comments', {
                     postID: post.id,
                     postObj: post,
                   })

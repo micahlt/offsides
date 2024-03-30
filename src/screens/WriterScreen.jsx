@@ -26,7 +26,7 @@ function WriterScreen({ navigation, route }) {
     if (mode == 'post') {
       const p = await API.createPost(textContent, groupID, []);
       if (!p?.message) {
-        navigation.navigate('Home');
+        navigation.replace('Home');
       }
     } else if (mode == 'comment') {
       const c = await API.createComment(postID, textContent, groupID, replyID);

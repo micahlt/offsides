@@ -7,7 +7,6 @@ import {
   View,
   StyleSheet,
   FlatList,
-  Image,
   StatusBar,
   InteractionManager,
   useColorScheme,
@@ -15,23 +14,19 @@ import {
 import {
   Appbar,
   Text,
-  Avatar,
   useTheme,
   Menu,
   ProgressBar,
-  TouchableRipple,
   FAB,
   ThemeProvider,
 } from 'react-native-paper';
 import { AppContext } from '../App';
-import { useFocusEffect } from '@react-navigation/native';
 import Post from '../components/Post';
 import GroupPicker from '../components/GroupPicker';
 import useUniqueList from '../hooks/useUniqueList';
 import GroupAvatar from '../components/GroupAvatar';
 import { createMaterial3Theme } from '@pchmn/expo-material3-theme';
-import BottomSheet, { BottomSheetMethods } from '@devvie/bottom-sheet';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import BottomSheet from '@devvie/bottom-sheet';
 
 const BORDER_RADIUS = 12;
 
@@ -51,18 +46,11 @@ function HomeScreen({ navigation, route }) {
   const colors = theme.colors;
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [loadingPosts, setLoadingPosts] = React.useState(false);
-  const [currentGroupId, setCurrentGroupId] = React.useState(
-    params?.groupID || appState.groupID,
-  );
+  const [currentGroupId, setCurrentGroupId] = React.useState(params.groupID);
   const [sheetIsOpen, setSheetIsOpen] = React.useState(false);
   const [posts, setPosts] = React.useState(
     /** @type {SidechatPostOrComment[]} */ ([]),
   );
-  useFocusEffect(() => {
-    if (appState.groupID != currentGroupId) {
-      setCurrentGroupId(appState.groupID);
-    }
-  });
   React.useEffect(() => {
     if (appState.groupColor) {
       const t = createMaterial3Theme(appState.groupColor);
@@ -72,8 +60,7 @@ function HomeScreen({ navigation, route }) {
   React.useEffect(() => {
     if (!loadingPosts) {
       InteractionManager.runAfterInteractions(() => {
-        if (appState.groupID && appState.userToken) {
-          setCurrentGroupId(currentGroupId);
+        if (appState.userToken && params.groupID) {
           setLoadingPosts(true);
           fetchPosts(true);
         } else {
@@ -81,7 +68,7 @@ function HomeScreen({ navigation, route }) {
         }
       });
     }
-  }, [postCategory, currentGroupId]);
+  }, [postCategory, params?.groupID]);
   React.useEffect(() => {
     if (params?.groupID) {
       setAppState({
@@ -241,7 +228,7 @@ function HomeScreen({ navigation, route }) {
           label="Post"
           style={{ position: 'absolute', bottom: 20, right: 20 }}
           onPress={() =>
-            navigation.navigate('Writer', {
+            navigation.push('Writer', {
               mode: 'post',
               groupID:
                 appState.groupName == 'Home'

@@ -26,7 +26,7 @@ const AppContext = React.createContext();
 export default function App() {
   const colorScheme = useColorScheme();
   const [needsLogin, setNeedsLogin] = React.useState(null);
-  const [appState, setAppState] = React.useState({});
+  const [appState, setAppState] = React.useState(null);
 
   React.useEffect(() => {
     AsyncStorage.multiGet([
@@ -58,7 +58,7 @@ export default function App() {
   }, []);
   React.useEffect(() => {
     InteractionManager.runAfterInteractions(() => {
-      if (!appState.groupName || !appState.groupID) return;
+      if (!appState?.groupName || !appState?.groupID) return;
       AsyncStorage.multiSet([
         ['groupID', String(appState.groupID)],
         ['groupName', String(appState.groupName)],
@@ -67,10 +67,10 @@ export default function App() {
       ]);
     });
   }, [
-    appState.groupName,
-    appState.groupID,
-    appState.groupColor,
-    appState.groupImage,
+    appState?.groupName,
+    appState?.groupID,
+    appState?.groupColor,
+    appState?.groupImage,
   ]);
   return (
     <AppContext.Provider value={{ appState, setAppState }}>
@@ -78,11 +78,23 @@ export default function App() {
         <StatusBar
           barStyle={colorScheme == 'dark' ? 'light-content' : 'dark-content'}
         />
-        {needsLogin != null && (
+        {needsLogin != null && appState != null && (
           <Stack.Navigator
             initialRouteName={needsLogin ? 'Login' : 'Home'}
             screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen
+              name="Home"
+              component={HomeScreen}
+              initialParams={{
+                groupID: appState.groupID,
+                groupName: appState.groupName,
+                groupImage: appState.groupImage,
+                groupColor: appState.groupColor,
+              }}
+              options={({ route: { params } }) => ({
+                animation: params.animation ? params.animation : 'default',
+              })}
+            />
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="MyProfile" component={MyProfileScreen} />

@@ -13,7 +13,7 @@ import Group from '../components/Group';
 const BORDER_RADIUS = 15;
 
 function ExploreGroupsScreen({ navigation }) {
-  const { appState, setAppState } = React.useContext(AppContext);
+  const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const [groups, setGroups] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
@@ -41,7 +41,7 @@ function ExploreGroupsScreen({ navigation }) {
   };
 
   const selectGroup = group => {
-    navigation.navigate('Home', {
+    navigation.push('Home', {
       groupID: group.id,
       groupName: group.name,
       groupImage: group.icon_url || '',
