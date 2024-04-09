@@ -1,14 +1,7 @@
 import '../types/OffsidesTypes.js';
 import React from 'react';
-import { View } from 'react-native';
-import {
-  Avatar,
-  Button,
-  Card,
-  IconButton,
-  Text,
-  useTheme,
-} from 'react-native-paper';
+import { View, Alert } from 'react-native';
+import { Button, Card, IconButton, Text, useTheme } from 'react-native-paper';
 import timesago from 'timesago';
 import { AppContext } from '../App';
 import AutoImage from './AutoImage';
@@ -49,7 +42,7 @@ function Comment({ comment, nav, isolated = false }) {
       {
         text: 'Confirm',
         onPress: async () => {
-          await API.deletePostOrComment(post.id);
+          await API.deletePostOrComment(comment.id);
           nav.replace('Home');
         },
       },
