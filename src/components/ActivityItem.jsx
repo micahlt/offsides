@@ -5,13 +5,13 @@ import {
   Card,
   Icon,
   Text,
-  Avatar,
   TouchableRipple,
   useTheme,
 } from 'react-native-paper';
 import timesago from 'timesago';
 import { AppContext } from '../App';
 import UserAvatar from './UserAvatar';
+import Group from './Group';
 
 function ActivityItem({ activity }) {
   const {
@@ -21,10 +21,21 @@ function ActivityItem({ activity }) {
   const { colors } = useTheme();
   const [linkRoute, setLinkRoute] = React.useState('');
   const [linkProps, setLinkProps] = React.useState({});
+  const [group, setGroup] = React.useState(null);
   React.useEffect(() => {
     setLinkRoute('Comments');
     setLinkProps({ postID: activity.post_id });
+    if (activity.type == 'suggested_sidechats') {
+      API.getGroupMetadata(
+        activity.suggested_sidechats_data.group_ids_to_suggest[0],
+      ).then(d => {
+        setGroup(d);
+      });
+    }
   }, [activity]);
+  const readActivity = callback => {
+    API.readActivity(activity.id).then(callback);
+  };
   const RenderedContent = () => {
     if (activity.type == 'votes') {
       return (
@@ -83,6 +94,42 @@ function ActivityItem({ activity }) {
           </Text>
         </Card.Content>
       );
+    } else if (activity.type == 'suggested_sidechats') {
+      return (
+        <Card.Content style={{ padding: 15 }}>
+          <View style={{ flexDirection: 'row', marginBottom: 5 }}>
+            <Icon source="creation" color={colors.primary} size={20}></Icon>
+            <Text
+              variant="labelLarge"
+              style={{ marginLeft: 5, color: colors.primary, flex: 1 }}>
+              Suggested post
+            </Text>
+            <Text variant="bodySmall">{timesago(activity.timestamp)}</Text>
+          </View>
+          <Text
+            variant="bodyMedium"
+            style={{ color: colors.secondary, marginBottom: 10 }}>
+            {activity.text}
+          </Text>
+          {group && (
+            <Group
+              group={group}
+              exploreMode={true}
+              cardMode="outlined"
+              onPress={() => {
+                readActivity(() =>
+                  nav.push('Home', {
+                    groupID: group.id,
+                    groupColor: group.color,
+                    groupImage: group.icon_url,
+                    groupName: group.name,
+                  }),
+                );
+              }}
+            />
+          )}
+        </Card.Content>
+      );
     } else if (activity.type.includes('comment')) {
       return (
         <Card.Content style={{ padding: 15 }}>
@@ -126,11 +173,7 @@ function ActivityItem({ activity }) {
   };
   return (
     <TouchableRipple
-      onPress={() => {
-        API.readActivity(activity.id).then(() => {
-          nav.push(linkRoute, linkProps);
-        });
-      }}
+      onPress={() => readActivity(() => nav.push(linkRoute, linkProps))}
       borderless={true}
       style={{ borderRadius: 10 }}>
       <Card mode="contained">

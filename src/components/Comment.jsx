@@ -43,7 +43,7 @@ function Comment({ comment, nav, isolated = false }) {
         text: 'Confirm',
         onPress: async () => {
           await API.deletePostOrComment(comment.id);
-          nav.replace('Home');
+          nav.goBack();
         },
       },
       {

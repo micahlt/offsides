@@ -40,6 +40,7 @@ export default function App() {
       'schoolGroupName',
       'schoolGroupImage',
       'schoolGroupColor',
+      'postSortMethod',
     ]).then(res => {
       let tempState = {};
       // If user token is defined
@@ -72,6 +73,13 @@ export default function App() {
     appState?.groupColor,
     appState?.groupImage,
   ]);
+  React.useEffect(() => {
+    InteractionManager.runAfterInteractions(() => {
+      if (appState?.postSortMethod) {
+        AsyncStorage.setItem('postSortMethod', appState.postSortMethod);
+      }
+    });
+  }, [appState?.postSortMethod]);
   return (
     <AppContext.Provider value={{ appState, setAppState }}>
       <NavigationContainer>

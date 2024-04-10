@@ -1,12 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Image } from 'react-native';
 import {
   Card,
   Text,
-  Avatar,
   Icon,
   TouchableRipple,
-  IconButton,
   useTheme,
   Button,
 } from 'react-native-paper';

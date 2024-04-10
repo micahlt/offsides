@@ -36,7 +36,9 @@ function HomeScreen({ navigation, route }) {
   const [customTheme, setCustomTheme] = React.useState(false);
   const { appState, setAppState } = React.useContext(AppContext);
   const API = appState.API;
-  const [postCategory, setPostCategory] = React.useState('hot');
+  const [postCategory, setPostCategory] = React.useState(
+    appState.postSortMethod || 'hot',
+  );
 
   const [cursor, setCursor] = React.useState(
     /** @type {SidechatCursorString} */ (null),
@@ -59,6 +61,9 @@ function HomeScreen({ navigation, route }) {
   }, [appState?.groupColor]);
   React.useEffect(() => {
     if (!loadingPosts) {
+      if (postCategory) {
+        setAppState({ ...appState, postSortMethod: postCategory });
+      }
       InteractionManager.runAfterInteractions(() => {
         if (appState.userToken && params.groupID) {
           setLoadingPosts(true);
@@ -81,6 +86,12 @@ function HomeScreen({ navigation, route }) {
       fetchPosts(true, params.groupID);
     }
   }, [params]);
+  React.useEffect(() => {
+    if (postCategory) {
+      console.log('PostCat update:', postCategory);
+      setAppState({ ...appState, postSortMethod: postCategory });
+    }
+  }, [postCategory]);
   const uniquePosts = useUniqueList(posts);
   const renderItem = React.useCallback(each => {
     return <Post post={each.item} nav={navigation} key={each.id} />;

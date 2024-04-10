@@ -31,7 +31,7 @@ function WriterScreen({ navigation, route }) {
     } else if (mode == 'comment') {
       const c = await API.createComment(postID, textContent, groupID, replyID);
       if (!c?.message) {
-        navigation.goBack();
+        navigation.pop();
       }
     }
   };

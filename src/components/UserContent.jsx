@@ -55,42 +55,38 @@ const ItemList = ({ updates, view, style }) => {
     case 'activity': {
       return (
         <Card style={style}>
-          {updates?.activity_items?.items &&
-          updates.activity_items?.items?.filter(i => !i.is_seen).length > 0 ? (
-            <Card.Content
-              style={{ rowGap: 8, marginTop: -16, marginBottom: -16 }}>
-              <FlatList
-                showsVerticalScrollIndicator={false}
-                data={updates.activity_items?.items?.filter(i => !i.is_seen)}
-                contentContainerStyle={{
-                  gap: 10,
-                  paddingTop: 15,
-                  paddingBottom: 15,
-                }}
-                keyExtractor={item => item.id}
-                renderItem={a => (
-                  <ActivityItem activity={a.item} key={a.item.id} />
-                )}
-              />
-            </Card.Content>
-          ) : (
-            <Card.Content
-              style={{
-                alignItems: 'center',
-                flexDirection: 'column',
-                height: '100%',
-                justifyContent: 'center',
-              }}>
-              <IconButton
-                icon="bell-badge"
-                size={64}
-                iconColor={colors.outline}
-              />
-              <Text style={{ marginBottom: 20, color: colors.outline }}>
-                No recent activity
-              </Text>
-            </Card.Content>
-          )}
+          <Card.Content
+            style={{ rowGap: 8, marginTop: -16, marginBottom: -16 }}>
+            <FlatList
+              showsVerticalScrollIndicator={false}
+              data={updates.activity_items?.items?.filter(i => !i.is_seen)}
+              contentContainerStyle={{
+                gap: 10,
+                paddingTop: 15,
+                paddingBottom: 15,
+              }}
+              keyExtractor={item => item.id}
+              renderItem={a => (
+                <ActivityItem activity={a.item} key={a.item.id} />
+              )}
+              ListEmptyComponent={
+                <View
+                  style={{
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}>
+                  <IconButton
+                    icon="bell-badge"
+                    size={64}
+                    iconColor={colors.outline}
+                  />
+                  <Text style={{ marginBottom: 20, color: colors.outline }}>
+                    No recent activity
+                  </Text>
+                </View>
+              }
+            />
+          </Card.Content>
         </Card>
       );
     }

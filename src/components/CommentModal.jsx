@@ -11,10 +11,12 @@ import { AppContext } from '../App';
 import Comment from './Comment';
 import Post from './Post';
 import useUniqueList from '../hooks/useUniqueList';
+import { useIsFocused } from '@react-navigation/native';
 
 function CommentModal({ navigation, route }) {
   /** @type {{postID: String, postObj: SidechatPostOrComment}} */
   const { postID, postObj } = route.params;
+  const isFocused = useIsFocused();
   const [localPost, setLocalPost] = React.useState(postObj);
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
@@ -25,10 +27,12 @@ function CommentModal({ navigation, route }) {
   const [loadingComments, setLoadingComments] = React.useState(true);
 
   useEffect(() => {
-    InteractionManager.runAfterInteractions(() => {
-      fetchComments(true);
-    });
-  }, []);
+    if (isFocused) {
+      InteractionManager.runAfterInteractions(() => {
+        fetchComments(true);
+      });
+    }
+  }, [isFocused]);
   const renderItem = React.useCallback(
     each => <Comment comment={each.item} nav={navigation} />,
     [],
