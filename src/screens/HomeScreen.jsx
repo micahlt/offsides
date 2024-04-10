@@ -50,6 +50,7 @@ function HomeScreen({ navigation, route }) {
   const [loadingPosts, setLoadingPosts] = React.useState(false);
   const [currentGroupId, setCurrentGroupId] = React.useState(params.groupID);
   const [sheetIsOpen, setSheetIsOpen] = React.useState(false);
+  const [sortIcon, setSortIcon] = React.useState('filter-variant');
   const [posts, setPosts] = React.useState(
     /** @type {SidechatPostOrComment[]} */ ([]),
   );
@@ -90,6 +91,19 @@ function HomeScreen({ navigation, route }) {
     if (postCategory) {
       console.log('PostCat update:', postCategory);
       setAppState({ ...appState, postSortMethod: postCategory });
+      switch (postCategory) {
+        case 'hot':
+          setSortIcon('fire');
+          break;
+        case 'top':
+          setSortIcon('medal');
+          break;
+        case 'recent':
+          setSortIcon('clock');
+          break;
+        default:
+          setSortIcon('filter-variant');
+      }
     }
   }, [postCategory]);
   const uniquePosts = useUniqueList(posts);
@@ -162,7 +176,7 @@ function HomeScreen({ navigation, route }) {
           <Menu
             anchor={
               <Appbar.Action
-                icon="filter-variant"
+                icon={sortIcon}
                 onPress={() => setFilterOpen(true)}></Appbar.Action>
             }
             visible={filterOpen}
@@ -185,9 +199,7 @@ function HomeScreen({ navigation, route }) {
             />
             <Menu.Item
               title="Top"
-              leadingIcon={
-                postCategory == 'top' ? 'check' : 'arrow-up-bold-box'
-              }
+              leadingIcon={postCategory == 'top' ? 'check' : 'medal'}
               style={{
                 backgroundColor:
                   postCategory == 'top' ? colors.primaryContainer : null,
@@ -198,8 +210,8 @@ function HomeScreen({ navigation, route }) {
               }}
             />
             <Menu.Item
-              title="New"
-              leadingIcon={postCategory == 'recent' ? 'check' : 'new-box'}
+              title="Recent"
+              leadingIcon={postCategory == 'recent' ? 'check' : 'clock'}
               style={{
                 backgroundColor:
                   postCategory == 'recent' ? colors.primaryContainer : null,
