@@ -41,6 +41,7 @@ export default function App() {
       'schoolGroupImage',
       'schoolGroupColor',
       'postSortMethod',
+      'anonMode',
     ]).then(res => {
       let tempState = {};
       // If user token is defined
@@ -54,6 +55,11 @@ export default function App() {
       res.forEach(item => {
         tempState[item[0]] = item[1];
       });
+      if (tempState.anonMode === 'true') {
+        tempState.anonMode = true;
+      } else {
+        tempState.anonMode = false;
+      }
       setAppState(tempState);
     });
   }, []);
@@ -80,6 +86,13 @@ export default function App() {
       }
     });
   }, [appState?.postSortMethod]);
+  React.useEffect(() => {
+    InteractionManager.runAfterInteractions(() => {
+      if (appState?.anonMode) {
+        AsyncStorage.setItem('postSortMethod', String(appState.anonMode));
+      }
+    });
+  }, [appState?.anonMode]);
   return (
     <AppContext.Provider value={{ appState, setAppState }}>
       <NavigationContainer>

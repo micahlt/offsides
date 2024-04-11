@@ -9,6 +9,7 @@ import {
   Icon,
   Text,
   TouchableRipple,
+  Tooltip,
 } from 'react-native-paper';
 import { AppContext } from '../App';
 
@@ -17,19 +18,35 @@ const BORDER_RADIUS = 10;
 function WriterScreen({ navigation, route }) {
   const { mode, groupID, postID, replyID } = route.params;
   if (mode != 'comment' && mode != 'post') return false;
-  const { appState } = React.useContext(AppContext);
+  const { appState, setAppState } = React.useContext(AppContext);
   const API = appState.API;
   const { colors } = useTheme();
   const [error, setError] = React.useState(false);
   const [textContent, setTextContent] = React.useState('');
   const createPostOrComment = async () => {
     if (mode == 'post') {
-      const p = await API.createPost(textContent, groupID, []);
+      const p = await API.createPost(
+        textContent,
+        groupID,
+        [],
+        null,
+        null,
+        appState.anonMode,
+      );
       if (!p?.message) {
+        setAppState({ ...appState, postSortMethod: 'recent' });
         navigation.replace('Home');
       }
     } else if (mode == 'comment') {
-      const c = await API.createComment(postID, textContent, groupID, replyID);
+      const c = await API.createComment(
+        postID,
+        textContent,
+        groupID,
+        replyID,
+        [],
+        null,
+        appState.anonMode,
+      );
       if (!c?.message) {
         navigation.pop();
       }
@@ -41,10 +58,19 @@ function WriterScreen({ navigation, route }) {
       <Appbar.Header elevated={true}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title={`New ${mode}`} />
+        <Tooltip title="Anonymous mode">
+          <Appbar.Action
+            icon={appState.anonMode ? 'incognito' : 'incognito-off'}
+            onPress={() =>
+              setAppState({ ...appState, anonMode: !appState.anonMode })
+            }
+          />
+        </Tooltip>
         <Appbar.Action
           icon="send"
           onPress={createPostOrComment}
           disabled={textContent.length < 1}
+          isLeading={true}
         />
       </Appbar.Header>
       <ProgressBar
