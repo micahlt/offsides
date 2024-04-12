@@ -37,7 +37,7 @@ function HomeScreen({ navigation, route }) {
   const { appState, setAppState } = React.useContext(AppContext);
   const API = appState.API;
   const [postCategory, setPostCategory] = React.useState(
-    appState.postSortMethod || 'hot',
+    appState.postSortMethod ? appState.postSortMethod : 'hot',
   );
 
   const [cursor, setCursor] = React.useState(
@@ -61,55 +61,51 @@ function HomeScreen({ navigation, route }) {
     }
   }, [appState?.groupColor]);
   React.useEffect(() => {
+    updateSortIcon();
     if (!loadingPosts) {
-      if (postCategory) {
-        setAppState({ ...appState, postSortMethod: postCategory });
-      }
       InteractionManager.runAfterInteractions(() => {
         if (appState.userToken && params.groupID) {
-          setLoadingPosts(true);
-          fetchPosts(true);
+          if (params?.groupID) {
+            let tempSortMethod = appState.postSortMethod;
+            if (postCategory != appState.postSortMethod) {
+              tempSortMethod = postCategory;
+            }
+            setAppState({
+              ...appState,
+              postSortMethod: tempSortMethod,
+              groupID: params.groupID,
+              groupName: params.groupName,
+              groupImage: params.groupImage || '',
+              groupColor: params.groupColor,
+            });
+            fetchPosts(true, params.groupID);
+          }
         } else {
           console.log('App state is undefined, will load in a second');
         }
       });
     }
-  }, [postCategory, params?.groupID]);
-  React.useEffect(() => {
-    if (params?.groupID) {
-      setAppState({
-        ...appState,
-        groupID: params.groupID,
-        groupName: params.groupName,
-        groupImage: params.groupImage || '',
-        groupColor: params.groupColor,
-      });
-      fetchPosts(true, params.groupID);
-    }
-  }, [params]);
-  React.useEffect(() => {
-    if (postCategory) {
-      console.log('PostCat update:', postCategory);
-      setAppState({ ...appState, postSortMethod: postCategory });
-      switch (postCategory) {
-        case 'hot':
-          setSortIcon('fire');
-          break;
-        case 'top':
-          setSortIcon('medal');
-          break;
-        case 'recent':
-          setSortIcon('clock');
-          break;
-        default:
-          setSortIcon('filter-variant');
-      }
-    }
-  }, [postCategory]);
+  }, [postCategory, params?.groupID, appState.postSortMethod]);
   const uniquePosts = useUniqueList(posts);
   const renderItem = React.useCallback(each => {
     return <Post post={each.item} nav={navigation} key={each.id} />;
   });
+  const updateSortIcon = () => {
+    if (!postCategory) return;
+    switch (postCategory) {
+      case 'hot':
+        setSortIcon('fire');
+        break;
+      case 'top':
+        setSortIcon('medal');
+        break;
+      case 'recent':
+        setSortIcon('clock');
+        break;
+      default:
+        setSortIcon('filter-variant');
+    }
+  };
   const fetchPosts = (refresh, override) => {
     if (loadingPosts) return false;
     setLoadingPosts(true);
@@ -197,18 +193,20 @@ function HomeScreen({ navigation, route }) {
                 setFilterOpen(false);
               }}
             />
-            <Menu.Item
-              title="Top"
-              leadingIcon={postCategory == 'top' ? 'check' : 'medal'}
-              style={{
-                backgroundColor:
-                  postCategory == 'top' ? colors.primaryContainer : null,
-              }}
-              onPress={() => {
-                setPostCategory('top');
-                setFilterOpen(false);
-              }}
-            />
+            {appState.groupName != 'Home' && (
+              <Menu.Item
+                title="Top"
+                leadingIcon={postCategory == 'top' ? 'check' : 'medal'}
+                style={{
+                  backgroundColor:
+                    postCategory == 'top' ? colors.primaryContainer : null,
+                }}
+                onPress={() => {
+                  setPostCategory('top');
+                  setFilterOpen(false);
+                }}
+              />
+            )}
             <Menu.Item
               title="Recent"
               leadingIcon={postCategory == 'recent' ? 'check' : 'clock'}
@@ -236,7 +234,7 @@ function HomeScreen({ navigation, route }) {
         }}>
         <ProgressBar indeterminate={true} visible={loadingPosts} />
         <FlatList
-          contentContainerStyle={{ gap: 10, padding: 10 }}
+          contentContainerStyle={{ gap: 10, padding: 10, paddingBottom: 90 }}
           data={uniquePosts}
           renderItem={renderItem}
           estimatedItemSize={450}

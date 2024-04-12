@@ -61,6 +61,9 @@ export default function App() {
         tempState.anonMode = false;
       }
       setAppState(tempState);
+      // Object.keys(tempState).forEach(key => {
+      //   console.log(key, tempState[key]);
+      // });
     });
   }, []);
   React.useEffect(() => {
