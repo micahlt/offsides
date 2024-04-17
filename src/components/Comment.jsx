@@ -6,7 +6,6 @@ import timesago from 'timesago';
 import { AppContext } from '../App';
 import AutoImage from './AutoImage';
 import UserAvatar from './UserAvatar.jsx';
-
 const BORDER_RADIUS = 10;
 
 /**
@@ -156,7 +155,7 @@ function Comment({ comment, nav, isolated = false }) {
           }}>
           {!isolated && (
             <IconButton
-              icon="share-outline"
+              icon="chat-outline"
               onPress={() => {}}
               style={{ margin: 0 }}
               size={24}
@@ -170,7 +169,7 @@ function Comment({ comment, nav, isolated = false }) {
                 nav.push('Writer', {
                   mode: 'comment',
                   postID: comment.parent_post_id,
-                  replyID: comment.id,
+                  replyID: comment.reply_post_id,
                   groupID: comment.group.id,
                 })
               }>

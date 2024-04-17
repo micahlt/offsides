@@ -177,7 +177,7 @@ function Post({
           )}
           {!post.dms_disabled && (
             <IconButton
-              icon="share-outline"
+              icon="chat-outline"
               onPress={() => alert("DM's aren't enabled yet.")}
               style={{ margin: 0 }}
               size={24}

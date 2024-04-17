@@ -14,6 +14,7 @@ import CommentModal from './components/CommentModal';
 import ExploreGroupsScreen from './screens/ExploreGroupsScreen';
 import EditProfileScreen from './screens/EditProfileScreen';
 import WriterScreen from './screens/WriterScreen';
+import MessageScreen from './screens/MessagesScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -123,6 +124,7 @@ export default function App() {
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="MyProfile" component={MyProfileScreen} />
             <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+            <Stack.Screen name="Messages" component={MessageScreen} />
             <Stack.Screen
               name="ExploreGroups"
               component={ExploreGroupsScreen}

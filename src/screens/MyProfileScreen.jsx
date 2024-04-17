@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StatusBar, ScrollView, Image, StyleSheet } from 'react-native';
+import { View, StatusBar, StyleSheet } from 'react-native';
 import {
   Appbar,
   useTheme,
@@ -8,11 +8,8 @@ import {
   Avatar,
   ProgressBar,
   TouchableRipple,
-  IconButton,
   Divider,
-  Icon,
   Button,
-  Chip,
 } from 'react-native-paper';
 import { AppContext } from '../App';
 import timesago from 'timesago';
@@ -53,6 +50,10 @@ function MyProfileScreen({ navigation }) {
               ? `@${updates.user.username}`
               : 'Your Profile'
           }
+        />
+        <Appbar.Action
+          onPress={() => navigation.push('Messages')}
+          icon="chat"
         />
         <Appbar.Action onPress={() => navigation.push('Settings')} icon="cog" />
       </Appbar.Header>
