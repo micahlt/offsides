@@ -156,13 +156,28 @@ function Comment({ comment, nav, isolated = false }) {
           {!isolated && (
             <IconButton
               icon="chat-outline"
-              onPress={() => {}}
+              onPress={() =>
+                nav.push('Thread', {
+                  postID: comment.id,
+                  type: 'comment',
+                })
+              }
               style={{ margin: 0 }}
               size={24}
               iconColor={colors.onSurfaceDisabled}
             />
           )}
-          {!isolated && (
+          {isolated ? (
+            <Button
+              mode="text"
+              onPress={() =>
+                nav.push('Comments', {
+                  postID: comment.parent_post_id,
+                })
+              }>
+              View on post
+            </Button>
+          ) : (
             <Button
               mode="text"
               onPress={() =>

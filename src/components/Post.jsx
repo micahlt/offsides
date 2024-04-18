@@ -178,7 +178,13 @@ function Post({
           {!post.dms_disabled && (
             <IconButton
               icon="chat-outline"
-              onPress={() => alert("DM's aren't enabled yet.")}
+              onPress={() =>
+                nav.push('Thread', {
+                  postID: post.id,
+                  groupID: post.group_id,
+                  type: 'post',
+                })
+              }
               style={{ margin: 0 }}
               size={24}
               iconColor={colors.onSurfaceDisabled}

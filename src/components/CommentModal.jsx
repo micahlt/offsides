@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
   View,
   StatusBar,
@@ -26,7 +26,7 @@ function CommentModal({ navigation, route }) {
   );
   const [loadingComments, setLoadingComments] = React.useState(true);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (isFocused) {
       InteractionManager.runAfterInteractions(() => {
         fetchComments(true);

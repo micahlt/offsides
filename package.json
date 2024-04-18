@@ -1,6 +1,6 @@
 {
   "name": "offsides",
-  "version": "0.6.3",
+  "version": "0.6.5",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -16,7 +16,7 @@
     "@react-navigation/native": "^6.1.17",
     "@react-navigation/native-stack": "^6.9.26",
     "@react-navigation/stack": "^6.3.29",
-    "expo": "^50.0.15",
+    "expo": "^50.0.17",
     "expo-modules-core": "^1.11.13",
     "js-sha256": "^0.11.0",
     "react": "18.2.0",
@@ -33,7 +33,7 @@
     "reanimated-color-picker": "^3.0.3",
     "rn-emoji-keyboard": "^1.6.1",
     "semver": "^7.6.0",
-    "sidechat.js": "^2.4.2",
+    "sidechat.js": "^2.4.5",
     "timesago": "^1.0.1"
   },
   "devDependencies": {
@@ -44,7 +44,7 @@
     "@react-native/eslint-config": "0.73.2",
     "@react-native/metro-config": "0.73.5",
     "@react-native/typescript-config": "0.73.1",
-    "@types/react": "^18.2.75",
+    "@types/react": "^18.2.79",
     "@types/react-test-renderer": "^18.0.7",
     "babel-jest": "^29.7.0",
     "eslint": "^8.57.0",

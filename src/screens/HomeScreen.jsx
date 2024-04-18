@@ -19,6 +19,7 @@ import {
   ProgressBar,
   FAB,
   ThemeProvider,
+  Icon,
 } from 'react-native-paper';
 import { AppContext } from '../App';
 import Post from '../components/Post';
@@ -233,17 +234,48 @@ function HomeScreen({ navigation, route }) {
             : colors.background,
         }}>
         <ProgressBar indeterminate={true} visible={loadingPosts} />
-        <FlatList
-          contentContainerStyle={{ gap: 10, padding: 10, paddingBottom: 90 }}
-          data={uniquePosts}
-          renderItem={renderItem}
-          estimatedItemSize={450}
-          onRefresh={() => fetchPosts(true)}
-          refreshing={loadingPosts}
-          onEndReachedThreshold={0.5}
-          onEndReached={() => fetchPosts(false)}
-          windowSize={10}
-        />
+        {appState.groupName == 'Home' && appState.postSortMethod == 'top' ? (
+          <View
+            style={{
+              flex: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              paddingBottom: 50,
+            }}>
+            <Icon
+              source="medal"
+              size={64}
+              color={
+                customTheme
+                  ? customTheme.primaryContainer
+                  : colors.primaryContainer
+              }
+            />
+            <Text variant="titleLarge">Can't sort by top</Text>
+            <Text
+              variant="bodySmall"
+              style={{
+                textAlign: 'center',
+                paddingHorizontal: 40,
+                paddingTop: 10,
+              }}>
+              This feature isn't supported in your Home group - try switching to
+              another group or sort by Recent or Hot.
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            contentContainerStyle={{ gap: 10, padding: 10, paddingBottom: 90 }}
+            data={uniquePosts}
+            renderItem={renderItem}
+            estimatedItemSize={450}
+            onRefresh={() => fetchPosts(true)}
+            refreshing={loadingPosts}
+            onEndReachedThreshold={0.5}
+            onEndReached={() => fetchPosts(false)}
+            windowSize={10}
+          />
+        )}
         <FAB
           icon="plus"
           label="Post"
