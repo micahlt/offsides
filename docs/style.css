@@ -42,6 +42,7 @@ h1 {
 }
 
 .buttons {
+  text-align: center;
   display: block;
 }
 
@@ -55,6 +56,9 @@ h1 {
   text-transform: uppercase;
   border: 1px solid white;
   transition: all 0.2s;
+  margin-bottom: 0.5em;
+  display: inline-block;
+  width: max-content;
 }
 
 .buttons .primary {
