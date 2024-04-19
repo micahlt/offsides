@@ -89,8 +89,8 @@ function HomeScreen({ navigation, route }) {
   }, [postCategory, params?.groupID, appState.postSortMethod]);
   const uniquePosts = useUniqueList(posts);
   const renderItem = React.useCallback(each => {
-    return <Post post={each.item} nav={navigation} key={each.id} />;
-  });
+    return <Post post={each.item} nav={navigation} />;
+  }, []);
   const updateSortIcon = () => {
     if (!postCategory) return;
     switch (postCategory) {
@@ -274,6 +274,7 @@ function HomeScreen({ navigation, route }) {
             onEndReachedThreshold={0.5}
             onEndReached={() => fetchPosts(false)}
             windowSize={10}
+            keyExtractor={item => item.id}
           />
         )}
         <FAB

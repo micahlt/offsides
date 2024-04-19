@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Image } from 'react-native';
+
 const AutoImage = ({
   src,
   fitWidth = 0,
