@@ -1,0 +1,83 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: #3ddc84;
+  font-family: 'Roboto', sans-serif;
+  color: #0a122a;
+}
+
+.header {
+  min-height: 100vh;
+  height: max-content;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-text {
+  text-align: center;
+}
+
+.header p {
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+h1 {
+  font-family: 'Roboto', sans-serif;
+  font-style: italic;
+  font-weight: 800;
+  color: white;
+  padding-top: 2rem;
+  font-size: clamp(2em, 6vw, 5em);
+}
+
+.mockup {
+  height: 50%;
+  max-height: 60vh;
+}
+
+.buttons {
+  display: block;
+}
+
+.buttons a {
+  color: white;
+  font-family: 'Roboto', sans-serif;
+  padding: 1em 1.5em;
+  text-decoration: none;
+  border-radius: 0.5em;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border: 1px solid white;
+  transition: all 0.2s;
+}
+
+.buttons .primary {
+  background-color: white;
+  color: #0a122a;
+}
+
+.buttons a:not(:last-of-type) {
+  margin-right: 1em;
+}
+
+.buttons a:hover {
+  background-color: #2f54c6;
+  color: white;
+  border-color: #2f54c6;
+}
+
+.buttons {
+  margin-bottom: 3em;
+}
+
+.soon {
+  margin-top: 2.5em;
+  text-align: center;
+  font-size: 0.85em;
+}

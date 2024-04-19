@@ -2,7 +2,7 @@
 
 A third-party Android app for [Sidechat](https://sidechat.lol).  Many thanks to [SidechatProxy](https://github.com/OrenKohavi/SidechatProxy) and its author [Oren Kohavi](https://github.com/OrenKohavi), both of whom have been instrumental in this app's development.
 
-![](screenshot.png)
+![](docs/screenshot-raw.png)
 
 ## Development
 
