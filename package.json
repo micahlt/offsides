@@ -32,7 +32,7 @@
     "react-native-video": "^6.1.2",
     "rn-emoji-keyboard": "^1.7.0",
     "semver": "^7.6.2",
-    "sidechat.js": "^2.4.6",
+    "sidechat.js": "^2.4.8",
     "timesago": "^1.0.1"
   },
   "devDependencies": {

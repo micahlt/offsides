@@ -94,11 +94,12 @@ function LoginScreen({}) {
               );
               RNRestart.restart();
             } else {
+              console.log(res);
               if (res.registration_id) {
                 setRegistrationID(res.registration_id);
                 setPhase('setAge');
               } else {
-                throw new Error('Unknown authentication error.');
+                setPhase('registerEmail');
               }
             }
           } else if (res.registration_id) {
@@ -391,6 +392,12 @@ function LoginScreen({}) {
                     flexDirection: 'row',
                     columnGap: 5,
                   }}>
+                  <Button
+                    mode="outlined"
+                    loading={loading}
+                    onPress={() => setPhase('registerEmail')}>
+                    Go back
+                  </Button>
                   <Button
                     mode="contained"
                     loading={loading}
