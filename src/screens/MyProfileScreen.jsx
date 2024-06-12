@@ -113,7 +113,7 @@ function MyProfileScreen({ navigation }) {
               />
               <Card.Content>
                 <Text variant="titleLarge" style={s.stat}>
-                  {updates.user.follower_count}
+                  {updates?.user?.follower_count || '--'}
                 </Text>
               </Card.Content>
             </Card>
@@ -125,7 +125,7 @@ function MyProfileScreen({ navigation }) {
               />
               <Card.Content>
                 <Text variant="titleLarge" style={s.stat}>
-                  {updates.karma.post}
+                  {updates?.karma?.post || '--'}
                 </Text>
               </Card.Content>
             </Card>
@@ -139,7 +139,7 @@ function MyProfileScreen({ navigation }) {
               />
               <Card.Content>
                 <Text variant="titleLarge" style={s.stat}>
-                  {updates.groups.length}
+                  {updates?.groups?.length || '--'}
                 </Text>
               </Card.Content>
             </Card>
@@ -151,7 +151,7 @@ function MyProfileScreen({ navigation }) {
               />
               <Card.Content>
                 <Text variant="titleLarge" style={s.stat}>
-                  {updates.karma.comment}
+                  {updates?.karma?.comment || '--'}
                 </Text>
               </Card.Content>
             </Card>
