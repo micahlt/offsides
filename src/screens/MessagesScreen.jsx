@@ -83,7 +83,7 @@ function MessageScreen({ navigation }) {
                 color={colors.primary}
               />
               <View>
-                <Text style={{ color: 'white' }} variant="bodyLarge">
+                <Text style={{ color: colors.onSurface }} variant="bodyLarge">
                   {item.messages[item.messages.length - 1].text}
                 </Text>
                 <Text

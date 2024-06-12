@@ -57,8 +57,8 @@ function Comment({ comment, nav, isolated = false }) {
         marginLeft: isolated
           ? 0
           : comment.reply_post_id != comment.parent_post_id
-          ? 20
-          : 0,
+            ? 20
+            : 0,
       }}
       onLayout={event => {
         setWidth(event.nativeEvent.layout.width);
@@ -78,22 +78,46 @@ function Comment({ comment, nav, isolated = false }) {
             hideGroup={true}
             borderRadius={BORDER_RADIUS}
           />
-          {comment.reply_comment_alias && (
+          <View
+            style={{
+              justifyContent: 'center',
+              flexDirection: 'column',
+              flex: 1,
+            }}>
+            {comment.identity.name != 'Anonymous' &&
+              comment?.identity?.posted_with_username && (
+                <Text
+                  variant="labelMedium"
+                  style={{ marginLeft: 10, opacity: 0.75 }}>
+                  @{comment.identity.name}
+                </Text>
+              )}
+            {comment.reply_comment_alias && (
+              <Text
+                variant="titleMedium"
+                style={{
+                  marginLeft: 10,
+                  paddingRight: 10,
+                  color: colors.onSurfaceDisabled,
+                  borderRightColor: colors.surfaceVariant,
+                  borderRightWidth: 1,
+                }}>
+                ▶ {comment.reply_comment_alias}
+              </Text>
+            )}
+            {!comment?.identity?.posted_with_username && (
+              <Text variant="labelLarge" style={{ marginLeft: 10 }}>
+                {timesago(comment.created_at)}
+              </Text>
+            )}
+          </View>
+          {comment?.identity?.posted_with_username && (
             <Text
-              variant="titleMedium"
-              style={{
-                marginLeft: 10,
-                paddingRight: 10,
-                color: colors.onSurfaceDisabled,
-                borderRightColor: colors.surfaceVariant,
-                borderRightWidth: 1,
-              }}>
-              ▶ {comment.reply_comment_alias}
+              variant="labelLarge"
+              style={{ marginLeft: 10, flex: 1, textAlign: 'right' }}>
+              {timesago(comment.created_at)}
             </Text>
           )}
-          <Text variant="labelLarge" style={{ marginLeft: 10, flex: 1 }}>
-            {timesago(comment.created_at)}
-          </Text>
           {comment.authored_by_user && (
             <IconButton
               icon="delete"

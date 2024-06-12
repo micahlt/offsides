@@ -136,7 +136,7 @@ function ThreadScreen({ navigation, route }) {
                   : colors.elevation.level1,
               }}
               mode="flat">
-              <Text style={{ color: 'white' }} variant="bodyLarge">
+              <Text style={{ color: colors.onSurface }} variant="bodyLarge">
                 {item.text}
               </Text>
               <Text

@@ -87,7 +87,7 @@ function Post({
             </Text>
             {post.identity.name != 'Anonymous' && (
               <Text
-                variant="labelSmall"
+                variant="labelMedium"
                 style={{ marginLeft: 10, opacity: 0.75 }}>
                 @{post.identity.name}
               </Text>
