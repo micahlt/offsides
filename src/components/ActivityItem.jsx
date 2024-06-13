@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import * as React from 'react';
-import { View } from 'react-native';
+import { View, Vibration } from 'react-native';
 import {
   Card,
   Icon,
@@ -174,6 +174,10 @@ function ActivityItem({ activity }) {
   return (
     <TouchableRipple
       onPress={() => readActivity(() => nav.push(linkRoute, linkProps))}
+      onLongPress={() => {
+        Vibration.vibrate(50);
+        readActivity(() => null);
+      }}
       borderless={true}
       style={{ borderRadius: 10 }}>
       <Card mode="contained">
