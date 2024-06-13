@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import crashlytics from '@react-native-firebase/crashlytics';
 import {
   ActivityIndicator,
   Button,
@@ -23,19 +24,23 @@ function GroupPicker({ sheetRef }) {
   const [removeMode, setRemoveMode] = React.useState(false);
   React.useEffect(() => {
     if (API) {
+      crashlytics().log('Loading GroupPicker');
       loadGroups();
       getCurrentGroup();
     }
   }, [API]);
   const loadGroups = async () => {
+    crashlytics().log("Fetching user's groups");
     const updates = await API.getUpdates(appState.schoolGroupID);
     setGroups(updates.groups);
   };
   const getCurrentGroup = async () => {
+    crashlytics().log('Fetching current group metadata');
     const g = await API.getGroupMetadata(appState.groupID);
     setCurrentGroup(g);
   };
   const selectGroup = group => {
+    crashlytics().log('Group selected');
     sheetRef?.current?.close();
     nav.push('Home', {
       groupID: group.id,
@@ -53,6 +58,7 @@ function GroupPicker({ sheetRef }) {
   };
 
   const changeCurrentMembership = async () => {
+    crashlytics().log('Changing current group membership');
     const isCurrentlyMember = currentGroup.membership_type == 'member';
     const a = await API.setGroupMembership(currentGroup.id, !isCurrentlyMember);
     await a;
@@ -63,6 +69,7 @@ function GroupPicker({ sheetRef }) {
   };
 
   const leaveGroup = async id => {
+    crashlytics().log('Leaving a group');
     const leaveReq = await API.setGroupMembership(id);
     await leaveReq;
     setGroups(groups.filter(g => g.id != id));

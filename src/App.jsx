@@ -5,6 +5,7 @@ import { InteractionManager, StatusBar, useColorScheme } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import crashlytics from '@react-native-firebase/crashlytics';
 import { SidechatAPIClient } from 'sidechat.js';
 import HomeScreen from './screens/HomeScreen';
 import SettingsScreen from './screens/SettingsScreen';
@@ -29,8 +30,9 @@ export default function App() {
   const colorScheme = useColorScheme();
   const [needsLogin, setNeedsLogin] = React.useState(null);
   const [appState, setAppState] = React.useState(null);
-
   React.useEffect(() => {
+    crashlytics().log('Loading App');
+    crashlytics().log('Fetching initial app variables');
     AsyncStorage.multiGet([
       'userToken',
       'userID',
@@ -45,13 +47,17 @@ export default function App() {
       'postSortMethod',
       'anonMode',
     ]).then(res => {
+      crashlytics().log('Initial app variables fetched successfully');
       let tempState = {};
       // If user token is defined
       if (res[0][1]) {
         tempState.API = new SidechatAPIClient(res[0][1]);
+        crashlytics().log('User successfully logged in');
         setNeedsLogin(false);
       } else {
+        crashlytics().log('User is not logged in');
         tempState.API = new SidechatAPIClient();
+        crashlytics().log('Redirecting to LoginScreen');
         setNeedsLogin(true);
       }
       res.forEach(item => {
@@ -65,6 +71,7 @@ export default function App() {
       if (!tempState.postSortMethod) {
         tempState.postSortMethod = 'hot';
       }
+      crashlytics().log('App state set successfully');
       setAppState(tempState);
       // Object.keys(tempState).forEach(key => {
       //   console.log(key, tempState[key]);
@@ -73,13 +80,14 @@ export default function App() {
   }, []);
   React.useEffect(() => {
     InteractionManager.runAfterInteractions(() => {
+      crashlytics().log('Group changing');
       if (!appState?.groupName || !appState?.groupID) return;
       AsyncStorage.multiSet([
         ['groupID', String(appState.groupID)],
         ['groupName', String(appState.groupName)],
         ['groupColor', String(appState.groupColor)],
         ['groupImage', String(appState.groupImage)],
-      ]);
+      ]).then(() => crashlytics().log('Group changed successfully'));
     });
   }, [
     appState?.groupName,
@@ -95,6 +103,7 @@ export default function App() {
     });
   }, [appState?.postSortMethod]);
   React.useEffect(() => {
+    crashlytics().log('Switching to anon mode');
     InteractionManager.runAfterInteractions(() => {
       if (appState?.anonMode) {
         AsyncStorage.setItem('postSortMethod', String(appState.anonMode));

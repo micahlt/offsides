@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { FlatList, View } from 'react-native';
 import {
   Card,
@@ -6,14 +6,17 @@ import {
   IconButton,
   useTheme,
   SegmentedButtons,
-  Button,
 } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
+import crashlytics from '@react-native-firebase/crashlytics';
 import ActivityItem from '../components/ActivityItem';
 import Post from './Post';
-import { useNavigation } from '@react-navigation/native';
 import Comment from './Comment';
 
 function UserContent({ updates }) {
+  useEffect(() => {
+    crashlytics().log('Loading UserContent');
+  }, []);
   const [view, setView] = React.useState('activity');
 
   return (

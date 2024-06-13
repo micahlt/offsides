@@ -16,6 +16,7 @@ import { sha256 } from 'js-sha256';
 import PatternBG from '../assets/bgpattern.png';
 import { initPhoneNumberHint } from 'react-native-phone-hint';
 import { useSmsUserConsent } from '@eabdullazyanov/react-native-sms-user-consent';
+import crashlytics from '@react-native-firebase/crashlytics';
 
 function LoginScreen({}) {
   const { appState } = React.useContext(AppContext);
@@ -32,15 +33,23 @@ function LoginScreen({}) {
   const retrievedCode = useSmsUserConsent('[A-Z0-9]{6}');
 
   React.useEffect(() => {
+    crashlytics().log('Loading LoginScreen');
+  }, []);
+
+  React.useEffect(() => {
+    crashlytics().log('Code retrieved from native AndroidSmsUserConsent');
     if (retrievedCode) setSmsCode(retrievedCode);
   }, [retrievedCode]);
 
   React.useEffect(() => {
+    crashlytics().log('Verifying SMS code');
     if (smsCode.length == 6) verifySMS(smsCode);
   }, [smsCode]);
 
   React.useEffect(() => {
+    crashlytics().log(`Phase changed to ${phase}`);
     if (phase == 'sendSMS' && !phoneNumber) {
+      crashlytics().log(`Initializing native AndroidPhoneNumberHint`);
       (async () => {
         try {
           let num = await initPhoneNumberHint();
@@ -48,6 +57,8 @@ function LoginScreen({}) {
           setPhoneNumber(num);
           sendSMS(num);
         } catch (e) {
+          crashlytics().log(`Error with native AndroidPhoneNumberHint`);
+          crashlytics().recordError(e);
           console.error(e);
         }
       })();
@@ -57,9 +68,16 @@ function LoginScreen({}) {
   const sendSMS = async num => {
     setLoading(true);
     try {
+      crashlytics().log(
+        `Sending SMS verification code to ${
+          num ? 'AndroidPhoneNumberHint provided' : 'user provided'
+        } number`,
+      );
       const res = await API.loginViaSMS(num != undefined ? num : phoneNumber);
       if (res) {
         if (res.error_code) {
+          crashlytics().log(`Error sending SMS code: ${res.error_code}`);
+          crashlytics().recordError(new Error(res.message));
           throw new Error(res.message);
         } else {
           setPhase('verifySMS');
@@ -67,6 +85,8 @@ function LoginScreen({}) {
         }
       }
     } catch (e) {
+      crashlytics().log(`Error sending SMS code`);
+      crashlytics().recordError(e);
       setErrorMessage(e.message);
       console.error(e);
     }
@@ -75,6 +95,7 @@ function LoginScreen({}) {
   const verifySMS = async codeOverride => {
     setLoading(true);
     try {
+      crashlytics().log('Verifying SMS code with API');
       const res = await API.verifySMSCode(
         phoneNumber,
         codeOverride ? codeOverride : smsCode,
@@ -84,6 +105,9 @@ function LoginScreen({}) {
           throw new Error(res.message);
         } else {
           if (res.logged_in_user) {
+            crashlytics().log(
+              'User successfully logged in without age verification',
+            );
             await AsyncStorage.setItem('userToken', res.logged_in_user.token);
             await AsyncStorage.setItem('userID', res.logged_in_user.user.id);
             if (res.logged_in_user.group) {
@@ -121,7 +145,6 @@ function LoginScreen({}) {
               );
               RNRestart.restart();
             } else {
-              console.log(res);
               if (res.registration_id) {
                 setRegistrationID(res.registration_id);
                 setPhase('setAge');
@@ -130,14 +153,23 @@ function LoginScreen({}) {
               }
             }
           } else if (res.registration_id) {
+            crashlytics().log(
+              'SMS successfully verifed, proceeding to age verification',
+            );
             setRegistrationID(res.registration_id);
             setPhase('setAge');
           } else {
-            throw new Error('Unknown authentication error.');
+            crashlytics().log(
+              'Unknown authentication error after SMS verification',
+            );
+            throw new Error(
+              'Unknown authentication error after SMS verification.',
+            );
           }
         }
       }
     } catch (e) {
+      crashlytics().recordError(e);
       setErrorMessage(e.message);
       console.error(e);
     }
@@ -146,12 +178,17 @@ function LoginScreen({}) {
   const setAge = async () => {
     setLoading(true);
     try {
+      crashlytics().log('Verifying age with API');
       const res = await API.setAge(myAge, registrationID);
       if (res) {
         if (res.error_code) {
+          crashlytics().log(`Error setting age: ${res.message}`);
           throw new Error(res.message);
         } else {
           if (res.token) {
+            crashlytics().log(
+              'Age successfully verified, proceeding to email registration',
+            );
             await AsyncStorage.setItem('userToken', res.token);
             const id = await DeviceInfo.getAndroidId();
             const deviceID = sha256(id);
@@ -171,16 +208,22 @@ function LoginScreen({}) {
   const registerEmail = async () => {
     setLoading(true);
     try {
+      crashlytics().log('Registering school email with API');
       const res = await API.registerEmail(email);
       if (res) {
         if (res.error_code) {
+          crashlytics().recordError(new Error(res.message));
           throw new Error(res.message);
         } else {
+          crashlytics().log(
+            'Email successfully registered, proceeding to verification',
+          );
           setPhase('verifyEmail');
           setErrorMessage(null);
         }
       }
     } catch (e) {
+      crashlytics().recordError(e);
       setErrorMessage(e.message);
       console.error(e);
     }
@@ -189,9 +232,11 @@ function LoginScreen({}) {
   const verifyEmail = async () => {
     setLoading(true);
     try {
+      crashlytics().log('Verifying email with API');
       const res = await API.checkEmailVerification();
       if (res) {
         if (res.error_code) {
+          crashlytics().log(res.message);
           throw new Error(res.message);
         } else {
           if (res.user) {
@@ -222,6 +267,7 @@ function LoginScreen({}) {
         }
       }
     } catch (e) {
+      crashlytics().recordError(e);
       setErrorMessage(e.message);
       console.error(e);
     }

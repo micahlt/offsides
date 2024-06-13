@@ -14,6 +14,7 @@ import {
 import { AppContext } from '../App';
 import timesago from 'timesago';
 import { useFocusEffect } from '@react-navigation/native';
+import crashlytics from '@react-native-firebase/crashlytics';
 import UserContent from '../components/UserContent';
 
 const BORDER_RADIUS = 15;
@@ -25,10 +26,13 @@ function MyProfileScreen({ navigation }) {
   const [loading, setLoading] = React.useState(true);
   const { colors } = useTheme();
   useFocusEffect(() => {
+    crashlytics().log('Loading MyProfileScreen');
     loadProfile();
   });
   const loadProfile = async () => {
+    crashlytics().log('Fetching profile');
     const u = await API.getUpdates(appState.groupID);
+    crashlytics().log('Profile fetched successfully');
     setUpdates(u);
     setLoading(false);
   };

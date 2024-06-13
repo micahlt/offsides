@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "432247960310",
+    "project_id": "offsides-for-android",
+    "storage_bucket": "offsides-for-android.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:432247960310:android:51222f353836853329f2d7",
+        "android_client_info": {
+          "package_name": "com.micahlindley.offsides"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAYdfa7R0eLdUpd4aK-IVJGXFgE6LUFv20"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

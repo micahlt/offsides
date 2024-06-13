@@ -8,6 +8,7 @@ import {
   TouchableRipple,
   useTheme,
 } from 'react-native-paper';
+import crashlytics from '@react-native-firebase/crashlytics';
 import timesago from 'timesago';
 import { AppContext } from '../App';
 import UserAvatar from './UserAvatar';
@@ -23,9 +24,11 @@ function ActivityItem({ activity }) {
   const [linkProps, setLinkProps] = React.useState({});
   const [group, setGroup] = React.useState(null);
   React.useEffect(() => {
+    crashlytics().log('Loading ActivityItem');
     setLinkRoute('Comments');
     setLinkProps({ postID: activity.post_id });
     if (activity.type == 'suggested_sidechats') {
+      crashlytics().log('Activity type is suggested_sidechats');
       API.getGroupMetadata(
         activity.suggested_sidechats_data.group_ids_to_suggest[0],
       ).then(d => {
@@ -34,6 +37,7 @@ function ActivityItem({ activity }) {
     }
   }, [activity]);
   const readActivity = callback => {
+    crashlytics().log('Marking activity as read');
     API.readActivity(activity.id).then(callback);
   };
   const RenderedContent = () => {

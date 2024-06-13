@@ -21,6 +21,7 @@ import {
   ThemeProvider,
   Icon,
 } from 'react-native-paper';
+import crashlytics from '@react-native-firebase/crashlytics';
 import { AppContext } from '../App';
 import Post from '../components/Post';
 import GroupPicker from '../components/GroupPicker';
@@ -53,12 +54,19 @@ function HomeScreen({ navigation, route }) {
     /** @type {SidechatPostOrComment[]} */ ([]),
   );
   React.useEffect(() => {
+    crashlytics().log('Loading HomeScreen');
+  }, []);
+
+  React.useEffect(() => {
+    crashlytics().log('Setting group color');
     if (appState.groupColor) {
       const t = createMaterial3Theme(appState.groupColor);
       setCustomTheme(colorScheme == 'dark' ? t.dark : t.light);
     }
   }, [appState?.groupColor]);
+
   React.useEffect(() => {
+    crashlytics().log('Detected group change or sort method change');
     updateSortIcon();
     if (!loadingPosts) {
       InteractionManager.runAfterInteractions(() => {
@@ -73,6 +81,10 @@ function HomeScreen({ navigation, route }) {
               groupColor: params.groupColor,
             });
             fetchPosts(true, params.groupID);
+          } else {
+            crashlytics().log(
+              "No group selected - this shouldn't ever happen!",
+            );
           }
         } else {
           console.log('App state is undefined, will load in a second');
@@ -86,6 +98,7 @@ function HomeScreen({ navigation, route }) {
   }, []);
   const updateSortIcon = () => {
     if (!postCategory) return;
+    crashlytics().log('Setting sort icon');
     switch (postCategory) {
       case 'hot':
         setSortIcon('fire');
@@ -102,26 +115,38 @@ function HomeScreen({ navigation, route }) {
   };
   const fetchPosts = (refresh, override) => {
     if (loadingPosts) return false;
+    crashlytics().log(`Fetching posts sorted by ${postCategory}`);
     setLoadingPosts(true);
-    if (refresh) {
-      setPosts([]);
-      API.getGroupPosts(override || params.groupID, postCategory).then(res => {
-        if (res.posts) {
-          setPosts(res.posts.filter(i => i.id));
-          setCursor(res.cursor);
-        }
-        setLoadingPosts(false);
-      });
-    } else {
-      API.getGroupPosts(override || params.groupID, postCategory, cursor).then(
-        res => {
+    try {
+      if (refresh) {
+        crashlytics().log('Fetch triggered by refresh/group change');
+        setPosts([]);
+        API.getGroupPosts(override || params.groupID, postCategory).then(
+          res => {
+            if (res.posts) {
+              setPosts(res.posts.filter(i => i.id));
+              setCursor(res.cursor);
+            }
+            setLoadingPosts(false);
+          },
+        );
+      } else {
+        crashlytics().log('Fetch triggered by scroll at end of list');
+        API.getGroupPosts(
+          override || params.groupID,
+          postCategory,
+          cursor,
+        ).then(res => {
           if (res.posts) {
             setPosts(posts.concat(res.posts.filter(i => i.id)));
             setCursor(res.cursor);
           }
           setLoadingPosts(false);
-        },
-      );
+        });
+      }
+    } catch (e) {
+      crashlytics().log('Error fetching posts');
+      crashlytics().recordError(e);
     }
   };
   return (
