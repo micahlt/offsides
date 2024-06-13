@@ -1275,6 +1275,11 @@
   resolved "https://registry.npmjs.org/@devvie/bottom-sheet/-/bottom-sheet-0.3.0.tgz"
   integrity sha512-Cchl99PwSh+O/keyKHqXLfe+EqWwDIkMjPw50f4tlMrpaNE0PV7egQC5cTPZK6GRgj27mB4ZqsIZbeacwZkw+w==
 
+"@eabdullazyanov/react-native-sms-user-consent@^1.2.0":
+  version "1.2.0"
+  resolved "https://registry.npmjs.org/@eabdullazyanov/react-native-sms-user-consent/-/react-native-sms-user-consent-1.2.0.tgz"
+  integrity sha512-ZnDFCdMV6jsmpVZNoyWB7bcuw2PKmtGerjtZWG/tl7MiNrTvajzrD3ONmggW5pq8m/RCj829nQWHSb+TAyLx5Q==
+
 "@egjs/hammerjs@^2.0.17":
   version "2.0.17"
   resolved "https://registry.npmjs.org/@egjs/hammerjs/-/hammerjs-2.0.17.tgz"
@@ -7739,7 +7744,7 @@ react-native-video@^6.2.0:
   resolved "https://registry.npmjs.org/react-native-video/-/react-native-video-6.2.0.tgz"
   integrity sha512-7TWKGBkKrwR9V+SI6NB9YWWDZbto3fpT/02s8RnrFEac0h5aEJYe6NqTmz3TcFmIRSNepg2UsEvWGKNpWn4sCA==
 
-react-native@*, "react-native@^0.0.0-0 || >=0.60 <1.0", react-native@^0.74.2:
+react-native@*, "react-native@^0.0.0-0 || >=0.60 <1.0", react-native@^0.74.2, "react-native@>=0.66.5 <1.0.x":
   version "0.74.2"
   resolved "https://registry.npmjs.org/react-native/-/react-native-0.74.2.tgz"
   integrity sha512-EBMBjPPL4/GjHMP4NqsZabT3gI5WU9cSmduABGAGrd8uIcmTZ5F2Ng9k6gFmRm7n8e8CULxDNu98ZpQfBjl7Bw==
@@ -7804,7 +7809,7 @@ react-test-renderer@18.2.0:
     react-shallow-renderer "^16.15.0"
     scheduler "^0.23.0"
 
-react@*, "react@^16.0.0 || ^17.0.0 || ^18.0.0", react@^18.2.0, react@>=16.3.0, react@>=16.8, react@>=17.0.0, react@18.2.0:
+react@*, "react@^16 || ^17 || ^18", "react@^16.0.0 || ^17.0.0 || ^18.0.0", react@^18.2.0, react@>=16.3.0, react@>=16.8, react@>=17.0.0, react@18.2.0:
   version "18.2.0"
   resolved "https://registry.npmjs.org/react/-/react-18.2.0.tgz"
   integrity sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==

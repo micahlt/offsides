@@ -14,6 +14,7 @@ import { AppContext } from '../App';
 import DeviceInfo from 'react-native-device-info';
 import { sha256 } from 'js-sha256';
 import PatternBG from '../assets/bgpattern.png';
+import { useSmsUserConsent } from '@eabdullazyanov/react-native-sms-user-consent';
 
 function LoginScreen({}) {
   const { appState } = React.useContext(AppContext);
@@ -22,11 +23,21 @@ function LoginScreen({}) {
   const [errorMessage, setErrorMessage] = React.useState();
   const [phase, setPhase] = React.useState('sendSMS');
   const [phoneNumber, setPhoneNumber] = React.useState();
-  const [smsCode, setSmsCode] = React.useState();
+  const [smsCode, setSmsCode] = React.useState('');
   const [registrationID, setRegistrationID] = React.useState();
   const [myAge, setMyAge] = React.useState();
   const [email, setEmail] = React.useState();
   const [loading, setLoading] = React.useState(false);
+  const retrievedCode = useSmsUserConsent('[A-Z0-9]{6}');
+
+  React.useEffect(() => {
+    if (retrievedCode) setSmsCode(retrievedCode);
+  }, [retrievedCode]);
+
+  React.useEffect(() => {
+    if (smsCode.length == 6) verifySMS(smsCode);
+  }, [smsCode]);
+
   const sendSMS = async () => {
     setLoading(true);
     try {
@@ -283,12 +294,7 @@ function LoginScreen({}) {
                   textContentType="oneTimeCode"
                   maxLength={6}
                   autoComplete="one-time-code"
-                  onChangeText={code => {
-                    setSmsCode(code);
-                    if (code.length == 6) {
-                      verifySMS(code);
-                    }
-                  }}
+                  onChangeText={setSmsCode}
                 />
                 <View
                   style={{

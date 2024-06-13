@@ -49,7 +49,6 @@ function HomeScreen({ navigation, route }) {
   const colors = theme.colors;
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [loadingPosts, setLoadingPosts] = React.useState(false);
-  const [currentGroupId, setCurrentGroupId] = React.useState(params.groupID);
   const [sheetIsOpen, setSheetIsOpen] = React.useState(false);
   const [sortIcon, setSortIcon] = React.useState('filter-variant');
   const [posts, setPosts] = React.useState(
@@ -112,7 +111,7 @@ function HomeScreen({ navigation, route }) {
     setLoadingPosts(true);
     if (refresh) {
       setPosts([]);
-      API.getGroupPosts(override || currentGroupId, postCategory).then(res => {
+      API.getGroupPosts(override || params.groupID, postCategory).then(res => {
         if (res.posts) {
           setPosts(res.posts.filter(i => i.id));
           setCursor(res.cursor);
@@ -120,7 +119,7 @@ function HomeScreen({ navigation, route }) {
         setLoadingPosts(false);
       });
     } else {
-      API.getGroupPosts(override || currentGroupId, postCategory, cursor).then(
+      API.getGroupPosts(override || params.groupID, postCategory, cursor).then(
         res => {
           if (res.posts) {
             setPosts(posts.concat(res.posts.filter(i => i.id)));
@@ -287,7 +286,7 @@ function HomeScreen({ navigation, route }) {
               groupID:
                 appState.groupName == 'Home'
                   ? appState.schoolGroupID
-                  : currentGroupId,
+                  : params.groupID,
             })
           }
         />
