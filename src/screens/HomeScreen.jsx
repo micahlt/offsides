@@ -37,9 +37,7 @@ function HomeScreen({ navigation, route }) {
   const [customTheme, setCustomTheme] = React.useState(false);
   const { appState, setAppState } = React.useContext(AppContext);
   const API = appState.API;
-  const [postCategory, setPostCategory] = React.useState(
-    appState.postSortMethod ? appState.postSortMethod : 'hot',
-  );
+  const postCategory = appState.postSortMethod;
 
   const [cursor, setCursor] = React.useState(
     /** @type {SidechatCursorString} */ (null),
@@ -66,13 +64,9 @@ function HomeScreen({ navigation, route }) {
       InteractionManager.runAfterInteractions(() => {
         if (appState.userToken && params.groupID) {
           if (params?.groupID) {
-            let tempSortMethod = appState.postSortMethod;
-            if (postCategory != appState.postSortMethod) {
-              tempSortMethod = postCategory;
-            }
             setAppState({
               ...appState,
-              postSortMethod: tempSortMethod,
+              postSortMethod: postCategory,
               groupID: params.groupID,
               groupName: params.groupName,
               groupImage: params.groupImage || '',
@@ -85,7 +79,7 @@ function HomeScreen({ navigation, route }) {
         }
       });
     }
-  }, [postCategory, params?.groupID, appState.postSortMethod]);
+  }, [postCategory, params?.groupID]);
   const uniquePosts = useUniqueList(posts);
   const renderItem = React.useCallback(each => {
     return <Post post={each.item} nav={navigation} />;
@@ -189,8 +183,8 @@ function HomeScreen({ navigation, route }) {
                     : null,
               }}
               onPress={() => {
-                setPostCategory('hot');
                 setFilterOpen(false);
+                setAppState({ ...appState, postSortMethod: 'hot' });
               }}
             />
             {appState.groupName != 'Home' && (
@@ -202,8 +196,8 @@ function HomeScreen({ navigation, route }) {
                     postCategory == 'top' ? colors.primaryContainer : null,
                 }}
                 onPress={() => {
-                  setPostCategory('top');
                   setFilterOpen(false);
+                  setAppState({ ...appState, postSortMethod: 'top' });
                 }}
               />
             )}
@@ -215,8 +209,8 @@ function HomeScreen({ navigation, route }) {
                   postCategory == 'recent' ? colors.primaryContainer : null,
               }}
               onPress={() => {
-                setPostCategory('recent');
                 setFilterOpen(false);
+                setAppState({ ...appState, postSortMethod: 'recent' });
               }}
             />
           </Menu>
