@@ -27,8 +27,8 @@ function ActivityItem({ activity }) {
     crashlytics().log('Loading ActivityItem');
     setLinkRoute('Comments');
     setLinkProps({ postID: activity.post_id });
+    crashlytics().log(`Activity type: ${activity.type}`);
     if (activity.type == 'suggested_sidechats') {
-      crashlytics().log('Activity type is suggested_sidechats');
       API.getGroupMetadata(
         activity.suggested_sidechats_data.group_ids_to_suggest[0],
       ).then(d => {
@@ -164,7 +164,11 @@ function ActivityItem({ activity }) {
             <Text variant="bodySmall">{timesago(activity.timestamp)}</Text>
           </View>
           <View style={{ flexDirection: 'row' }}>
-            <UserAvatar conversationIcon={activity.conversation_icon} />
+            {activity.conversation_icon ? (
+              <UserAvatar conversationIcon={activity.conversation_icon} />
+            ) : (
+              <UserAvatar numberAlias="👤" />
+            )}
             <Text
               variant="bodyMedium"
               style={{ marginLeft: 10, color: colors.secondary }}>

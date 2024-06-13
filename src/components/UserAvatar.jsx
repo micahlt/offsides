@@ -1,5 +1,5 @@
 import React from 'react';
-import { Avatar, Badge, useTheme } from 'react-native-paper';
+import { Avatar, useTheme } from 'react-native-paper';
 import GroupAvatar from './GroupAvatar';
 import { useNavigation } from '@react-navigation/native';
 
