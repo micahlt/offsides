@@ -14,6 +14,7 @@ import { AppContext } from '../App';
 import DeviceInfo from 'react-native-device-info';
 import { sha256 } from 'js-sha256';
 import PatternBG from '../assets/bgpattern.png';
+import { initPhoneNumberHint } from 'react-native-phone-hint';
 import { useSmsUserConsent } from '@eabdullazyanov/react-native-sms-user-consent';
 
 function LoginScreen({}) {
@@ -38,10 +39,25 @@ function LoginScreen({}) {
     if (smsCode.length == 6) verifySMS(smsCode);
   }, [smsCode]);
 
-  const sendSMS = async () => {
+  React.useEffect(() => {
+    if (phase == 'sendSMS' && !phoneNumber) {
+      (async () => {
+        try {
+          let num = await initPhoneNumberHint();
+          num = num.replace('+1', '').replace(/\D/g, '');
+          setPhoneNumber(num);
+          sendSMS(num);
+        } catch (e) {
+          console.error(e);
+        }
+      })();
+    }
+  }, [phase]);
+
+  const sendSMS = async num => {
     setLoading(true);
     try {
-      const res = await API.loginViaSMS(phoneNumber);
+      const res = await API.loginViaSMS(num != undefined ? num : phoneNumber);
       if (res) {
         if (res.error_code) {
           throw new Error(res.message);

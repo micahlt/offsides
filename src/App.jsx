@@ -62,6 +62,9 @@ export default function App() {
       } else {
         tempState.anonMode = false;
       }
+      if (!tempState.postSortMethod) {
+        tempState.postSortMethod = 'hot';
+      }
       setAppState(tempState);
       // Object.keys(tempState).forEach(key => {
       //   console.log(key, tempState[key]);
