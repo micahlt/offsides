@@ -10,6 +10,7 @@ import {
   TouchableRipple,
   Divider,
   Button,
+  Badge,
 } from 'react-native-paper';
 import { AppContext } from '../App';
 import timesago from 'timesago';
@@ -24,10 +25,12 @@ function MyProfileScreen({ navigation }) {
   const API = appState.API;
   const [updates, setUpdates] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
+  const [updateBadge, setUpdateBadge] = React.useState(false);
   const { colors } = useTheme();
   useFocusEffect(() => {
     crashlytics().log('Loading MyProfileScreen');
     loadProfile();
+    needsUpdate().then(setUpdateBadge);
   });
   const loadProfile = async () => {
     crashlytics().log('Fetching profile');
@@ -59,7 +62,23 @@ function MyProfileScreen({ navigation }) {
           onPress={() => navigation.push('Messages')}
           icon="chat"
         />
-        <Appbar.Action onPress={() => navigation.push('Settings')} icon="cog" />
+        <View>
+          <Badge
+            style={{
+              position: 'absolute',
+              bottom: 10,
+              zIndex: 1,
+              alignSelf: 'center',
+            }}
+            size={12}
+            visible={updateBadge}>
+            UPDATE
+          </Badge>
+          <Appbar.Action
+            onPress={() => navigation.push('Settings')}
+            icon="cog"
+          />
+        </View>
       </Appbar.Header>
       {loading && <ProgressBar indeterminate={true} visible={true} />}
       {updates?.user && (

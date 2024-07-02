@@ -20,6 +20,7 @@ import {
   FAB,
   ThemeProvider,
   Icon,
+  Badge,
 } from 'react-native-paper';
 import crashlytics from '@react-native-firebase/crashlytics';
 import { AppContext } from '../App';
@@ -29,6 +30,7 @@ import useUniqueList from '../hooks/useUniqueList';
 import GroupAvatar from '../components/GroupAvatar';
 import { createMaterial3Theme } from '@pchmn/expo-material3-theme';
 import BottomSheet from '@devvie/bottom-sheet';
+import { needsUpdate } from '../utils';
 
 const BORDER_RADIUS = 12;
 
@@ -50,11 +52,13 @@ function HomeScreen({ navigation, route }) {
   const [loadingPosts, setLoadingPosts] = React.useState(false);
   const [sheetIsOpen, setSheetIsOpen] = React.useState(false);
   const [sortIcon, setSortIcon] = React.useState('filter-variant');
+  const [updateBadge, setUpdateBadge] = React.useState(false);
   const [posts, setPosts] = React.useState(
     /** @type {SidechatPostOrComment[]} */ ([]),
   );
   React.useEffect(() => {
     crashlytics().log('Loading HomeScreen');
+    needsUpdate().then(setUpdateBadge);
   }, []);
 
   React.useEffect(() => {
@@ -239,9 +243,16 @@ function HomeScreen({ navigation, route }) {
               }}
             />
           </Menu>
-          <Appbar.Action
-            icon="account"
-            onPress={() => navigation.push('MyProfile')}></Appbar.Action>
+          <View>
+            <Badge
+              style={{ position: 'absolute', bottom: 12, right: 12, zIndex: 1 }}
+              size={8}
+              visible={updateBadge}
+            />
+            <Appbar.Action
+              icon="account"
+              onPress={() => navigation.push('MyProfile')}></Appbar.Action>
+          </View>
         </Appbar.Header>
       )}
       <View

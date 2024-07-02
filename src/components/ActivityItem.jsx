@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import * as React from 'react';
 import { View, Vibration } from 'react-native';
 import {
+  ActivityIndicator,
   Card,
   Icon,
   Text,
@@ -23,6 +24,7 @@ function ActivityItem({ activity }) {
   const [linkRoute, setLinkRoute] = React.useState('');
   const [linkProps, setLinkProps] = React.useState({});
   const [group, setGroup] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
   React.useEffect(() => {
     crashlytics().log('Loading ActivityItem');
     setLinkRoute('Comments');
@@ -40,10 +42,10 @@ function ActivityItem({ activity }) {
     crashlytics().log('Marking activity as read');
     API.readActivity(activity.id).then(callback);
   };
-  const RenderedContent = () => {
+  const RenderedContent = ({ style }) => {
     if (activity.type == 'votes') {
       return (
-        <Card.Content style={{ padding: 15 }}>
+        <Card.Content style={{ padding: 15, ...style }}>
           <View style={{ flexDirection: 'row', marginBottom: 5 }}>
             <Icon
               source="arrow-up-bold-box"
@@ -63,7 +65,7 @@ function ActivityItem({ activity }) {
       );
     } else if (activity.type == 'trending_post') {
       return (
-        <Card.Content style={{ padding: 15 }}>
+        <Card.Content style={{ padding: 15, ...style }}>
           <View style={{ flexDirection: 'row', marginBottom: 5 }}>
             <Icon
               source="chart-timeline-variant-shimmer"
@@ -83,7 +85,7 @@ function ActivityItem({ activity }) {
       );
     } else if (activity.type == 'followed_post') {
       return (
-        <Card.Content style={{ padding: 15 }}>
+        <Card.Content style={{ padding: 15, ...style }}>
           <View style={{ flexDirection: 'row', marginBottom: 5 }}>
             <Icon source="forum" color={colors.primary} size={20}></Icon>
             <Text
@@ -100,7 +102,7 @@ function ActivityItem({ activity }) {
       );
     } else if (activity.type == 'suggested_sidechats') {
       return (
-        <Card.Content style={{ padding: 15 }}>
+        <Card.Content style={{ padding: 15, ...style }}>
           <View style={{ flexDirection: 'row', marginBottom: 5 }}>
             <Icon source="creation" color={colors.primary} size={20}></Icon>
             <Text
@@ -136,7 +138,7 @@ function ActivityItem({ activity }) {
       );
     } else if (activity.type.includes('comment')) {
       return (
-        <Card.Content style={{ padding: 15 }}>
+        <Card.Content style={{ padding: 15, ...style }}>
           <View style={{ flexDirection: 'row', marginBottom: 5 }}>
             <Icon source="message" color={colors.primary} size={20}></Icon>
             <Text
@@ -153,7 +155,7 @@ function ActivityItem({ activity }) {
       );
     } else if (activity.type == 'new_follower') {
       return (
-        <Card.Content style={{ padding: 15 }}>
+        <Card.Content style={{ padding: 15, ...style }}>
           <View style={{ flexDirection: 'row', marginBottom: 5 }}>
             <Icon source="account-plus" color={colors.primary} size={20}></Icon>
             <Text
@@ -183,13 +185,24 @@ function ActivityItem({ activity }) {
     <TouchableRipple
       onPress={() => readActivity(() => nav.push(linkRoute, linkProps))}
       onLongPress={() => {
+        setLoading(true);
         Vibration.vibrate(50);
         readActivity(() => null);
       }}
       borderless={true}
       style={{ borderRadius: 10 }}>
-      <Card mode="contained">
-        <RenderedContent />
+      <Card mode="contained" style={{ justifyContent: 'center' }}>
+        {loading && (
+          <ActivityIndicator
+            style={{
+              position: 'absolute',
+              alignSelf: 'center',
+              top: 0,
+              bottom: 0,
+            }}
+          />
+        )}
+        <RenderedContent style={{ opacity: loading ? 0.2 : 1 }} />
       </Card>
     </TouchableRipple>
   );

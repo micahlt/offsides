@@ -1,5 +1,6 @@
+import { SidechatSimpleAsset } from 'sidechat.js/src/types';
 import React from 'react';
-import { View, StatusBar } from 'react-native';
+import { View, StatusBar, Image } from 'react-native';
 import {
   Appbar,
   useTheme,
@@ -10,8 +11,11 @@ import {
   Text,
   TouchableRipple,
   Tooltip,
+  IconButton,
+  ActivityIndicator,
 } from 'react-native-paper';
 import { AppContext } from '../App';
+import { launchImageLibrary } from 'react-native-image-picker';
 
 const BORDER_RADIUS = 10;
 
@@ -23,12 +27,16 @@ function WriterScreen({ navigation, route }) {
   const { colors } = useTheme();
   const [error, setError] = React.useState(false);
   const [textContent, setTextContent] = React.useState('');
+  const [isUploading, setIsUploading] = React.useState(false);
+  const [asset, setAsset] = React.useState(
+    /** @type {SidechatSimpleAsset} */ (null),
+  );
   const createPostOrComment = async () => {
     if (mode == 'post') {
       const p = await API.createPost(
         textContent,
         groupID,
-        [],
+        asset ? [asset] : [],
         null,
         null,
         appState.anonMode,
@@ -43,7 +51,7 @@ function WriterScreen({ navigation, route }) {
         textContent,
         groupID,
         replyID,
-        [],
+        asset ? [asset] : [],
         null,
         appState.anonMode,
       );
@@ -52,6 +60,34 @@ function WriterScreen({ navigation, route }) {
       }
     }
   };
+
+  const uploadImage = async () => {
+    const result = await launchImageLibrary({
+      mediaType: 'photo',
+      quality: 1,
+      maxHeight: 1800,
+      maxWidth: 1800,
+    });
+    if (result.didCancel || result.errorMessage) return;
+    setIsUploading(true);
+    const photo = result.assets[0];
+    photo.height;
+    const assetURL = await API.uploadAsset(
+      photo.uri,
+      photo.type,
+      photo.fileName,
+    );
+    setIsUploading(false);
+    setAsset({
+      url: assetURL,
+      type: photo.type.split('/')[0],
+      height: photo.height,
+      width: photo.width,
+      content_type: photo.type.split('/')[1],
+      id: assetURL.split('/v1/assets/library/')[1],
+    });
+  };
+
   return (
     <View style={{ backgroundColor: colors.background, flex: 1 }}>
       <StatusBar animated={true} backgroundColor={colors.elevation.level2} />
@@ -112,26 +148,78 @@ function WriterScreen({ navigation, route }) {
             alignItems: 'center',
             paddingHorizontal: 15,
           }}>
-          <TouchableRipple
-            onPress={() => alert('This feature is coming soon!')}
-            style={{ borderRadius: BORDER_RADIUS }}
-            borderless={true}>
-            <View
-              style={{
-                borderStyle: 'dashed',
-                aspectRatio: '1 / 1',
-                borderWidth: 2,
-                borderRadius: BORDER_RADIUS,
-                borderColor: colors.outline,
-                height: '80%',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}>
-              <Icon source="image-plus" size={32} />
-              <Text style={{ marginTop: 10 }}>Add image</Text>
+          {asset ? (
+            <View style={{ position: 'relative' }}>
+              <IconButton
+                icon="delete"
+                onPress={() => setAsset(null)}
+                containerColor={colors.outline}
+                iconColor={colors.inverseOnSurface}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  right: 0,
+                  zIndex: 2,
+                }}
+              />
+              <Image
+                height="80%"
+                resizeMode="cover"
+                style={{
+                  borderStyle: 'solid',
+                  aspectRatio: '1 / 1',
+                  borderWidth: 2,
+                  borderRadius: BORDER_RADIUS,
+                  borderColor: colors.outline,
+                  height: '80%',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                source={{
+                  uri: asset.url,
+                  headers: {
+                    Authorization: `Bearer ${API.userToken}`,
+                  },
+                }}
+              />
             </View>
-          </TouchableRipple>
+          ) : (
+            <TouchableRipple
+              onPress={uploadImage}
+              style={{ borderRadius: BORDER_RADIUS }}
+              borderless={true}>
+              <View
+                style={{
+                  borderStyle: 'dashed',
+                  aspectRatio: '1 / 1',
+                  borderWidth: 2,
+                  borderRadius: BORDER_RADIUS,
+                  borderColor: colors.outline,
+                  height: '80%',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                {isUploading ? (
+                  <ActivityIndicator animating={true} />
+                ) : (
+                  <>
+                    <Icon
+                      source="image-plus"
+                      size={32}
+                      color={colors.primary}
+                    />
+                    <Text
+                      style={{ marginTop: 10, color: colors.onSurface }}
+                      variant="labelMedium">
+                      Add image
+                    </Text>
+                  </>
+                )}
+              </View>
+            </TouchableRipple>
+          )}
         </View>
       </View>
       <Snackbar visible={error} onDismiss={() => setError(false)}>

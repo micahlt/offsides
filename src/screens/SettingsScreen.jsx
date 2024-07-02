@@ -7,6 +7,7 @@ import {
   Text,
   Divider,
   Avatar,
+  Card,
 } from 'react-native-paper';
 import RNRestart from 'react-native-restart';
 import { version } from '../../package.json';
@@ -56,7 +57,7 @@ function SettingsScreen({ navigation }) {
         </Text>
         {updateAvailable ? (
           <Text style={{ textAlign: 'center' }}>
-            update to version {updateAvailable} available
+            update to version {updateAvailable.latestVersion} available
           </Text>
         ) : (
           <Text style={{ textAlign: 'center' }}>running latest version</Text>
@@ -77,29 +78,80 @@ function SettingsScreen({ navigation }) {
             }}>
             Sign Out
           </Button>
-          {updateAvailable && (
-            <Button
-              mode="contained-tonal"
-              onPress={() => {
-                Linking.openURL(
-                  `https://github.com/micahlt/offsides/releases/${updateAvailable}/`,
-                );
-              }}
-              style={{
-                maxWidth: '50%',
-                marginTop: 10,
-                marginBottom: 20,
-              }}>
-              Get Update
-            </Button>
-          )}
+          <Button
+            mode="contained-tonal"
+            onPress={() => Linking.openURL('https://offsides.micahlindley.com')}
+            style={{
+              maxWidth: '50%',
+              marginTop: 10,
+              marginBottom: 20,
+            }}>
+            Website
+          </Button>
         </View>
+        {updateAvailable && (
+          <Card style={{ width: '90%' }} mode="contained">
+            <Card.Title
+              title="Update Available"
+              titleVariant="titleMedium"
+              titleStyle={{ color: colors.primary, minHeight: 20 }}
+              subtitle={`Version ${updateAvailable.latestVersion}`}
+              subtitleStyle={{ color: colors.secondary, marginTop: 0 }}
+            />
+            <Card.Content>
+              {updateAvailable.changelog ? (
+                <Text>{updateAvailable.changelog}</Text>
+              ) : (
+                <Text>
+                  This update brings new features and bugfixes. You should
+                  update as soon as possible for the most complete and stable
+                  experience!
+                </Text>
+              )}
+            </Card.Content>
+            <Card.Actions>
+              <Button
+                mode="elevated"
+                onPress={() => {
+                  Linking.openURL(
+                    `https://github.com/micahlt/offsides/releases/${updateAvailable.latestVersion}/`,
+                  );
+                }}>
+                Get Update
+              </Button>
+            </Card.Actions>
+          </Card>
+        )}
         <Divider />
-        <Text style={{ textAlign: 'center', marginTop: 20 }}>
+        <Text
+          style={{
+            textAlign: 'center',
+            marginTop: 20,
+            color: colors.onSurfaceDisabled,
+            userSelect: 'text',
+          }}>
           User ID: {appState.userID}
         </Text>
-        <Text style={{ textAlign: 'center', marginBottom: 30 }}>
+        <Text
+          style={{
+            textAlign: 'center',
+            marginBottom: 10,
+            color: colors.onSurfaceDisabled,
+            userSelect: 'text',
+          }}>
           Group ID: {appState.groupID}
+        </Text>
+        <Text
+          style={{
+            textAlign: 'center',
+            maxWidth: '85%',
+            color: colors.onSurfaceDisabled,
+          }}
+          variant="bodySmall">
+          Offsides is an open-source project. Its source code is publicly
+          available and may be modified and distributed under the terms of the
+          MIT License. This project is not affiliated with Sidechat or its
+          developers.
         </Text>
       </ScrollView>
     </View>
