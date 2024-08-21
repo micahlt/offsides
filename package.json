@@ -1,6 +1,6 @@
 {
   "name": "offsides",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -36,7 +36,7 @@
     "react-native-video": "^6.3.0",
     "rn-emoji-keyboard": "^1.7.0",
     "semver": "^7.6.2",
-    "sidechat.js": "^2.5.3",
+    "sidechat.js": "^2.5.4",
     "timesago": "^1.0.1"
   },
   "devDependencies": {

@@ -6,6 +6,7 @@ import { AppContext } from '../App';
 import AutoImage from './AutoImage';
 import AutoVideo from './AutoVideo';
 import UserAvatar from './UserAvatar';
+import Poll from './Poll';
 
 const BORDER_RADIUS = 12;
 
@@ -144,6 +145,8 @@ function Post({
               )}
             </React.Fragment>
           ))}
+
+        {post.poll && <Poll poll={post.poll} />}
 
         {post.quote_post && !repost && (
           <Post post={post.quote_post.post} nav={nav} repost={true} />

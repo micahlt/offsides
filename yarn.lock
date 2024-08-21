@@ -4725,9 +4725,9 @@ fast-levenshtein@^2.0.6:
   integrity sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==
 
 fast-xml-parser@^4.0.12, fast-xml-parser@^4.2.4:
-  version "4.4.0"
-  resolved "https://registry.npmjs.org/fast-xml-parser/-/fast-xml-parser-4.4.0.tgz"
-  integrity sha512-kLY3jFlwIYwBNDojclKsNAC12sfD6NwW74QB2CoNGPvtVxjliYehVunB3HYyNi+n4Tt1dAcgwYvmKF/Z18flqg==
+  version "4.4.1"
+  resolved "https://registry.npmjs.org/fast-xml-parser/-/fast-xml-parser-4.4.1.tgz"
+  integrity sha512-xkjOecfnKGkSsOwtZ5Pz7Us/T6mrbPQrq0nh+aCO5V9nk5NLWmasAHumTKjiPJPWANe+kAZ84Jc8ooJkzZ88Sw==
   dependencies:
     strnum "^1.0.5"
 
@@ -8243,10 +8243,10 @@ side-channel@^1.0.4, side-channel@^1.0.6:
     get-intrinsic "^1.2.4"
     object-inspect "^1.13.1"
 
-sidechat.js@^2.5.3:
-  version "2.5.3"
-  resolved "https://registry.npmjs.org/sidechat.js/-/sidechat.js-2.5.3.tgz"
-  integrity sha512-tbJ+EREfC1CISxKSr29uG1wdRNUFxcj7wkY/HJMDqF0/J5ujmUhvEETBFAPkJB6DujTA8ulq/KDKTB0gX5QokA==
+sidechat.js@^2.5.4:
+  version "2.5.4"
+  resolved "https://registry.npmjs.org/sidechat.js/-/sidechat.js-2.5.4.tgz"
+  integrity sha512-e8sRAN4ejSWPa7hihhKs7EL2rwOKBU2oEqXVTwdziRgE9Hg0vAt1oqLGdwUO3pRmBXtKPqMKoqbttFEUpK5fUw==
 
 signal-exit@^3.0.0, signal-exit@^3.0.2, signal-exit@^3.0.3, signal-exit@^3.0.7:
   version "3.0.7"

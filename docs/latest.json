@@ -1,4 +1,4 @@
 {
-  "latestVersion": "0.7.0",
-  "changelog": "This update supports uploading images to posts.  Make sure you follow the Sidechat code of conduct please!  There are also some minor bug fixes included."
+  "latestVersion": "0.7.1",
+  "changelog": "This update includes minor bugfixes as well as support for viewing and voting on polls."
 }
