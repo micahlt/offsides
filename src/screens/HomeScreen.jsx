@@ -127,6 +127,7 @@ function HomeScreen({ navigation, route }) {
         setPosts([]);
         API.getGroupPosts(override || params.groupID, postCategory).then(
           res => {
+            console.log('GET GROUP POSTS');
             if (res.posts) {
               setPosts(res.posts.filter(i => i.id));
               setCursor(res.cursor);
@@ -141,6 +142,7 @@ function HomeScreen({ navigation, route }) {
           postCategory,
           cursor,
         ).then(res => {
+          console.log('GET  POSTS');
           if (res.posts) {
             setPosts(posts.concat(res.posts.filter(i => i.id)));
             setCursor(res.cursor);

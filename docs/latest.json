@@ -1,4 +1,4 @@
 {
-  "latestVersion": "0.7.1",
-  "changelog": "This update includes minor bugfixes as well as support for viewing and voting on polls."
+  "latestVersion": "0.7.2",
+  "changelog": "This update includes a bugfix for the issue that caused app crashes when polls were viewed."
 }

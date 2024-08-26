@@ -24,6 +24,8 @@ function Poll({ poll }) {
     API.voteOnPoll(poll.id, choiceIndex);
   };
 
+  console.log(poll);
+
   if (!poll) return null;
   return (
     <View>
@@ -44,13 +46,19 @@ function Poll({ poll }) {
               padding: 10,
               borderRadius: 10,
             }}>
-            <Text
-              style={{ color: colors.onSecondaryContainer }}
-              variant="labelLarge">
-              {option.text}
-            </Text>
-            {option.count && (
+            {!!option?.text ? (
+              <Text
+                style={{ color: colors.onSecondaryContainer }}
+                variant="labelLarge">
+                {option.text}
+              </Text>
+            ) : (
+              <></>
+            )}
+            {!!option?.count ? (
               <Text variant="bodySmall">{option.count} votes</Text>
+            ) : (
+              <></>
             )}
           </View>
         </TouchableRipple>
