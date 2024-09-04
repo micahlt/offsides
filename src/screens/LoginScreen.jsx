@@ -73,7 +73,9 @@ function LoginScreen({}) {
           num ? 'AndroidPhoneNumberHint provided' : 'user provided'
         } number`,
       );
-      const res = await API.loginViaSMS(num != undefined ? num : phoneNumber);
+      const res = await API.loginViaSMS(
+        num != undefined && num.length == 10 ? num : phoneNumber,
+      );
       if (res) {
         if (res.error_code) {
           crashlytics().log(`Error sending SMS code: ${res.error_code}`);
@@ -344,20 +346,23 @@ function LoginScreen({}) {
                   Enter the code that you recieved at{' '}
                   {phoneNumber || 'your phone number.'}
                 </Text>
-                <TextInput
-                  mode="outlined"
-                  placeholder="— — — — — —"
-                  style={{
-                    marginBottom: 10,
-                    textAlign: 'center',
-                  }}
-                  autoFocus={true}
-                  value={smsCode}
-                  textContentType="oneTimeCode"
-                  maxLength={6}
-                  autoComplete="one-time-code"
-                  onChangeText={setSmsCode}
-                />
+                <View>
+                  <TextInput
+                    mode="outlined"
+                    placeholder="— — — — — —"
+                    style={{
+                      marginBottom: 10,
+                      textAlign: 'center',
+                      width: '100%',
+                    }}
+                    autoFocus={true}
+                    value={smsCode}
+                    textContentType="oneTimeCode"
+                    maxLength={6}
+                    autoComplete="one-time-code"
+                    onChangeText={setSmsCode}
+                  />
+                </View>
                 <View
                   style={{
                     display: 'flex',
@@ -369,6 +374,7 @@ function LoginScreen({}) {
                     loading={loading}
                     onPress={() => {
                       if (phoneNumber?.length == 10) {
+                        setSmsCode('');
                         sendSMS();
                       } else {
                         setPhase('sendSMS');
@@ -394,6 +400,7 @@ function LoginScreen({}) {
                   style={{
                     marginBottom: 10,
                     textAlign: 'center',
+                    height: 20,
                   }}
                   value={myAge}
                   keyboardType="number-pad"
