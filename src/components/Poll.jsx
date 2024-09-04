@@ -16,20 +16,28 @@ function Poll({ poll }) {
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const { colors } = useTheme();
+  const [localPoll, setLocalPoll] = React.useState(poll);
 
   const setVote = choiceIndex => {
-    if (poll.participated) {
+    if (localPoll.participated) {
       ToastAndroid.show('You cannot change your vote', ToastAndroid.SHORT);
     }
-    API.voteOnPoll(poll.id, choiceIndex);
+    API.voteOnPoll(localPoll.id, choiceIndex).then(() => {
+      setLocalPoll({
+        ...localPoll,
+        participated: true,
+        choices: localPoll.choices.map((choice, index) => ({
+          ...choice,
+          selected: index === choiceIndex,
+        })),
+      });
+    });
   };
 
-  console.log(poll);
-
-  if (!poll) return null;
+  if (!localPoll) return null;
   return (
     <View>
-      {poll.choices.map((option, index) => (
+      {localPoll.choices.map((option, index) => (
         <TouchableRipple
           key={index}
           onPress={() => setVote(index)}
