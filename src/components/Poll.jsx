@@ -21,6 +21,7 @@ function Poll({ poll }) {
   const setVote = choiceIndex => {
     if (localPoll.participated) {
       ToastAndroid.show('You cannot change your vote', ToastAndroid.SHORT);
+      return;
     }
     API.voteOnPoll(localPoll.id, choiceIndex).then(() => {
       setLocalPoll({
@@ -29,6 +30,7 @@ function Poll({ poll }) {
         choices: localPoll.choices.map((choice, index) => ({
           ...choice,
           selected: index === choiceIndex,
+          count: index === choiceIndex ? choice.count + 1 : choice.count,
         })),
       });
     });
