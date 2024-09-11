@@ -1,6 +1,7 @@
+import { SidechatPostOrComment } from 'sidechat.js/src/types';
 import React from 'react';
-import { Alert, View } from 'react-native';
-import { Card, IconButton, Text, useTheme } from 'react-native-paper';
+import { Alert, Linking, View } from 'react-native';
+import { Card, Chip, IconButton, Text, useTheme } from 'react-native-paper';
 import timesago from 'timesago';
 import { AppContext } from '../App';
 import AutoImage from './AutoImage';
@@ -10,6 +11,11 @@ import Poll from './Poll';
 
 const BORDER_RADIUS = 12;
 
+/**
+ * @param {object} props
+ * @param {SidechatPostOrComment} props.post
+ * @returns
+ */
 function Post({
   post,
   nav,
@@ -42,6 +48,12 @@ function Post({
       setVoteCount(res.post.vote_total);
     });
   };
+
+  if (post.attachments.length > 0) {
+    post.attachments.forEach(a => {
+      if (a.type == 'youtube') console.log(post.attachments);
+    });
+  }
 
   const deletePost = () => {
     Alert.alert(
@@ -111,6 +123,7 @@ function Post({
         )}
 
         {width &&
+          // Assets are things like images and videos
           post.assets.map(asset => (
             <React.Fragment key={asset.id}>
               {asset.type == 'image' && (
@@ -142,6 +155,40 @@ function Post({
                       : { marginBottom: 10 }
                   }
                 />
+              )}
+            </React.Fragment>
+          ))}
+
+        {width &&
+          // Attachments are things like links and embeds
+          post.attachments.map(att => (
+            <React.Fragment key={att.id}>
+              {!!att?.youtube_id ? (
+                <Chip
+                  icon="youtube"
+                  style={{
+                    marginRight: 'auto',
+                    marginBottom: 5,
+                    maxWidth: '100%',
+                    overflow: 'hidden',
+                  }}
+                  onPress={() => Linking.openURL(att.link_url)}>
+                  {att.title}
+                </Chip>
+              ) : att.type == 'link' ? (
+                <Chip
+                  icon="link"
+                  style={{
+                    marginRight: 'auto',
+                    marginBottom: 5,
+                    maxWidth: '100%',
+                    overflow: 'hidden',
+                  }}
+                  onPress={() => Linking.openURL(att.link_url)}>
+                  {att.display_url}
+                </Chip>
+              ) : (
+                <></>
               )}
             </React.Fragment>
           ))}
