@@ -400,7 +400,7 @@ function LoginScreen({}) {
                   style={{
                     marginBottom: 10,
                     textAlign: 'center',
-                    height: 20,
+                    width: 100,
                   }}
                   value={myAge}
                   keyboardType="number-pad"

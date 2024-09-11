@@ -1,4 +1,4 @@
 {
-  "latestVersion": "0.7.3",
-  "changelog": "This update includes bugfixes for login issues as well as experience improvments for polls."
+  "latestVersion": "0.7.4",
+  "changelog": "This update includes a fix that made logging in impossible for some users."
 }
