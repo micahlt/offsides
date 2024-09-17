@@ -84,7 +84,9 @@ function MessageScreen({ navigation }) {
               />
               <View>
                 <Text style={{ color: colors.onSurface }} variant="bodyLarge">
-                  {item.messages[item.messages.length - 1].text}
+                  {item.messages.length > 0
+                    ? item.messages[item.messages.length - 1]?.text || ''
+                    : 'No messages in this chat'}
                 </Text>
                 <Text
                   style={{ color: colors.onSurfaceVariant }}
