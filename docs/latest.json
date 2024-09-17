@@ -1,4 +1,4 @@
 {
-  "latestVersion": "0.7.4",
-  "changelog": "This update includes a fix that made logging in impossible for some users."
+  "latestVersion": "0.7.5",
+  "changelog": "This update resolved an issue where some users were experiencing a crash when opening DMs.  It also adds tapping images to expand and zoom in on them."
 }
