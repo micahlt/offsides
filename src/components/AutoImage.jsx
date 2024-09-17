@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Image } from 'react-native';
+import ImageModal from 'react-native-image-modal';
 
 const AutoImage = ({
   src,
@@ -13,7 +14,8 @@ const AutoImage = ({
     return srcHeight / srcWidth;
   }, []);
   return React.useCallback(
-    <Image
+    <ImageModal
+      modalImageResizeMode="contain"
       source={{
         uri: src,
         headers: {
