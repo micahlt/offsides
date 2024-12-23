@@ -8,7 +8,6 @@ import {
   TextInput,
   useTheme,
 } from 'react-native-paper';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNRestart from 'react-native-restart';
 import { AppContext } from '../App';
 import DeviceInfo from 'react-native-device-info';
@@ -17,8 +16,9 @@ import PatternBG from '../assets/bgpattern.png';
 import { initPhoneNumberHint } from 'react-native-phone-hint';
 import { useSmsUserConsent } from '@eabdullazyanov/react-native-sms-user-consent';
 import crashlytics from '@react-native-firebase/crashlytics';
+import { storage } from '../utils/mmkv';
 
-function LoginScreen({}) {
+function LoginScreen({ }) {
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const { colors } = useTheme();
@@ -69,8 +69,7 @@ function LoginScreen({}) {
     setLoading(true);
     try {
       crashlytics().log(
-        `Sending SMS verification code to ${
-          num ? 'AndroidPhoneNumberHint provided' : 'user provided'
+        `Sending SMS verification code to ${num ? 'AndroidPhoneNumberHint provided' : 'user provided'
         } number`,
       );
       const res = await API.loginViaSMS(
@@ -110,38 +109,38 @@ function LoginScreen({}) {
             crashlytics().log(
               'User successfully logged in without age verification',
             );
-            await AsyncStorage.setItem('userToken', res.logged_in_user.token);
-            await AsyncStorage.setItem('userID', res.logged_in_user.user.id);
+            storage.set('userToken', res.logged_in_user.token);
+            storage.set('userID', res.logged_in_user.user.id);
             if (res.logged_in_user.group) {
-              await AsyncStorage.setItem(
+              storage.set(
                 'groupID',
                 res.logged_in_user.group.id,
               );
-              await AsyncStorage.setItem(
+              storage.set(
                 'groupName',
                 res.logged_in_user.group.name,
               );
-              await AsyncStorage.setItem(
+              storage.set(
                 'groupColor',
                 res.logged_in_user.group.color,
               );
-              await AsyncStorage.setItem(
+              storage.set(
                 'groupImage',
                 res.logged_in_user.group.icon_url || '',
               );
-              await AsyncStorage.setItem(
+              storage.set(
                 'schoolGroupID',
                 res.logged_in_user.group.id,
               );
-              await AsyncStorage.setItem(
+              storage.set(
                 'schoolGroupName',
                 res.logged_in_user.group.name,
               );
-              await AsyncStorage.setItem(
+              storage.set(
                 'schoolGroupColor',
                 res.logged_in_user.group.color,
               );
-              await AsyncStorage.setItem(
+              storage.set(
                 'schoolGroupImage',
                 res.logged_in_user.group.icon_url || '',
               );
@@ -191,7 +190,7 @@ function LoginScreen({}) {
             crashlytics().log(
               'Age successfully verified, proceeding to email registration',
             );
-            await AsyncStorage.setItem('userToken', res.token);
+            storage.set('userToken', res.token);
             const id = await DeviceInfo.getAndroidId();
             const deviceID = sha256(id);
             await API.setDeviceID(deviceID);
@@ -242,20 +241,20 @@ function LoginScreen({}) {
           throw new Error(res.message);
         } else {
           if (res.user) {
-            await AsyncStorage.setItem('userToken', res.token);
-            await AsyncStorage.setItem('userID', res.user.id);
+            storage.set('userToken', res.token);
+            storage.set('userID', res.user.id);
             if (res.group) {
-              await AsyncStorage.setItem('groupID', res.group.id);
-              await AsyncStorage.setItem('schoolGroupID', res.group.id);
-              await AsyncStorage.setItem('groupName', res.group.name);
-              await AsyncStorage.setItem('schoolGroupName', res.group.name);
-              await AsyncStorage.setItem('groupColor', res.group.color);
-              await AsyncStorage.setItem('schoolGroupColor', res.group.color);
-              await AsyncStorage.setItem(
+              storage.set('groupID', res.group.id);
+              storage.set('schoolGroupID', res.group.id);
+              storage.set('groupName', res.group.name);
+              storage.set('schoolGroupName', res.group.name);
+              storage.set('groupColor', res.group.color);
+              storage.set('schoolGroupColor', res.group.color);
+              storage.set(
                 'groupImage',
                 res.group.icon_url || '',
               );
-              await AsyncStorage.setItem(
+              storage.set(
                 'schoolGroupImage',
                 res.group.icon_url || '',
               );

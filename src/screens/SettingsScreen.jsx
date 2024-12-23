@@ -11,7 +11,7 @@ import {
 } from 'react-native-paper';
 import RNRestart from 'react-native-restart';
 import { version } from '../../package.json';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { storage } from '../utils/mmkv';
 import { AppContext } from '../App';
 import offsidesLogo from '../assets/Offsides.png';
 import { needsUpdate } from '../utils';
@@ -28,7 +28,8 @@ function SettingsScreen({ navigation }) {
     setUpdateAvailable(needs);
   };
   const signOut = () => {
-    AsyncStorage.clear().then(() => RNRestart.restart());
+    storage.clearAll();
+    RNRestart.restart();
   };
   return (
     <View style={{ backgroundColor: colors.background, flex: 1 }}>
