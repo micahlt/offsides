@@ -20,7 +20,7 @@ import { launchImageLibrary } from 'react-native-image-picker';
 const BORDER_RADIUS = 10;
 
 function WriterScreen({ navigation, route }) {
-  const { mode, groupID, postID, replyID } = route.params;
+  const { mode, groupID, postID, replyID, parentID } = route.params;
   if (mode != 'comment' && mode != 'post') return false;
   const { appState, setAppState } = React.useContext(AppContext);
   const API = appState.API;
@@ -29,7 +29,7 @@ function WriterScreen({ navigation, route }) {
   const [textContent, setTextContent] = React.useState('');
   const [isUploading, setIsUploading] = React.useState(false);
   const [asset, setAsset] = React.useState(
-    /** @type {SidechatSimpleAsset} */ (null),
+    /** @type {SidechatSimpleAsset} */(null),
   );
   const createPostOrComment = async () => {
     if (mode == 'post') {
@@ -46,17 +46,31 @@ function WriterScreen({ navigation, route }) {
         navigation.replace('Home');
       }
     } else if (mode == 'comment') {
-      const c = await API.createComment(
-        postID,
-        textContent,
-        groupID,
-        replyID,
-        asset ? [asset] : [],
-        null,
-        appState.anonMode,
-      );
-      if (!c?.message) {
-        navigation.pop();
+      if (parentID) {
+        const c = await API.createComment(
+          postID,
+          textContent,
+          groupID,
+          replyID,
+          parentID,
+          asset ? [asset] : [],
+          null,
+          appState.anonMode);
+        if (!c?.message) {
+          navigation.pop();
+        }
+      } else {
+        const c = await API.createComment(
+          postID,
+          textContent,
+          groupID,
+          replyID,
+          asset ? [asset] : [],
+          null,
+          appState.anonMode);
+        if (!c?.message) {
+          navigation.pop();
+        }
       }
     }
   };

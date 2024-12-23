@@ -204,13 +204,24 @@ function Comment({ comment, nav, isolated = false }) {
           ) : (
             <Button
               mode="text"
-              onPress={() =>
-                nav.push('Writer', {
-                  mode: 'comment',
-                  postID: comment.parent_post_id,
-                  replyID: comment.reply_post_id,
-                  groupID: comment.group.id,
-                })
+              onPress={() => {
+                if (comment.parent_post_id == comment.reply_post_id) {
+                  nav.push('Writer', {
+                    mode: 'comment',
+                    postID: comment.parent_post_id,
+                    replyID: comment.reply_post_id,
+                    groupID: comment.group.id,
+                  });
+                } else {
+                  nav.push('Writer', {
+                    mode: 'comment',
+                    postID: comment.parent_post_id,
+                    parentID: comment.reply_post_id,
+                    replyID: comment.id,
+                    groupID: comment.group.id,
+                  });
+                }
+              }
               }>
               Reply
             </Button>
