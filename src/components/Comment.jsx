@@ -209,7 +209,7 @@ function Comment({ comment, nav, isolated = false }) {
                   nav.push('Writer', {
                     mode: 'comment',
                     postID: comment.parent_post_id,
-                    replyID: comment.reply_post_id,
+                    replyID: comment.id,
                     groupID: comment.group.id,
                   });
                 } else {

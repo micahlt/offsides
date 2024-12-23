@@ -65,6 +65,7 @@ function WriterScreen({ navigation, route }) {
           textContent,
           groupID,
           replyID,
+          null,
           asset ? [asset] : [],
           null,
           appState.anonMode);
