@@ -35,7 +35,7 @@ export default function App() {
   React.useEffect(() => {
     crashlytics().log('Loading App');
     crashlytics().log('Fetching initial app variables');
-    if (!hasMigratedFromAsyncStorage) {
+    if (!hasMigrated) {
       InteractionManager.runAfterInteractions(async () => {
         try {
           await migrateFromAsyncStorage()
