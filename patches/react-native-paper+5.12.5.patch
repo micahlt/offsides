@@ -1,0 +1,122 @@
+diff --git a/node_modules/react-native-paper/lib/commonjs/components/TextInput/Label/InputLabel.js b/node_modules/react-native-paper/lib/commonjs/components/TextInput/Label/InputLabel.js
+index 08d084a..bb975f6 100644
+--- a/node_modules/react-native-paper/lib/commonjs/components/TextInput/Label/InputLabel.js
++++ b/node_modules/react-native-paper/lib/commonjs/components/TextInput/Label/InputLabel.js
+@@ -110,7 +110,7 @@ const InputLabel = props => {
+     // This gives the effect of animating the color, but allows us to use native driver
+     _react.default.createElement(_reactNative.View, {
+       pointerEvents: "none",
+-      style: [_reactNative.StyleSheet.absoluteFill, styles.overflow]
++      style: [_reactNative.StyleSheet.absoluteFill, styles.overflow, , styles.labelContainer]
+     }, /*#__PURE__*/_react.default.createElement(_reactNative.Animated.View, {
+       pointerEvents: "none",
+       style: [_reactNative.StyleSheet.absoluteFill, styles.labelContainer, _reactNative.Platform.OS !== 'web' && {
+diff --git a/node_modules/react-native-paper/lib/module/components/TextInput/Label/InputLabel.js b/node_modules/react-native-paper/lib/module/components/TextInput/Label/InputLabel.js
+index 04fc70d..ba46119 100644
+--- a/node_modules/react-native-paper/lib/module/components/TextInput/Label/InputLabel.js
++++ b/node_modules/react-native-paper/lib/module/components/TextInput/Label/InputLabel.js
+@@ -103,7 +103,7 @@ const InputLabel = props => {
+     // This gives the effect of animating the color, but allows us to use native driver
+     React.createElement(View, {
+       pointerEvents: "none",
+-      style: [StyleSheet.absoluteFill, styles.overflow]
++      style: [StyleSheet.absoluteFill, styles.overflow, , styles.labelContainer]
+     }, /*#__PURE__*/React.createElement(Animated.View, {
+       pointerEvents: "none",
+       style: [StyleSheet.absoluteFill, styles.labelContainer, Platform.OS !== 'web' && {
+diff --git a/node_modules/react-native-paper/src/components/BottomNavigation/BottomNavigationBar.tsx b/node_modules/react-native-paper/src/components/BottomNavigation/BottomNavigationBar.tsx
+index 0bfe303..789c388 100644
+--- a/node_modules/react-native-paper/src/components/BottomNavigation/BottomNavigationBar.tsx
++++ b/node_modules/react-native-paper/src/components/BottomNavigation/BottomNavigationBar.tsx
+@@ -360,7 +360,9 @@ const BottomNavigationBar = <Route extends BaseRoute>({
+   navigationState,
+   renderIcon,
+   renderLabel,
+-  renderTouchable = (props: TouchableProps<Route>) => <Touchable {...props} />,
++  renderTouchable = ({ key, ...props }: TouchableProps<Route>) => (
++    <Touchable key={key} {...props} />
++  ),
+   getLabelText = ({ route }: { route: Route }) => route.title,
+   getBadge = ({ route }: { route: Route }) => route.badge,
+   getColor = ({ route }: { route: Route }) => route.color,
+diff --git a/node_modules/react-native-paper/src/components/Button/Button.tsx b/node_modules/react-native-paper/src/components/Button/Button.tsx
+index 64a049a..0dfb9a9 100644
+--- a/node_modules/react-native-paper/src/components/Button/Button.tsx
++++ b/node_modules/react-native-paper/src/components/Button/Button.tsx
+@@ -324,6 +324,7 @@ const Button = (
+       {...rest}
+       ref={ref}
+       testID={`${testID}-container`}
++      key={disabled ? 'disabled' : 'enabled'}
+       style={
+         [
+           styles.button,
+diff --git a/node_modules/react-native-paper/src/components/Modal.tsx b/node_modules/react-native-paper/src/components/Modal.tsx
+index 313ecee..8cc7d0f 100644
+--- a/node_modules/react-native-paper/src/components/Modal.tsx
++++ b/node_modules/react-native-paper/src/components/Modal.tsx
+@@ -141,6 +141,8 @@ function Modal({
+     }).start();
+   }, [opacity, scale]);
+ 
++  const shouldModalDisappearRef = React.useRef(true);
++
+   const hideModal = React.useCallback(() => {
+     Animated.timing(opacity, {
+       toValue: 0,
+@@ -152,15 +154,17 @@ function Modal({
+         return;
+       }
+ 
+-      if (visible) {
++      if (visible && shouldModalDisappearRef?.current) {
+         onDismissCallback();
+       }
+ 
+-      if (visibleRef.current) {
++      if (visibleRef.current && !shouldModalDisappearRef?.current) {
+         showModal();
+       } else {
+         setRendered(false);
+       }
++
++      shouldModalDisappearRef.current = true;
+     });
+   }, [onDismissCallback, opacity, scale, showModal, visible]);
+ 
+@@ -171,6 +175,7 @@ function Modal({
+ 
+     const onHardwareBackPress = () => {
+       if (dismissable || dismissableBackButton) {
++        shouldModalDisappearRef.current = false;
+         hideModal();
+       }
+ 
+diff --git a/node_modules/react-native-paper/src/components/TextInput/Label/InputLabel.tsx b/node_modules/react-native-paper/src/components/TextInput/Label/InputLabel.tsx
+index 45d524e..575afbb 100644
+--- a/node_modules/react-native-paper/src/components/TextInput/Label/InputLabel.tsx
++++ b/node_modules/react-native-paper/src/components/TextInput/Label/InputLabel.tsx
+@@ -138,7 +138,7 @@ const InputLabel = (props: InputLabelProps) => {
+     // This gives the effect of animating the color, but allows us to use native driver
+     <View
+       pointerEvents="none"
+-      style={[StyleSheet.absoluteFill, styles.overflow]}
++      style={[StyleSheet.absoluteFill, styles.overflow, styles.labelContainer]}
+     >
+       <Animated.View
+         pointerEvents="none"
+diff --git a/node_modules/react-native-paper/src/components/TextInput/TextInputFlat.tsx b/node_modules/react-native-paper/src/components/TextInput/TextInputFlat.tsx
+index 8a0dcb1..fce1334 100644
+--- a/node_modules/react-native-paper/src/components/TextInput/TextInputFlat.tsx
++++ b/node_modules/react-native-paper/src/components/TextInput/TextInputFlat.tsx
+@@ -363,8 +363,8 @@ const TextInputFlat = ({
+               StyleSheet.absoluteFill,
+               dense ? styles.densePatchContainer : styles.patchContainer,
+               {
+-                backgroundColor:
+-                  viewStyle.backgroundColor || containerStyle.backgroundColor,
++                // backgroundColor:
++                  // viewStyle.backgroundColor || containerStyle.backgroundColor,
+                 left: paddingLeft,
+                 right: paddingRight,
+               },
