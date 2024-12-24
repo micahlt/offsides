@@ -1,4 +1,4 @@
 {
-  "latestVersion": "0.7.6",
-  "changelog": "This update resolves an issue where users were unable to reply to replies on posts."
+  "latestVersion": "0.7.7",
+  "changelog": "This update fixes an issue where switching to joined groups or trying to find new groups would not work, as well as an issue where users experienced a freeze after loading the app for the first time."
 }
