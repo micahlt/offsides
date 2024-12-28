@@ -95,12 +95,12 @@ function GroupPicker({ sheetRef }) {
             mode={removeMode ? 'contained' : 'contained-tonal'}
             style={{ marginRight: 10 }}
             size={24}
-            onPressOut={() => setRemoveMode(!removeMode)}
+            onPress={() => setRemoveMode(!removeMode)}
           />
           <Button
             icon="earth"
             mode="contained"
-            onPressOut={explore}
+            onPress={explore}
             style={{ marginLeft: 'auto', marginRight: 5 }}>
             Explore
           </Button>
@@ -119,7 +119,7 @@ function GroupPicker({ sheetRef }) {
                         : 'plus'
                     }
                     style={{ marginRight: 5 }}
-                    onPressOut={changeCurrentMembership}>
+                    onPress={changeCurrentMembership}>
                     {currentGroup.membership_type == 'member'
                       ? 'Leave'
                       : 'Join'}

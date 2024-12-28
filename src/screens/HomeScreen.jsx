@@ -68,6 +68,7 @@ function HomeScreen({ navigation, route }) {
   React.useEffect(() => {
     crashlytics().log('Loading HomeScreen');
     needsUpdate().then(setUpdateBadge);
+    API.getUpdates(appState.schoolGroupID).then(updates => setUserGroups(updates.groups));
   }, []);
 
   React.useEffect(() => {
@@ -266,6 +267,7 @@ function HomeScreen({ navigation, route }) {
               onPress={() => {
                 setFilterOpen(false);
                 setAppState({ ...appState, postSortMethod: 'hot' });
+                setPostSortMethod('hot');
               }}
             />
             {currentGroup.name != 'Home' && (
@@ -281,6 +283,7 @@ function HomeScreen({ navigation, route }) {
                 onPress={() => {
                   setFilterOpen(false);
                   setAppState({ ...appState, postSortMethod: 'top' });
+                  setPostSortMethod('top');
                 }}
               />
             )}
@@ -296,6 +299,7 @@ function HomeScreen({ navigation, route }) {
               onPress={() => {
                 setFilterOpen(false);
                 setAppState({ ...appState, postSortMethod: 'recent' });
+                setPostSortMethod('recent');
               }}
             />
           </Menu>

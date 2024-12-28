@@ -62,7 +62,7 @@ const ItemList = ({ updates, view, style }) => {
             style={{ rowGap: 8, marginTop: -16, marginBottom: -16 }}>
             <FlatList
               showsVerticalScrollIndicator={false}
-              data={updates.activity_items?.items?.filter(i => i.is_seen)}
+              data={updates.activity_items?.items?.filter(i => !i.is_seen)}
               contentContainerStyle={{
                 gap: 10,
                 paddingTop: 15,

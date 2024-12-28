@@ -17,6 +17,7 @@ import { initPhoneNumberHint } from 'react-native-phone-hint';
 import { useSmsUserConsent } from '@eabdullazyanov/react-native-sms-user-consent';
 import crashlytics from '@react-native-firebase/crashlytics';
 import { storage } from '../utils/mmkv';
+import { useMMKVObject } from 'react-native-mmkv';
 
 function LoginScreen({ }) {
   const { appState } = React.useContext(AppContext);
@@ -31,6 +32,7 @@ function LoginScreen({ }) {
   const [email, setEmail] = React.useState();
   const [loading, setLoading] = React.useState(false);
   const retrievedCode = useSmsUserConsent('[A-Z0-9]{6}');
+  const [currentGroup, setCurrentGroup] = useMMKVObject('currentGroup');
 
   React.useEffect(() => {
     crashlytics().log('Loading LoginScreen');
@@ -112,6 +114,7 @@ function LoginScreen({ }) {
             storage.set('userToken', res.logged_in_user.token);
             storage.set('userID', res.logged_in_user.user.id);
             if (res.logged_in_user.group) {
+              setCurrentGroup(res.logged_in_user.group);
               storage.set(
                 'groupID',
                 res.logged_in_user.group.id,
@@ -244,6 +247,7 @@ function LoginScreen({ }) {
             storage.set('userToken', res.token);
             storage.set('userID', res.user.id);
             if (res.group) {
+              setCurrentGroup(res.group);
               storage.set('groupID', res.group.id);
               storage.set('schoolGroupID', res.group.id);
               storage.set('groupName', res.group.name);
