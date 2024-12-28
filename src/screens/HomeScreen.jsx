@@ -300,7 +300,7 @@ function HomeScreen({ navigation, route }) {
             : colors.background,
         }}>
         <ProgressBar indeterminate={true} visible={loadingPosts} />
-        {currentGroup.name == 'Home' && postSortMethod == 'top' ? (
+        {currentGroup?.name == 'Home' && postSortMethod == 'top' ? (
           <View
             style={{
               flex: 1,
@@ -359,7 +359,7 @@ function HomeScreen({ navigation, route }) {
             keyExtractor={item => item.id}
           />
         )}
-        <FAB
+        {currentGroup?.name && <FAB
           icon="plus"
           label="Post"
           style={{ position: 'absolute', bottom: 20, right: 20 }}
@@ -367,12 +367,12 @@ function HomeScreen({ navigation, route }) {
             navigation.push('Writer', {
               mode: 'post',
               groupID:
-                currentGroup.name == 'Home'
+                currentGroup?.name == 'Home'
                   ? appState.schoolGroupID
                   : currentGroup.id,
             })
           }
-        />
+        />}
       </View>
       <View>
         <BottomSheet

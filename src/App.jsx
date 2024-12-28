@@ -34,7 +34,6 @@ export default function App() {
   const [appState, setAppState] = React.useState(null);
   const [hasMigrated, setHasMigrated] = React.useState(hasMigratedFromAsyncStorage);
   const [postSortMethod, setPostSortMethod] = useMMKVString('postSortMethod');
-  const [anonMode, setAnonMode] = useMMKVBoolean('anonMode');
   React.useEffect(() => {
     crashlytics().log('Loading App');
     crashlytics().log('Fetching initial app variables');
