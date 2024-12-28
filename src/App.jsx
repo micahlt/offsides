@@ -74,16 +74,12 @@ export default function App() {
         setNeedsLogin(true);
       }
       if (!postSortMethod) {
-        setPostSortMethod('postSortMethod');
+        setPostSortMethod('hot');
       }
       crashlytics().log('App state set successfully');
       setAppState(tempState);
     }
   }, [hasMigrated]);
-
-  React.useEffect(() => {
-    crashlytics().log('Toggling anon mode to ' + anonMode);
-  }, [anonMode]);
 
   return (
     <AppContext.Provider value={{ appState, setAppState }}>
