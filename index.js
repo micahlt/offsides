@@ -5,6 +5,7 @@ import { useMaterial3Theme } from '@pchmn/expo-material3-theme';
 
 import { name as appName } from './app.json';
 import App from './src/App';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default function Main() {
   const colorScheme = useColorScheme();
@@ -16,7 +17,9 @@ export default function Main() {
       : { ...MD3LightTheme, colors: theme.light };
   return (
     <PaperProvider theme={paperTheme}>
-      <App />
+      <GestureHandlerRootView>
+        <App />
+      </GestureHandlerRootView>
     </PaperProvider>
   );
 }

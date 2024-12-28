@@ -10,6 +10,8 @@ import {
   StatusBar,
   InteractionManager,
   useColorScheme,
+  TouchableOpacity,
+  Dimensions,
 } from 'react-native';
 import {
   Appbar,
@@ -31,6 +33,9 @@ import GroupAvatar from '../components/GroupAvatar';
 import { createMaterial3Theme } from '@pchmn/expo-material3-theme';
 import BottomSheet from '@devvie/bottom-sheet';
 import { needsUpdate } from '../utils';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { useMMKVObject, useMMKVString } from 'react-native-mmkv';
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 
 const BORDER_RADIUS = 12;
 
@@ -40,10 +45,9 @@ function HomeScreen({ navigation, route }) {
   const [customTheme, setCustomTheme] = React.useState(false);
   const { appState, setAppState } = React.useContext(AppContext);
   const API = appState.API;
-  const postCategory = appState.postSortMethod;
 
   const [cursor, setCursor] = React.useState(
-    /** @type {SidechatCursorString} */ (null),
+    /** @type {SidechatCursorString} */(null),
   );
   const theme = useTheme();
   const colorScheme = useColorScheme();
@@ -51,10 +55,13 @@ function HomeScreen({ navigation, route }) {
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [loadingPosts, setLoadingPosts] = React.useState(false);
   const [sheetIsOpen, setSheetIsOpen] = React.useState(false);
+  const [currentGroup, setCurrentGroup] = useMMKVObject('currentGroup');
+  const [userGroups, setUserGroups] = useMMKVObject('userGroups');
+  const [postSortMethod, setPostSortMethod] = useMMKVString('postSortMethod');
   const [sortIcon, setSortIcon] = React.useState('filter-variant');
   const [updateBadge, setUpdateBadge] = React.useState(false);
   const [posts, setPosts] = React.useState(
-    /** @type {SidechatPostOrComment[]} */ ([]),
+    /** @type {SidechatPostOrComment[]} */([]),
   );
   React.useEffect(() => {
     crashlytics().log('Loading HomeScreen');
@@ -63,28 +70,33 @@ function HomeScreen({ navigation, route }) {
 
   React.useEffect(() => {
     crashlytics().log('Setting group color');
-    if (appState.groupColor) {
-      const t = createMaterial3Theme(appState.groupColor);
+    if (currentGroup.color) {
+      const t = createMaterial3Theme(currentGroup.color);
       setCustomTheme(colorScheme == 'dark' ? t.dark : t.light);
     }
-  }, [appState?.groupColor]);
+  }, [currentGroup]);
 
   React.useEffect(() => {
     crashlytics().log('Detected group change or sort method change');
     updateSortIcon();
     if (!loadingPosts) {
       InteractionManager.runAfterInteractions(() => {
-        if (appState.userToken && params.groupID) {
+        if (appState.userToken && currentGroup.id) {
+          fetchPosts(true);
+        } else {
+          console.log('App state is undefined, will load in a second');
+        }
+      });
+    }
+  }, [postSortMethod]);
+
+  React.useEffect(() => {
+    crashlytics().log('Detected group change');
+    if (!loadingPosts) {
+      InteractionManager.runAfterInteractions(() => {
+        if (appState.userToken && currentGroup.id) {
           if (params?.groupID) {
-            setAppState({
-              ...appState,
-              postSortMethod: postCategory,
-              groupID: params.groupID,
-              groupName: params.groupName,
-              groupImage: params.groupImage || '',
-              groupColor: params.groupColor,
-            });
-            fetchPosts(true, params.groupID);
+            fetchPosts(true, currentGroup.id);
           } else {
             crashlytics().log(
               "No group selected - this shouldn't ever happen!",
@@ -95,15 +107,16 @@ function HomeScreen({ navigation, route }) {
         }
       });
     }
-  }, [postCategory, params?.groupID]);
+  }, [currentGroup]);
+
   const uniquePosts = useUniqueList(posts);
   const renderItem = React.useCallback(each => {
     return <Post post={each.item} nav={navigation} />;
   }, []);
   const updateSortIcon = () => {
-    if (!postCategory) return;
+    if (!postSortMethod) return;
     crashlytics().log('Setting sort icon');
-    switch (postCategory) {
+    switch (postSortMethod) {
       case 'hot':
         setSortIcon('fire');
         break;
@@ -119,13 +132,13 @@ function HomeScreen({ navigation, route }) {
   };
   const fetchPosts = (refresh, override) => {
     if (loadingPosts) return false;
-    crashlytics().log(`Fetching posts sorted by ${postCategory}`);
+    crashlytics().log(`Fetching posts sorted by ${postSortMethod}`);
     setLoadingPosts(true);
     try {
       if (refresh) {
         crashlytics().log('Fetch triggered by refresh/group change');
         setPosts([]);
-        API.getGroupPosts(override || params.groupID, postCategory).then(
+        API.getGroupPosts(override || currentGroup.id, postSortMethod).then(
           res => {
             console.log('GET GROUP POSTS');
             if (res.posts) {
@@ -138,8 +151,8 @@ function HomeScreen({ navigation, route }) {
       } else {
         crashlytics().log('Fetch triggered by scroll at end of list');
         API.getGroupPosts(
-          override || params.groupID,
-          postCategory,
+          override || currentGroup.id,
+          postSortMethod,
           cursor,
         ).then(res => {
           console.log('GET  POSTS');
@@ -155,6 +168,37 @@ function HomeScreen({ navigation, route }) {
       crashlytics().recordError(e);
     }
   };
+
+  const position = useSharedValue(0);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: position.value }],
+  }));
+
+  const flingGesture = Gesture.Pan()
+    .onStart((e) => {
+      if (Math.abs(e.velocityX) > 300) {
+        const currentIndex = userGroups.findIndex((g) => g.id == currentGroup.id);
+        let nextIndex;
+        if (e.velocityX < 0) {
+          position.value = withSequence(withTiming(-20, { duration: 100 }), withTiming(0, { duration: 200 }));
+          nextIndex = currentIndex + 1;
+          if (!userGroups[nextIndex]) {
+            nextIndex = 0;
+          }
+        } else if (e.velocityX > 0) {
+          position.value = withSequence(withTiming(20, { duration: 100 }), withTiming(0, { duration: 200 }));
+          nextIndex = currentIndex - 1;
+          if (nextIndex < 0) {
+            nextIndex = userGroups.length - 1;
+          }
+        }
+        runOnJS(setCurrentGroup)(userGroups[nextIndex]);
+      }
+    });
+
+  const deviceHeight = React.useMemo(() => Dimensions.get("window").height, []);
+
   return (
     <ThemeProvider
       theme={customTheme ? { ...theme, colors: { ...customTheme } } : theme}>
@@ -164,33 +208,37 @@ function HomeScreen({ navigation, route }) {
           customTheme ? customTheme.background : colors.background
         }
       />
-      {appState.groupName && (
+      {!!currentGroup && (
         <Appbar.Header style={{ zIndex: 1 }}>
           <Appbar.Content
             title={
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <GroupAvatar
-                  groupColor={appState.groupColor}
-                  groupImage={appState.groupImage}
-                  groupName={appState.groupName}
-                  onPress={() => sheetRef.current?.open()}
-                  borderRadius={BORDER_RADIUS}
-                  style={{ marginRight: 15 }}
-                />
-                {appState.groupName.length > 2 ? (
-                  <Text
-                    variant="headlineSmall"
-                    numberOfLines={1}
-                    style={{ marginRight: 50 }}>
-                    {appState.groupName}
-                  </Text>
-                ) : (
-                  <Text variant="headlineSmall">
-                    {postCategory[0].toUpperCase() + postCategory.slice(1)}{' '}
-                    Posts
-                  </Text>
-                )}
-              </View>
+              <GestureDetector gesture={flingGesture}>
+                <Animated.View style={[{ flexDirection: 'row', alignItems: 'center' }, animatedStyle]}>
+                  <GroupAvatar
+                    groupColor={currentGroup.color}
+                    groupImage={currentGroup?.icon_url || ''}
+                    groupName={currentGroup.name}
+                    onPress={() => sheetRef.current?.open()}
+                    borderRadius={BORDER_RADIUS}
+                    style={{ marginRight: 15 }}
+                  />
+                  {currentGroup.name.length > 2 ? (
+                    <TouchableOpacity onPress={() => sheetRef?.current?.open()}>
+                      <Text
+                        variant="headlineSmall"
+                        numberOfLines={1}
+                        style={{ marginRight: 50 }}>
+                        {currentGroup.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ) : (
+                    <Text variant="headlineSmall">
+                      {postSortMethod[0].toUpperCase() + postSortMethod.slice(1)}{' '}
+                      Posts
+                    </Text>
+                  )}
+                </Animated.View>
+              </GestureDetector>
             }
           />
 
@@ -204,10 +252,10 @@ function HomeScreen({ navigation, route }) {
             onDismiss={() => setFilterOpen(false)}>
             <Menu.Item
               title="Hot"
-              leadingIcon={postCategory == 'hot' ? 'check' : 'fire'}
+              leadingIcon={postSortMethod == 'hot' ? 'check' : 'fire'}
               style={{
                 backgroundColor:
-                  postCategory == 'hot'
+                  postSortMethod == 'hot'
                     ? customTheme
                       ? customTheme.primaryContainer
                       : colors.primaryContainer
@@ -218,13 +266,15 @@ function HomeScreen({ navigation, route }) {
                 setAppState({ ...appState, postSortMethod: 'hot' });
               }}
             />
-            {appState.groupName != 'Home' && (
+            {currentGroup.name != 'Home' && (
               <Menu.Item
                 title="Top"
-                leadingIcon={postCategory == 'top' ? 'check' : 'medal'}
+                leadingIcon={postSortMethod == 'top' ? 'check' : 'medal'}
                 style={{
                   backgroundColor:
-                    postCategory == 'top' ? colors.primaryContainer : null,
+                    postSortMethod == 'top' ? customTheme
+                      ? customTheme.primaryContainer
+                      : colors.primaryContainer : null,
                 }}
                 onPress={() => {
                   setFilterOpen(false);
@@ -234,10 +284,12 @@ function HomeScreen({ navigation, route }) {
             )}
             <Menu.Item
               title="Recent"
-              leadingIcon={postCategory == 'recent' ? 'check' : 'clock'}
+              leadingIcon={postSortMethod == 'recent' ? 'check' : 'clock'}
               style={{
                 backgroundColor:
-                  postCategory == 'recent' ? colors.primaryContainer : null,
+                  postSortMethod == 'recent' ? customTheme
+                    ? customTheme.primaryContainer
+                    : colors.primaryContainer : null,
               }}
               onPress={() => {
                 setFilterOpen(false);
@@ -265,7 +317,7 @@ function HomeScreen({ navigation, route }) {
             : colors.background,
         }}>
         <ProgressBar indeterminate={true} visible={loadingPosts} />
-        {appState.groupName == 'Home' && appState.postSortMethod == 'top' ? (
+        {currentGroup.name == 'Home' && postSortMethod == 'top' ? (
           <View
             style={{
               flex: 1,
@@ -316,28 +368,32 @@ function HomeScreen({ navigation, route }) {
             navigation.push('Writer', {
               mode: 'post',
               groupID:
-                appState.groupName == 'Home'
+                currentGroup.name == 'Home'
                   ? appState.schoolGroupID
-                  : params.groupID,
+                  : currentGroup.name,
             })
           }
         />
       </View>
-      <BottomSheet
-        ref={sheetRef}
-        backdropMaskColor={colors.backdrop}
-        dragHandleStyle={{ backgroundColor: colors.outline }}
-        openDuration={550}
-        closeDuration={250}
-        height="80%"
-        style={{
-          backgroundColor: colors.surface,
-        }}
-        animationType="slide"
-        onClose={() => setSheetIsOpen(false)}
-        onOpen={() => setSheetIsOpen(true)}>
-        {sheetIsOpen && <GroupPicker sheetRef={sheetRef} />}
-      </BottomSheet>
+      <View>
+        <BottomSheet
+          ref={sheetRef}
+          backdropMaskColor={colors.backdrop}
+          dragHandleStyle={{ backgroundColor: colors.outline, marginBottom: 0 }}
+          openDuration={550}
+          closeDuration={250}
+          height={deviceHeight - 225}
+          style={{
+            backgroundColor: colors.surface,
+            zIndex: 10000
+          }}
+          animationType="slide"
+          onClose={() => setSheetIsOpen(false)}
+          onOpen={() => setSheetIsOpen(true)}
+          disableBodyPanning={true}>
+          {sheetIsOpen && <GroupPicker sheetRef={sheetRef} />}
+        </BottomSheet>
+      </View>
     </ThemeProvider>
   );
 }

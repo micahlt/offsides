@@ -9,6 +9,7 @@ import {
 } from 'react-native-paper';
 import { AppContext } from '../App';
 import Group from '../components/Group';
+import { useMMKVObject } from 'react-native-mmkv';
 
 const BORDER_RADIUS = 15;
 
@@ -16,6 +17,7 @@ function ExploreGroupsScreen({ navigation }) {
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const [groups, setGroups] = React.useState(false);
+  const [currentGroup, setCurrentGroup] = useMMKVObject("currentGroup");
   const [loading, setLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState('');
   const { colors } = useTheme();
@@ -41,12 +43,8 @@ function ExploreGroupsScreen({ navigation }) {
   };
 
   const selectGroup = group => {
-    navigation.push('Home', {
-      groupID: group.id,
-      groupName: group.name,
-      groupImage: group.icon_url || '',
-      groupColor: group.color,
-    });
+    setCurrentGroup(group);
+    navigation.push('Home');
   };
 
   const groupsSearched = React.useMemo(() => {

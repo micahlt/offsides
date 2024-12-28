@@ -13,14 +13,15 @@ import {
 } from 'react-native-paper';
 import { AppContext } from '../App';
 import Group from './Group';
+import { useMMKVObject } from 'react-native-mmkv';
 
 function GroupPicker({ sheetRef }) {
   const nav = useNavigation();
   const { colors } = useTheme();
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
-  const [groups, setGroups] = React.useState(false);
-  const [currentGroup, setCurrentGroup] = React.useState(false);
+  const [groups, setGroups] = useMMKVObject('userGroups');
+  const [currentGroup, setCurrentGroup] = useMMKVObject('currentGroup');
   const [removeMode, setRemoveMode] = React.useState(false);
   React.useEffect(() => {
     if (API) {
@@ -36,25 +37,24 @@ function GroupPicker({ sheetRef }) {
   };
   const getCurrentGroup = async () => {
     crashlytics().log('Fetching current group metadata');
-    const g = await API.getGroupMetadata(appState.groupID);
-    setCurrentGroup(g);
+    if (!currentGroup) {
+      const g = await API.getGroupMetadata(appState.groupID);
+      setCurrentGroup(g);
+    }
   };
   const selectGroup = group => {
+    console.log('Group selected');
     crashlytics().log('Group selected');
     sheetRef?.current?.close();
-    nav.push('Home', {
-      groupID: group.id,
-      groupName: group.name,
-      groupImage: group?.icon_url || '',
-      groupColor: group.color,
-      animation: 'none',
-    });
+    setCurrentGroup(group);
     setRemoveMode(false);
+    loadGroups();
   };
   const explore = () => {
     nav.push('ExploreGroups');
     sheetRef?.current?.close();
     setRemoveMode(false);
+    loadGroups();
   };
 
   const changeCurrentMembership = async () => {
@@ -66,110 +66,114 @@ function GroupPicker({ sheetRef }) {
       ...currentGroup,
       membership_type: isCurrentlyMember ? 'non_member' : 'member',
     });
+    loadGroups();
   };
 
   const leaveGroup = async id => {
     crashlytics().log('Leaving a group');
     const leaveReq = await API.setGroupMembership(id);
     await leaveReq;
-    setGroups(groups.filter(g => g.id != id));
+    loadGroups();
   };
 
-  return (
-    <View>
-      {groups && currentGroup ? (
-        <ScrollView
-          contentContainerStyle={{
-            padding: 10,
-            paddingBottom: 50,
-            rowGap: 10,
-          }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text variant="headlineMedium" style={{ paddingLeft: 10, flex: 1 }}>
-              Your groups
-            </Text>
-            <IconButton
-              icon={removeMode ? 'check' : 'pencil'}
-              mode={removeMode ? 'contained' : 'contained-tonal'}
-              style={{ marginRight: 10 }}
-              size={24}
-              onPress={() => setRemoveMode(!removeMode)}
-            />
-            <Button
-              icon="earth"
-              mode="contained"
-              onPress={explore}
-              style={{ marginLeft: 'auto', marginRight: 5 }}>
-              Explore
-            </Button>
-          </View>
-          <Card mode="elevated" style={{ marginBottom: 7 }}>
-            <Card.Title
-              title={appState.groupName}
-              right={() => (
-                <View style={{ flexDirection: 'row' }}>
-                  {appState.groupName != 'Home' &&
-                  appState.groupID != appState.schoolGroupID ? (
-                    <Chip
-                      icon={
-                        currentGroup.membership_type == 'member'
-                          ? 'account-remove'
-                          : 'plus'
-                      }
-                      style={{ marginRight: 5 }}
-                      onPress={changeCurrentMembership}>
-                      {currentGroup.membership_type == 'member'
-                        ? 'Leave'
-                        : 'Join'}
-                    </Chip>
-                  ) : (
-                    appState.groupID == appState.schoolGroupID && (
-                      <Chip
-                        icon="school"
-                        style={{ marginRight: 5 }}
-                        mode="outlined">
-                        School
-                      </Chip>
-                    )
-                  )}
-                  <Chip style={{ marginRight: 15 }} mode="outlined">
-                    Current
+  return (<>
+    {groups && currentGroup ? (
+      <ScrollView
+        contentContainerStyle={{
+          padding: 10,
+          paddingBottom: 50,
+          paddingTop: 0,
+          rowGap: 10,
+        }}
+        nestedScrollEnabled={true}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Text variant="headlineMedium" style={{ paddingLeft: 10, flexGrow: 1 }}>
+            Your groups
+          </Text>
+          <IconButton
+            icon={removeMode ? 'check' : 'pencil'}
+            mode={removeMode ? 'contained' : 'contained-tonal'}
+            style={{ marginRight: 10 }}
+            size={24}
+            onPressOut={() => setRemoveMode(!removeMode)}
+          />
+          <Button
+            icon="earth"
+            mode="contained"
+            onPressOut={explore}
+            style={{ marginLeft: 'auto', marginRight: 5 }}>
+            Explore
+          </Button>
+        </View>
+        <Card mode="elevated" style={{ marginBottom: 7 }}>
+          <Card.Title
+            title={currentGroup.name}
+            right={() => (
+              <View style={{ flexDirection: 'row' }}>
+                {currentGroup.name != 'Home' &&
+                  currentGroup.id != appState.schoolGroupID ? (
+                  <Chip
+                    icon={
+                      currentGroup.membership_type == 'member'
+                        ? 'account-remove'
+                        : 'plus'
+                    }
+                    style={{ marginRight: 5 }}
+                    onPressOut={changeCurrentMembership}>
+                    {currentGroup.membership_type == 'member'
+                      ? 'Leave'
+                      : 'Join'}
                   </Chip>
-                </View>
-              )}
-              titleVariant="titleMedium"
-              titleStyle={{
-                color: colors.primary,
-                marginBottom: 0,
-              }}
-              style={{ paddingBottom: 0, marginBottom: -2 }}
-            />
-            {currentGroup.description && (
-              <Card.Content style={{ marginTop: -5 }}>
-                <Text>{currentGroup.description}</Text>
-              </Card.Content>
+                ) : (
+                  currentGroup.id == appState.schoolGroupID && (
+                    <Chip
+                      icon="school"
+                      style={{ marginRight: 5 }}
+                      mode="outlined">
+                      School
+                    </Chip>
+                  )
+                )}
+                <Chip style={{ marginRight: 15 }} mode="outlined">
+                  Current
+                </Chip>
+              </View>
             )}
-          </Card>
-          {groups
-            .filter(g => g.id != currentGroup.id)
-            .map(group => (
-              <Group
-                group={group}
-                key={group.id}
-                onPress={() => selectGroup(group)}
-                removeMode={removeMode}
-                onRemove={() => leaveGroup(group.id)}
-              />
-            ))}
-        </ScrollView>
-      ) : (
+            titleVariant="titleMedium"
+            titleStyle={{
+              color: colors.primary,
+              marginBottom: 0,
+            }}
+            style={{ paddingBottom: 0, marginBottom: -2 }}
+          />
+          {currentGroup.description && (
+            <Card.Content style={{ marginTop: -5 }}>
+              <Text>{currentGroup.description}</Text>
+            </Card.Content>
+          )}
+        </Card>
+        {groups
+          .filter(g => g.id != currentGroup.id)
+          .map(group => (
+            <Group
+              group={group}
+              key={group.id}
+              onPress={() => selectGroup(group)}
+              removeMode={removeMode}
+              onRemove={() => leaveGroup(group.id)}
+            />
+          ))}
+      </ScrollView>
+    ) : (
+      <View>
         <ActivityIndicator
           animating={true}
           size={64}
-          style={{ marginTop: '55%' }}
+          style={{ marginTop: 200, marginBottom: 200 }}
         />
-      )}
-    </View>
+      </View>
+    )}
+  </>
   );
 }
 

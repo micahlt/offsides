@@ -27,8 +27,6 @@ function EditProfileScreen({ navigation }) {
   const [updates, setUpdates] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [emojiPickerOpen, setEmojiPickerOpen] = React.useState(false);
-  const [dialogMode, setDialogMode] = React.useState('');
-  const [color, setColor] = React.useState(null);
   const [userColors, setUserColors] = React.useState({
     primary: null,
     secondary: null,
@@ -199,13 +197,14 @@ function EditProfileScreen({ navigation }) {
             }}
             animationType="spring"
             onClose={() => setSheetIsOpen(false)}
-            onOpen={() => setSheetIsOpen(true)}>
+            onOpen={() => setSheetIsOpen(true)} disableBodyPanning={true}>
             <Text variant="headlineMedium" style={{ paddingLeft: 15 }}>
               Choose a theme
             </Text>
             <ScrollView
               horizontal={true}
               style={{ gap: 10, paddingTop: 15 }}
+              nestedScrollEnabled={true}
               contentContainerStyle={{ paddingLeft: 10, paddingRight: 10 }}
               showsHorizontalScrollIndicator={false}>
               {new SidechatColorList().colors.map((theme, i) => (

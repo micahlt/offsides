@@ -1,4 +1,5 @@
 {
   "name": "offsides",
-  "displayName": "Offsides"
+  "displayName": "Offsides",
+  "newArchEnabled": true
 }
