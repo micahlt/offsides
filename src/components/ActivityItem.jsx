@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import * as React from 'react';
-import { View, Vibration } from 'react-native';
+import { View, Vibration, Dimensions, Alert } from 'react-native';
 import {
   ActivityIndicator,
   Card,
@@ -14,6 +14,8 @@ import timesago from 'timesago';
 import { AppContext } from '../App';
 import UserAvatar from './UserAvatar';
 import Group from './Group';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 function ActivityItem({ activity }) {
   const {
@@ -24,7 +26,7 @@ function ActivityItem({ activity }) {
   const [linkRoute, setLinkRoute] = React.useState('');
   const [linkProps, setLinkProps] = React.useState({});
   const [group, setGroup] = React.useState(null);
-  const [loading, setLoading] = React.useState(false);
+
   React.useEffect(() => {
     crashlytics().log('Loading ActivityItem');
     setLinkRoute('Comments');
@@ -38,10 +40,32 @@ function ActivityItem({ activity }) {
       });
     }
   }, [activity]);
+
   const readActivity = callback => {
     crashlytics().log('Marking activity as read');
     API.readActivity(activity.id).then(callback);
   };
+
+  const deviceWidth = Dimensions.get('window').width;
+
+  const xPos = useSharedValue(0);
+  const animatedTranslation = useAnimatedStyle(() => ({
+    transform: [{ translateX: xPos.value }],
+  }));
+  const swipeAway = Gesture.Pan()
+    .activeOffsetX(25)
+    .failOffsetY(25)
+    .onUpdate((e) => {
+      xPos.value = e.translationX;
+    }).onEnd((e) => {
+      if (Math.abs(e.translationX) > deviceWidth / 3) {
+        xPos.value = withTiming(e.translationX > 0 ? deviceWidth : 0 - deviceWidth, { duration: 100 });
+        runOnJS(readActivity)(() => null);
+      } else {
+        xPos.value = withTiming(0, { duration: 50 });
+      }
+    });
+
   const RenderedContent = ({ style }) => {
     if (activity.type == 'votes') {
       return (
@@ -181,30 +205,20 @@ function ActivityItem({ activity }) {
       );
     }
   };
+
   return (
-    <TouchableRipple
-      onPress={() => readActivity(() => nav.push(linkRoute, linkProps))}
-      onLongPress={() => {
-        setLoading(true);
-        Vibration.vibrate(50);
-        readActivity(() => null);
-      }}
-      borderless={true}
-      style={{ borderRadius: 10 }}>
-      <Card mode="contained" style={{ justifyContent: 'center' }}>
-        {loading && (
-          <ActivityIndicator
-            style={{
-              position: 'absolute',
-              alignSelf: 'center',
-              top: 0,
-              bottom: 0,
-            }}
-          />
-        )}
-        <RenderedContent style={{ opacity: loading ? 0.2 : 1 }} />
-      </Card>
-    </TouchableRipple>
+    <GestureDetector gesture={swipeAway}>
+      <Animated.View style={animatedTranslation}>
+        <TouchableRipple
+          onPress={() => readActivity(() => nav.push(linkRoute, linkProps))}
+          borderless={true}
+          style={{ borderRadius: 10 }}>
+          <Card mode="contained" style={{ justifyContent: 'center' }}>
+            <RenderedContent />
+          </Card>
+        </TouchableRipple>
+      </Animated.View>
+    </GestureDetector>
   );
 }
 
