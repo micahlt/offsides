@@ -56,13 +56,6 @@ function SettingsScreen({ navigation }) {
           variant="labelLarge">
           a third-party client for Sidechat
         </Text>
-        {updateAvailable ? (
-          <Text style={{ textAlign: 'center' }}>
-            update to version {updateAvailable.latestVersion} available
-          </Text>
-        ) : (
-          <Text style={{ textAlign: 'center' }}>running latest version</Text>
-        )}
         <View
           style={{
             flexDirection: 'row',

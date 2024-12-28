@@ -18,6 +18,8 @@ import {
   Text,
   useTheme,
   Menu,
+  Card,
+  Button,
   ProgressBar,
   FAB,
   ThemeProvider,
@@ -356,6 +358,22 @@ function HomeScreen({ navigation, route }) {
             refreshing={loadingPosts}
             onEndReachedThreshold={0.5}
             onEndReached={() => fetchPosts(false)}
+            ListHeaderComponent={updateBadge && <Card style={{ width: '100%' }} mode="contained">
+              <Card.Title
+                title="Update available"
+                titleVariant="titleMedium"
+                titleStyle={{ color: customTheme?.primary || colors.primary, minHeight: 20, marginLeft: -20 }}
+                subtitleStyle={{ color: customTheme?.secondary || colors.secondary, marginTop: 0 }}
+                left={() => <Icon source="cellphone-arrow-down" size={24} color={customTheme?.primary || colors.primary} />}
+                right={() => <Button
+                  mode="elevated"
+                  onPress={() => {
+                    navigation.push('Settings');
+                  }} style={{ marginRight: 20 }}>
+                  Download
+                </Button>}
+              />
+            </Card>}
             windowSize={10}
             keyExtractor={item => item.id}
           />
