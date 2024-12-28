@@ -1,4 +1,4 @@
 {
-  "latestVersion": "0.7.9",
-  "changelog": "This update solves an issue where posts could not be created.  It includes other minor performance improvements and bug fixes as well."
+  "latestVersion": "0.7.10",
+  "changelog": "This update attempts to solve an issue that some users were encountering that prevented the app from loading."
 }
