@@ -49,11 +49,11 @@ function Post({
     });
   };
 
-  if (post.attachments.length > 0) {
-    post.attachments.forEach(a => {
-      if (a.type == 'youtube') console.log(post.attachments);
-    });
-  }
+  // if (post.attachments.length > 0) {
+  //   post.attachments.forEach(a => {
+  //     if (a.type == 'youtube') console.log(post.attachments);
+  //   });
+  // }
 
   const deletePost = () => {
     Alert.alert(

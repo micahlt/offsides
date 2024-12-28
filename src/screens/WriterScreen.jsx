@@ -23,7 +23,7 @@ const BORDER_RADIUS = 10;
 function WriterScreen({ navigation, route }) {
   const { mode, groupID, postID, replyID, parentID } = route.params;
   if (mode != 'comment' && mode != 'post') return false;
-  const { appState, setAppState } = React.useContext(AppContext);
+  const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const { colors } = useTheme();
   const [error, setError] = React.useState(false);

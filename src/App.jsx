@@ -73,7 +73,6 @@ export default function App() {
         crashlytics().log('Redirecting to LoginScreen');
         setNeedsLogin(true);
       }
-      console.log("POST SORT:", postSortMethod)
       if (!postSortMethod) {
         setPostSortMethod('postSortMethod');
       }

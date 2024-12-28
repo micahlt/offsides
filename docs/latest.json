@@ -1,4 +1,4 @@
 {
-  "latestVersion": "0.7.8",
-  "changelog": "This update fixes the issues with switching to joined groups or trying to find new groups.  The long-press gesture for activity items has been changed to a horizontal swipe.  As a new feature, you can swipe horizontally on the group name when browsing posts to quickly switch between your joined groups.  There are other minor performance improvements and bug fixes included."
+  "latestVersion": "0.7.9",
+  "changelog": "This update solves an issue where posts could not be created.  It includes other minor performance improvements and bug fixes as well."
 }

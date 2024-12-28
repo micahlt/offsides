@@ -66,8 +66,6 @@ function HomeScreen({ navigation, route }) {
     /** @type {SidechatPostOrComment[]} */([]),
   );
 
-  console.log(postSortMethod)
-
   React.useEffect(() => {
     crashlytics().log('Loading HomeScreen');
     needsUpdate().then(setUpdateBadge);
@@ -88,32 +86,13 @@ function HomeScreen({ navigation, route }) {
     if (!loadingPosts) {
       InteractionManager.runAfterInteractions(() => {
         if (appState.userToken && currentGroup.id) {
-          fetchPosts(true);
+          fetchPosts(true, currentGroup.id);
         } else {
           console.log('App state is undefined, will load in a second');
         }
       });
     }
-  }, [postSortMethod]);
-
-  React.useEffect(() => {
-    crashlytics().log('Detected group change');
-    if (!loadingPosts) {
-      InteractionManager.runAfterInteractions(() => {
-        if (appState.userToken && currentGroup.id) {
-          if (params?.groupID) {
-            fetchPosts(true, currentGroup.id);
-          } else {
-            crashlytics().log(
-              "No group selected - this shouldn't ever happen!",
-            );
-          }
-        } else {
-          console.log('App state is undefined, will load in a second');
-        }
-      });
-    }
-  }, [currentGroup]);
+  }, [postSortMethod, currentGroup]);
 
   const uniquePosts = useUniqueList(posts);
   const renderItem = React.useCallback(each => {
@@ -146,7 +125,6 @@ function HomeScreen({ navigation, route }) {
         setPosts([]);
         API.getGroupPosts(override || currentGroup.id, postSortMethod).then(
           res => {
-            console.log('GET GROUP POSTS');
             if (res.posts) {
               setPosts(res.posts.filter(i => i.id));
               setCursor(res.cursor);
@@ -161,7 +139,6 @@ function HomeScreen({ navigation, route }) {
           postSortMethod,
           cursor,
         ).then(res => {
-          console.log('GET  POSTS');
           if (res.posts) {
             setPosts(posts.concat(res.posts.filter(i => i.id)));
             setCursor(res.cursor);
@@ -392,7 +369,7 @@ function HomeScreen({ navigation, route }) {
               groupID:
                 currentGroup.name == 'Home'
                   ? appState.schoolGroupID
-                  : currentGroup.name,
+                  : currentGroup.id,
             })
           }
         />

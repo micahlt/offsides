@@ -43,7 +43,6 @@ function GroupPicker({ sheetRef }) {
     }
   };
   const selectGroup = group => {
-    console.log('Group selected');
     crashlytics().log('Group selected');
     sheetRef?.current?.close();
     setCurrentGroup(group);
