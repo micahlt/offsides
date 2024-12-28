@@ -16,6 +16,7 @@ import {
 } from 'react-native-paper';
 import { AppContext } from '../App';
 import { launchImageLibrary } from 'react-native-image-picker';
+import { useMMKVBoolean, useMMKVString } from 'react-native-mmkv';
 
 const BORDER_RADIUS = 10;
 
@@ -28,6 +29,8 @@ function WriterScreen({ navigation, route }) {
   const [error, setError] = React.useState(false);
   const [textContent, setTextContent] = React.useState('');
   const [isUploading, setIsUploading] = React.useState(false);
+  const [postSortMethod, setPostSortMethod] = useMMKVString('postSortMethod');
+  const [anonMode, setAnonMode] = useMMKVBoolean('anonMode');
   const [asset, setAsset] = React.useState(
     /** @type {SidechatSimpleAsset} */(null),
   );
@@ -39,10 +42,10 @@ function WriterScreen({ navigation, route }) {
         asset ? [asset] : [],
         null,
         null,
-        appState.anonMode,
+        anonMode,
       );
       if (!p?.message) {
-        setAppState({ ...appState, postSortMethod: 'recent' });
+        setPostSortMethod('recent');
         navigation.replace('Home');
       }
     } else if (mode == 'comment') {
@@ -55,7 +58,7 @@ function WriterScreen({ navigation, route }) {
           parentID,
           asset ? [asset] : [],
           null,
-          appState.anonMode);
+          anonMode);
         if (!c?.message) {
           navigation.pop();
         }
@@ -68,7 +71,7 @@ function WriterScreen({ navigation, route }) {
           null,
           asset ? [asset] : [],
           null,
-          appState.anonMode);
+          anonMode);
         if (!c?.message) {
           navigation.pop();
         }
@@ -111,9 +114,9 @@ function WriterScreen({ navigation, route }) {
         <Appbar.Content title={`New ${mode}`} />
         <Tooltip title="Anonymous mode">
           <Appbar.Action
-            icon={appState.anonMode ? 'incognito' : 'incognito-off'}
+            icon={anonMode ? 'incognito' : 'incognito-off'}
             onPress={() =>
-              setAppState({ ...appState, anonMode: !appState.anonMode })
+              setAnonMode(!anonMode)
             }
           />
         </Tooltip>

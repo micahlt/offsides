@@ -45,7 +45,7 @@ function HomeScreen({ navigation, route }) {
   const { params } = route;
   const sheetRef = React.useRef(null);
   const [customTheme, setCustomTheme] = React.useState(false);
-  const { appState, setAppState } = React.useContext(AppContext);
+  const { appState } = React.useContext(AppContext);
   const API = appState.API;
 
   const [cursor, setCursor] = React.useState(
@@ -65,6 +65,9 @@ function HomeScreen({ navigation, route }) {
   const [posts, setPosts] = React.useState(
     /** @type {SidechatPostOrComment[]} */([]),
   );
+
+  console.log(postSortMethod)
+
   React.useEffect(() => {
     crashlytics().log('Loading HomeScreen');
     needsUpdate().then(setUpdateBadge);
@@ -211,7 +214,7 @@ function HomeScreen({ navigation, route }) {
           customTheme ? customTheme.background : colors.background
         }
       />
-      {!!currentGroup && (
+      {!!currentGroup && !!postSortMethod && (
         <Appbar.Header style={{ zIndex: 1 }}>
           <Appbar.Content
             title={
@@ -266,7 +269,6 @@ function HomeScreen({ navigation, route }) {
               }}
               onPress={() => {
                 setFilterOpen(false);
-                setAppState({ ...appState, postSortMethod: 'hot' });
                 setPostSortMethod('hot');
               }}
             />
@@ -282,7 +284,6 @@ function HomeScreen({ navigation, route }) {
                 }}
                 onPress={() => {
                   setFilterOpen(false);
-                  setAppState({ ...appState, postSortMethod: 'top' });
                   setPostSortMethod('top');
                 }}
               />
@@ -298,7 +299,6 @@ function HomeScreen({ navigation, route }) {
               }}
               onPress={() => {
                 setFilterOpen(false);
-                setAppState({ ...appState, postSortMethod: 'recent' });
                 setPostSortMethod('recent');
               }}
             />

@@ -15,10 +15,12 @@ import { storage } from '../utils/mmkv';
 import { AppContext } from '../App';
 import offsidesLogo from '../assets/Offsides.png';
 import { needsUpdate } from '../utils';
+import { useMMKVObject } from 'react-native-mmkv';
 
 function SettingsScreen({ navigation }) {
   const { appState } = React.useContext(AppContext);
   const [updateAvailable, setUpdateAvailable] = React.useState(false);
+  const [currentGroup, setCurrentGroup] = useMMKVObject('currentGroup');
   const { colors } = useTheme();
   React.useEffect(() => {
     checkForUpdate();
@@ -133,7 +135,7 @@ function SettingsScreen({ navigation }) {
             color: colors.onSurfaceDisabled,
             userSelect: 'text',
           }}>
-          Group ID: {appState.groupID}
+          Group ID: {currentGroup.id}
         </Text>
         <Text
           style={{

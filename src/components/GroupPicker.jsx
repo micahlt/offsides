@@ -38,7 +38,7 @@ function GroupPicker({ sheetRef }) {
   const getCurrentGroup = async () => {
     crashlytics().log('Fetching current group metadata');
     if (!currentGroup) {
-      const g = await API.getGroupMetadata(appState.groupID);
+      const g = await API.getGroupMetadata(currentGroup.id);
       setCurrentGroup(g);
     }
   };

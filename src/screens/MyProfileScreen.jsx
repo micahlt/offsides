@@ -26,6 +26,7 @@ function MyProfileScreen({ navigation }) {
   const [updates, setUpdates] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [updateBadge, setUpdateBadge] = React.useState(false);
+  const [currentGroup, setCurrentGroup] = useMMKVObject('currentGroup');
   const { colors } = useTheme();
   useFocusEffect(() => {
     crashlytics().log('Loading MyProfileScreen');
@@ -34,7 +35,7 @@ function MyProfileScreen({ navigation }) {
   });
   const loadProfile = async () => {
     crashlytics().log('Fetching profile');
-    const u = await API.getUpdates(appState.groupID);
+    const u = await API.getUpdates(currentGroup.id);
     crashlytics().log('Profile fetched successfully');
     setUpdates(u);
     setLoading(false);

@@ -17,6 +17,7 @@ import WriterScreen from './screens/WriterScreen';
 import MessageScreen from './screens/MessagesScreen';
 import ThreadScreen from './screens/ThreadScreen';
 import { storage, hasMigratedFromAsyncStorage, migrateFromAsyncStorage } from './utils/mmkv';
+import { useMMKVBoolean, useMMKVString } from 'react-native-mmkv';
 
 
 const Stack = createNativeStackNavigator();
@@ -32,6 +33,8 @@ export default function App() {
   const [needsLogin, setNeedsLogin] = React.useState(null);
   const [appState, setAppState] = React.useState(null);
   const [hasMigrated, setHasMigrated] = React.useState(hasMigratedFromAsyncStorage);
+  const [postSortMethod, setPostSortMethod] = useMMKVString('postSortMethod');
+  const [anonMode, setAnonMode] = useMMKVBoolean('anonMode');
   React.useEffect(() => {
     crashlytics().log('Loading App');
     crashlytics().log('Fetching initial app variables');
@@ -57,9 +60,7 @@ export default function App() {
         schoolGroupID: storage.getString('schoolGroupID'),
         schoolGroupName: storage.getString('schoolGroupName'),
         schoolGroupImage: storage.getString('schoolGroupImage'),
-        schoolGroupColor: storage.getString('schoolGroupColor'),
-        postSortMethod: storage.getString('postSortMethod'),
-        anonMode: storage.getBoolean('anonMode'),
+        schoolGroupColor: storage.getString('schoolGroupColor')
       };
       // If user token is defined
       if (storage.contains('userToken')) {
@@ -72,44 +73,19 @@ export default function App() {
         crashlytics().log('Redirecting to LoginScreen');
         setNeedsLogin(true);
       }
-      if (!tempState.postSortMethod) {
-        tempState.postSortMethod = 'hot';
+      console.log("POST SORT:", postSortMethod)
+      if (!postSortMethod) {
+        setPostSortMethod('postSortMethod');
       }
       crashlytics().log('App state set successfully');
       setAppState(tempState);
     }
   }, [hasMigrated]);
+
   React.useEffect(() => {
-    InteractionManager.runAfterInteractions(() => {
-      crashlytics().log('Group changing');
-      if (!appState?.groupName || !appState?.groupID) return;
-      storage.set('groupID', appState.groupID);
-      storage.set('groupName', appState.groupName);
-      storage.set('groupColor', appState.groupColor);
-      storage.set('groupImage', appState.groupImage);
-      crashlytics().log('Group changed successfully');
-    });
-  }, [
-    appState?.groupName,
-    appState?.groupID,
-    appState?.groupColor,
-    appState?.groupImage,
-  ]);
-  React.useEffect(() => {
-    InteractionManager.runAfterInteractions(() => {
-      if (appState?.postSortMethod) {
-        storage.set('postSortMethod', appState.postSortMethod);
-      }
-    });
-  }, [appState?.postSortMethod]);
-  React.useEffect(() => {
-    crashlytics().log('Switching to anon mode');
-    InteractionManager.runAfterInteractions(() => {
-      if (appState?.anonMode) {
-        storage.set('postSortMethod', appState.anonMode);
-      }
-    });
-  }, [appState?.anonMode]);
+    crashlytics().log('Toggling anon mode to ' + anonMode);
+  }, [anonMode]);
+
   return (
     <AppContext.Provider value={{ appState, setAppState }}>
       <NavigationContainer>
@@ -123,12 +99,7 @@ export default function App() {
             <Stack.Screen
               name="Home"
               component={HomeScreen}
-              initialParams={{
-                groupID: appState.groupID,
-                groupName: appState.groupName,
-                groupImage: appState.groupImage,
-                groupColor: appState.groupColor,
-              }}
+              initialParams={{}}
               options={({ route: { params } }) => ({
                 animation: params.animation ? params.animation : 'default',
               })}
