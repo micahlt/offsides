@@ -74,7 +74,7 @@ function HomeScreen({ navigation, route }) {
 
   React.useEffect(() => {
     crashlytics().log('Setting group color');
-    if (currentGroup.color) {
+    if (currentGroup?.color) {
       const t = createMaterial3Theme(currentGroup.color);
       setCustomTheme(colorScheme == 'dark' ? t.dark : t.light);
     }
@@ -85,7 +85,7 @@ function HomeScreen({ navigation, route }) {
     updateSortIcon();
     if (!loadingPosts) {
       InteractionManager.runAfterInteractions(() => {
-        if (appState.userToken && currentGroup.id) {
+        if (appState.userToken && currentGroup?.id) {
           fetchPosts(true, currentGroup.id);
         } else {
           console.log('App state is undefined, will load in a second');
@@ -116,7 +116,7 @@ function HomeScreen({ navigation, route }) {
     }
   };
   const fetchPosts = (refresh, override) => {
-    if (loadingPosts) return false;
+    if (loadingPosts || !currentGroup?.id || !postSortMethod) return false;
     crashlytics().log(`Fetching posts sorted by ${postSortMethod}`);
     setLoadingPosts(true);
     try {
