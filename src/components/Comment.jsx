@@ -1,11 +1,13 @@
 import '../types/OffsidesTypes.js';
 import React from 'react';
-import { View, Alert } from 'react-native';
+import { View, Alert, Linking } from 'react-native';
 import { Button, Card, IconButton, Text, useTheme } from 'react-native-paper';
+import { setStringAsync as copyToClipboard } from 'expo-clipboard';
 import timesago from 'timesago';
 import { AppContext } from '../App';
 import AutoImage from './AutoImage';
 import UserAvatar from './UserAvatar.jsx';
+import Poll from './Poll.jsx';
 const BORDER_RADIUS = 10;
 
 /**
@@ -135,6 +137,7 @@ function Comment({ comment, nav, isolated = false }) {
         )}
 
         {width &&
+          // Assets are things like images and videos
           comment.assets.map(asset => (
             <React.Fragment key={asset.id}>
               {asset.type == 'image' && (
@@ -169,6 +172,43 @@ function Comment({ comment, nav, isolated = false }) {
               )}
             </React.Fragment>
           ))}
+        {width &&
+          // Attachments are things like links and embeds
+          comment.attachments.map(att => (
+            <React.Fragment key={att.id}>
+              {!!att?.youtube_id ? (
+                <Chip
+                  icon="youtube"
+                  style={{
+                    marginRight: 'auto',
+                    marginBottom: 5,
+                    maxWidth: '100%',
+                    overflow: 'hidden',
+                  }}
+                  onPress={() => Linking.openURL(att.link_url)}
+                  onLongPress={async () => await copyToClipboard(att.link_url)}>
+                  {att.title}
+                </Chip>
+              ) : att.type == 'link' ? (
+                <Chip
+                  icon="link"
+                  style={{
+                    marginRight: 'auto',
+                    marginBottom: 5,
+                    maxWidth: '100%',
+                    overflow: 'hidden',
+                  }}
+                  onPress={() => Linking.openURL(att.link_url)}
+                  onLongPress={async () => await copyToClipboard(att.link_url)}>
+                  {att.display_url}
+                </Chip>
+              ) : (
+                <></>
+              )}
+            </React.Fragment>
+          ))}
+
+        {comment?.poll && <Poll poll={comment.poll} />}
 
         <View
           style={{

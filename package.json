@@ -1,6 +1,6 @@
 {
   "name": "offsides",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -39,7 +39,8 @@
     "rn-emoji-keyboard": "^1.7.0",
     "semver": "^7.6.3",
     "sidechat.js": "^2.5.5",
-    "timesago": "^1.0.1"
+    "timesago": "^1.0.1",
+    "expo-clipboard": "~7.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",

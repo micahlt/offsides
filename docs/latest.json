@@ -1,4 +1,4 @@
 {
-  "latestVersion": "0.8.0",
-  "changelog": "This update brings further stability improvements."
+  "latestVersion": "0.8.1",
+  "changelog": "This update allows long-pressing on links to copy them to your clipboard."
 }

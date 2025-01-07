@@ -2,6 +2,7 @@ import { SidechatPostOrComment } from 'sidechat.js/src/types';
 import React from 'react';
 import { Alert, Linking, View } from 'react-native';
 import { Card, Chip, IconButton, Text, useTheme } from 'react-native-paper';
+import { setStringAsync as copyToClipboard } from 'expo-clipboard';
 import timesago from 'timesago';
 import { AppContext } from '../App';
 import AutoImage from './AutoImage';
@@ -172,7 +173,8 @@ function Post({
                     maxWidth: '100%',
                     overflow: 'hidden',
                   }}
-                  onPress={() => Linking.openURL(att.link_url)}>
+                  onPress={() => Linking.openURL(att.link_url)}
+                  onLongPress={async () => await copyToClipboard(att.link_url)}>
                   {att.title}
                 </Chip>
               ) : att.type == 'link' ? (
@@ -184,7 +186,8 @@ function Post({
                     maxWidth: '100%',
                     overflow: 'hidden',
                   }}
-                  onPress={() => Linking.openURL(att.link_url)}>
+                  onPress={() => Linking.openURL(att.link_url)}
+                  onLongPress={async () => await copyToClipboard(att.link_url)}>
                   {att.display_url}
                 </Chip>
               ) : (
