@@ -128,7 +128,7 @@ function SettingsScreen({ navigation }) {
           }}>
           User ID: {appState.userID}
         </Text>
-        <Text
+        {!!currentGroup && <Text
           style={{
             textAlign: 'center',
             marginBottom: 10,
@@ -136,7 +136,7 @@ function SettingsScreen({ navigation }) {
             userSelect: 'text',
           }}>
           Group ID: {currentGroup.id}
-        </Text>
+        </Text>}
         <Text
           style={{
             textAlign: 'center',

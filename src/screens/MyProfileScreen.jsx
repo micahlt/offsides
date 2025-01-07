@@ -36,7 +36,7 @@ function MyProfileScreen({ navigation }) {
   });
   const loadProfile = async () => {
     crashlytics().log('Fetching profile');
-    const u = await API.getUpdates(currentGroup.id);
+    const u = await API.getUpdates(currentGroup?.id);
     crashlytics().log('Profile fetched successfully');
     setUpdates(u);
     setLoading(false);

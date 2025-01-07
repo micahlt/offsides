@@ -38,11 +38,11 @@ import { needsUpdate } from '../utils';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useMMKVObject, useMMKVString } from 'react-native-mmkv';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
+import Onboarding from '../components/Onboarding';
 
 const BORDER_RADIUS = 12;
 
-function HomeScreen({ navigation, route }) {
-  const { params } = route;
+function HomeScreen({ navigation }) {
   const sheetRef = React.useRef(null);
   const [customTheme, setCustomTheme] = React.useState(false);
   const { appState } = React.useContext(AppContext);
@@ -62,6 +62,7 @@ function HomeScreen({ navigation, route }) {
   const [postSortMethod, setPostSortMethod] = useMMKVString('postSortMethod');
   const [sortIcon, setSortIcon] = React.useState('filter-variant');
   const [updateBadge, setUpdateBadge] = React.useState(false);
+  const [onboard, setOnboard] = React.useState(false);
   const [posts, setPosts] = React.useState(
     /** @type {SidechatPostOrComment[]} */([]),
   );
@@ -69,7 +70,7 @@ function HomeScreen({ navigation, route }) {
   React.useEffect(() => {
     crashlytics().log('Loading HomeScreen');
     needsUpdate().then(setUpdateBadge);
-    API.getUpdates(appState.schoolGroupID).then(updates => setUserGroups(updates.groups));
+    API.getUpdates().then(updates => setUserGroups(updates.groups));
   }, []);
 
   React.useEffect(() => {
@@ -87,6 +88,9 @@ function HomeScreen({ navigation, route }) {
       InteractionManager.runAfterInteractions(() => {
         if (appState.userToken && currentGroup?.id) {
           fetchPosts(true, currentGroup.id);
+          setOnboard(false);
+        } else if (appState.userToken && !currentGroup) {
+          setOnboard(true);
         } else {
           console.log('App state is undefined, will load in a second');
         }
@@ -291,6 +295,9 @@ function HomeScreen({ navigation, route }) {
               onPress={() => navigation.push('MyProfile')}></Appbar.Action>
           </View>
         </Appbar.Header>
+      )}
+      {onboard && (
+        <Onboarding />
       )}
       <View
         style={{

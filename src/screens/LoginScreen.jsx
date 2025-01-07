@@ -262,9 +262,9 @@ function LoginScreen({ }) {
                 'schoolGroupImage',
                 res.group.icon_url || '',
               );
+            }
+            if (res.user.has_verified_email) {
               RNRestart.restart();
-            } else {
-              throw new Error('Try clicking the link in your email again.');
             }
           } else {
             throw new Error('Try clicking the link in your email again.');

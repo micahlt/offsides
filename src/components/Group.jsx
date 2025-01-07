@@ -17,14 +17,16 @@ function Group({
   exploreMode = false,
   removeMode = false,
   onRemove = () => { },
+  style
 }) {
   const { colors } = useTheme();
 
   return (
     <TouchableRipple
       borderless={true}
-      style={{ borderRadius: 10 }}
-      onPress={onPress}>
+      style={{ borderRadius: 10, ...style }}
+      onPress={onPress}
+      onLongPress={() => console.log(group.id)}>
       <Card mode={cardMode}>
         <Card.Content>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
