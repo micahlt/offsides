@@ -118,6 +118,17 @@ function SettingsScreen({ navigation }) {
             </Card.Actions>
           </Card>
         )}
+        <Card>
+          <Card.Title title="Support Development"
+            titleVariant="titleMedium"
+            titleStyle={{ color: colors.primary, minHeight: 20 }} />
+          <Card.Content>
+            <Text>Offsides is a solo project by Micah Lindley.  I write and maintain this app for free on my own time.  If you want to support development of features and bugfixes, you can buy me a coffee.</Text>
+          </Card.Content>
+          <Card.Actions>
+            <Button mode="contained" onPress={() => Linking.openURL("https://buymeacoffee.com/micahlt")}>Support</Button>
+          </Card.Actions>
+        </Card>
         <Divider />
         <Text
           style={{
