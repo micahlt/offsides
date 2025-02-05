@@ -76,7 +76,7 @@ function HomeScreen({ navigation }) {
   React.useEffect(() => {
     crashlytics().log('Setting group color');
     if (currentGroup?.color) {
-      const t = createMaterial3Theme(currentGroup.color);
+      const t = createMaterial3Theme(currentGroup.color.includes("#") ? currentGroup.color : `#${currentGroup.color}`);
       setCustomTheme(colorScheme == 'dark' ? t.dark : t.light);
     }
   }, [currentGroup]);

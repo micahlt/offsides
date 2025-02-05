@@ -13,6 +13,14 @@ function UserAvatar({
 }) {
   const nav = useNavigation();
   const { colors } = useTheme();
+  const switchToGroup = React.useCallback(() => {
+    nav.push('Home', {
+      groupID: group.id,
+      groupColor: group.color,
+      groupImage: group.icon_url,
+      groupName: group.name,
+    });
+  }, [group]);
   return React.useCallback(
     <>
       {conversationIcon?.emoji || numberAlias ? (
@@ -31,14 +39,7 @@ function UserAvatar({
               groupColor={group.color}
               groupImage={group.icon_url}
               groupName={group.name}
-              onPress={() =>
-                nav.push('Home', {
-                  groupID: group.id,
-                  groupColor: group.color,
-                  groupImage: group.icon_url,
-                  groupName: group.name,
-                })
-              }
+              onPress={switchToGroup}
               style={{
                 position: 'absolute',
                 bottom: 5 - size / 5,
@@ -55,14 +56,7 @@ function UserAvatar({
           groupColor={group.color}
           groupImage={group.icon_url}
           groupName={group.name}
-          onPress={() =>
-            nav.push('Home', {
-              groupID: group.id,
-              groupColor: group.color,
-              groupImage: group.icon_url,
-              groupName: group.name,
-            })
-          }
+          onPress={switchToGroup}
         />
       )}
     </>,

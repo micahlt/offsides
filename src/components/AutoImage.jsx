@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Image } from 'react-native';
 import ImageModal from 'react-native-image-modal';
 
 const AutoImage = ({

@@ -1,4 +1,4 @@
 {
-  "latestVersion": "0.8.2",
-  "changelog": "This update attempts to fix an issue where some users were unable to log in for the first time."
+  "latestVersion": "0.8.3",
+  "changelog": "This update fixes an issue where group themes caused the app to crash."
 }

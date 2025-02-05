@@ -34,21 +34,21 @@ function Post({
   const [voteCount, setVoteCount] = React.useState(post.vote_total);
   const [width, setWidth] = React.useState();
 
-  const upvote = () => {
+  const upvote = React.useCallback(() => {
     const action = vote == 'upvote' ? 'none' : 'upvote';
     API.setVote(post.id, action).then(res => {
       setVote(action);
       setVoteCount(res.post.vote_total);
     });
-  };
+  }, [vote, post.id]);
 
-  const downvote = () => {
+  const downvote = React.useCallback(() => {
     const action = vote == 'downvote' ? 'none' : 'downvote';
     API.setVote(post.id, action).then(res => {
       setVote(action);
       setVoteCount(res.post.vote_total);
     });
-  };
+  }, [vote, post.id]);
 
   // if (post.attachments.length > 0) {
   //   post.attachments.forEach(a => {
@@ -56,7 +56,7 @@ function Post({
   //   });
   // }
 
-  const deletePost = () => {
+  const deletePost = React.useCallback(() => {
     Alert.alert(
       'Are you sure?',
       'This will permanently delete this post and its associated comments.',
@@ -73,7 +73,7 @@ function Post({
         },
       ],
     );
-  };
+  }, [post.id]);
 
   return (
     <Card

@@ -18,7 +18,7 @@ function Poll({ poll }) {
   const { colors } = useTheme();
   const [localPoll, setLocalPoll] = React.useState(poll);
 
-  const setVote = choiceIndex => {
+  const setVote = React.useCallback((choiceIndex) => {
     if (localPoll.participated) {
       ToastAndroid.show('You cannot change your vote', ToastAndroid.SHORT);
       return;
@@ -34,7 +34,7 @@ function Poll({ poll }) {
         })),
       });
     });
-  };
+  }, [localPoll]);
 
   if (!localPoll) return null;
   return (
