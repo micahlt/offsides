@@ -1,5 +1,5 @@
 import { SidechatSimpleAsset } from 'sidechat.js/src/types';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StatusBar, Image } from 'react-native';
 import {
   Appbar,
@@ -17,11 +17,12 @@ import {
 import { AppContext } from '../App';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useMMKVBoolean, useMMKVString } from 'react-native-mmkv';
+import Post from '../components/Post';
 
 const BORDER_RADIUS = 10;
 
 function WriterScreen({ navigation, route }) {
-  const { mode, groupID, postID, replyID, parentID } = route.params;
+  const { mode, groupID, postID, replyID, parentID, repostID } = route.params;
   if (mode != 'comment' && mode != 'post') return false;
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
@@ -34,6 +35,18 @@ function WriterScreen({ navigation, route }) {
   const [asset, setAsset] = React.useState(
     /** @type {SidechatSimpleAsset} */(null),
   );
+  const [repost, setRepost] = React.useState(
+    /** @type {SidechatPostOrComment} */(null),
+  );
+  React.useEffect(() => {
+    if (repostID) {
+      API.getPost(repostID).then((p) => {
+        if (p) {
+          setRepost(p);
+        }
+      });
+    }
+  }, [repostID])
   const createPostOrComment = async () => {
     if (mode == 'post') {
       const p = await API.createPost(
@@ -43,6 +56,7 @@ function WriterScreen({ navigation, route }) {
         null,
         null,
         anonMode,
+        repostID
       );
       if (!p?.message) {
         setPostSortMethod('recent');
@@ -157,11 +171,18 @@ function WriterScreen({ navigation, route }) {
             value={textContent}
             onChangeText={val => setTextContent(val)}
           />
+          {repost && <View style={{ padding: 10, paddingTop: 0, marginTop: -5 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: "flex-start", marginBottom: -5 }}>
+              <IconButton icon="repeat-variant" size={24} iconColor={colors.primary} style={{ marginLeft: -5, marginRight: -3 }} />
+              <Text variant="labelLarge" style={{ color: colors.primary }}>Reposting</Text>
+            </View>
+            <Post post={repost} repost={true} minimal={true} />
+          </View>}
         </View>
         <View
           style={{
             backgroundColor: colors.elevation.level5,
-            flex: 0.3,
+            flex: 0.15,
             flexDirection: 'row',
             alignItems: 'center',
             paddingHorizontal: 15,

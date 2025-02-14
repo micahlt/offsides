@@ -22,6 +22,7 @@ function Post({
   nav,
   commentView = false,
   repost = false,
+  minimal = false,
   cardMode = repost ? 'outlined' : 'elevated',
 }) {
   if (!post) {
@@ -75,6 +76,14 @@ function Post({
     );
   }, [post.id]);
 
+  const createRepost = React.useCallback(() => {
+    nav.push('Writer', {
+      repostID: post.id,
+      mode: "post",
+      groupID: post.group_id,
+    })
+  }, [post.id]);
+
   return (
     <Card
       onLayout={event => {
@@ -118,12 +127,12 @@ function Post({
         </View>
 
         {post.text.trim().length > 0 && (
-          <Text variant="bodyLarge" style={{ marginTop: 10, marginBottom: 10 }}>
+          <Text variant="bodyLarge" style={{ marginTop: 10, marginBottom: minimal ? 0 : 10 }}>
             {post.text}
           </Text>
         )}
 
-        {width &&
+        {width && !minimal &&
           // Assets are things like images and videos
           post.assets.map(asset => (
             <React.Fragment key={asset.id}>
@@ -202,7 +211,7 @@ function Post({
           <Post post={post.quote_post.post} nav={nav} repost={true} />
         )}
 
-        <View
+        {!minimal && <View
           style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -245,7 +254,7 @@ function Post({
           )}
           <IconButton
             icon="repeat-variant"
-            onPress={() => alert("Reposting isn't enabled yet.")}
+            onPress={createRepost}
             style={{ margin: 0 }}
             size={24}
             iconColor={colors.onSurfaceDisabled}
@@ -288,7 +297,7 @@ function Post({
             iconColor={vote == 'downvote' ? colors.onError : colors.onSurface}
             containerColor={vote == 'downvote' ? colors.error : null}
           />
-        </View>
+        </View>}
       </Card.Content>
     </Card>
   );

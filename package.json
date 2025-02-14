@@ -1,6 +1,6 @@
 {
   "name": "offsides",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -20,6 +20,7 @@
     "@react-navigation/native-stack": "^7.2.0",
     "@react-navigation/stack": "^7.1.1",
     "expo": "^52.0.23",
+    "expo-clipboard": "~7.0.0",
     "js-sha256": "^0.11.0",
     "react": "18.3.1",
     "react-native": "^0.76.5",
@@ -38,9 +39,8 @@
     "react-native-video": "^6.8.2",
     "rn-emoji-keyboard": "^1.7.0",
     "semver": "^7.6.3",
-    "sidechat.js": "^2.5.5",
-    "timesago": "^1.0.1",
-    "expo-clipboard": "~7.0.0"
+    "sidechat.js": "^2.6.1",
+    "timesago": "^1.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",
