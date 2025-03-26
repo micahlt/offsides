@@ -171,7 +171,7 @@ function WriterScreen({ navigation, route }) {
             value={textContent}
             onChangeText={val => setTextContent(val)}
           />
-          <ProgressBar style={{ marginHorizontal: 11, marginBottom: 5, borderRadius: 10 }} progress={textContent.length / 256} color={textContent.length > 256 ? colors.error : undefined} />
+          <ProgressBar style={{ marginHorizontal: 11, marginBottom: 5, borderRadius: 10 }} animatedValue={textContent.length / 256} color={textContent.length > 256 ? colors.error : undefined} />
           <Text style={{ marginHorizontal: 10, marginBottom: 10, color: textContent.length <= 256 ? colors.onSurface : colors.error }} variant="labelLarge">
             {textContent.length} / 256 chars
           </Text>

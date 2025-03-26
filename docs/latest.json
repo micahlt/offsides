@@ -1,4 +1,4 @@
 {
-  "latestVersion": "0.8.8",
-  "changelog": "This update adds a character counter to the post and comment creation screens, as well as fixing scroll performance issues on the home screen."
+  "latestVersion": "0.8.81",
+  "changelog": "This hotfix resolves an issue that caused the character counter to hard crash the app."
 }

@@ -1,6 +1,6 @@
 {
   "name": "offsides",
-  "version": "0.8.8",
+  "version": "0.8.81",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
