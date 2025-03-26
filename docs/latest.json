@@ -1,4 +1,4 @@
 {
-  "latestVersion": "0.8.81",
+  "latestVersion": "0.8.8",
   "changelog": "This hotfix resolves an issue that caused the character counter to hard crash the app."
 }
