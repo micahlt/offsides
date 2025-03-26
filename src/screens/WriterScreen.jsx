@@ -171,6 +171,10 @@ function WriterScreen({ navigation, route }) {
             value={textContent}
             onChangeText={val => setTextContent(val)}
           />
+          <ProgressBar style={{ marginHorizontal: 11, marginBottom: 5, borderRadius: 10 }} progress={textContent.length / 256} color={textContent.length > 256 ? colors.error : undefined} />
+          <Text style={{ marginHorizontal: 10, marginBottom: 10, color: colors.onSurface }} variant="labelLarge">
+            {textContent.length} / 256 chars
+          </Text>
           {repost && <View style={{ padding: 10, paddingTop: 0, marginTop: -5 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: "flex-start", marginBottom: -5 }}>
               <IconButton icon="repeat-variant" size={24} iconColor={colors.primary} style={{ marginLeft: -5, marginRight: -3 }} />
