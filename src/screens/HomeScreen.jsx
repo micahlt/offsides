@@ -46,7 +46,7 @@ function HomeScreen({ navigation }) {
   const sheetRef = React.useRef(null);
   const [customTheme, setCustomTheme] = React.useState(false);
   const { appState } = React.useContext(AppContext);
-  const API = appState.API;
+  const API = React.useMemo(() => appState.API, [appState.API]);
 
   const [cursor, setCursor] = React.useState(
     /** @type {SidechatCursorString} */(null),
@@ -100,7 +100,7 @@ function HomeScreen({ navigation }) {
 
   const uniquePosts = useUniqueList(posts);
   const renderItem = React.useCallback(each => {
-    return <Post post={each.item} nav={navigation} />;
+    return <Post themeColors={customTheme || colors} apiInstance={API} post={each.item} nav={navigation} />;
   }, []);
   const updateSortIcon = () => {
     if (!postSortMethod) return;

@@ -1,6 +1,6 @@
 {
   "name": "offsides",
-  "version": "0.8.81",
+  "version": "0.8.9",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -55,6 +55,7 @@
     "@react-native/typescript-config": "0.76.0",
     "@types/react": "~18.3.18",
     "@types/react-test-renderer": "^18.3.1",
+    "@welldone-software/why-did-you-render": "^8.0.3",
     "babel-jest": "^29.7.0",
     "eslint": "^9.17.0",
     "jest": "^29.7.0",

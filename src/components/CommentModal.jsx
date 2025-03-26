@@ -22,7 +22,7 @@ function CommentModal({ navigation, route }) {
   const API = appState.API;
   const { colors } = useTheme();
   const [comments, setComments] = React.useState(
-    /** @type {SidechatPostOrComment[]} */ ([]),
+    /** @type {SidechatPostOrComment[]} */([]),
   );
   const [loadingComments, setLoadingComments] = React.useState(true);
 
@@ -71,7 +71,7 @@ function CommentModal({ navigation, route }) {
           refreshing={loadingComments}
           ListHeaderComponent={
             <>
-              <Post post={localPost} commentView={true} nav={navigation} />
+              <Post themeColors={colors} apiInstance={API} post={localPost} commentView={true} nav={navigation} />
               <Divider
                 style={{ width: '100%', marginTop: 20, marginBottom: 10 }}
                 bold={true}

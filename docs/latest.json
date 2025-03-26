@@ -1,4 +1,4 @@
 {
-  "latestVersion": "0.8.8",
-  "changelog": "This hotfix resolves an issue that caused the character counter to hard crash the app."
+  "latestVersion": "0.8.9",
+  "changelog": "This update includes minor performance improvements for scrolling the homepage."
 }

@@ -4,7 +4,6 @@ import { Alert, Linking, View } from 'react-native';
 import { Card, Chip, IconButton, Text, useTheme } from 'react-native-paper';
 import { setStringAsync as copyToClipboard } from 'expo-clipboard';
 import timesago from 'timesago';
-import { AppContext } from '../App';
 import AutoImage from './AutoImage';
 import AutoVideo from './AutoVideo';
 import UserAvatar from './UserAvatar';
@@ -24,13 +23,14 @@ function Post({
   repost = false,
   minimal = false,
   cardMode = repost ? 'outlined' : 'elevated',
+  apiInstance = null,
+  themeColors = {},
 }) {
-  if (!post) {
+  const colors = themeColors;
+  const API = apiInstance;
+  if (!post || !API) {
     return <></>;
   }
-  const { appState } = React.useContext(AppContext);
-  const API = appState.API;
-  const { colors } = useTheme();
   const [vote, setVote] = React.useState(post.vote_status);
   const [voteCount, setVoteCount] = React.useState(post.vote_total);
   const [width, setWidth] = React.useState();
@@ -212,7 +212,7 @@ function Post({
         {post.poll && <Poll poll={post.poll} />}
 
         {post.quote_post && !repost && (
-          <MemoizedPost post={post.quote_post.post} nav={nav} repost={true} />
+          <MemoizedPost themeColors={colors} apiInstance={apiInstance} post={post.quote_post.post} nav={nav} repost={true} />
         )}
 
         {!minimal && <View
@@ -307,7 +307,8 @@ function Post({
   );
 }
 
-export default Post;
+Post.whyDidYouRender = true;
+export default React.memo(Post);
 
 const obj = {
   index: 0,

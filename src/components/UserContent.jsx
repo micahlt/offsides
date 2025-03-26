@@ -12,6 +12,7 @@ import crashlytics from '@react-native-firebase/crashlytics';
 import ActivityItem from '../components/ActivityItem';
 import Post from './Post';
 import Comment from './Comment';
+import { AppContext } from '../App';
 
 function UserContent({ updates }) {
   useEffect(() => {
@@ -54,6 +55,7 @@ function UserContent({ updates }) {
 const ItemList = ({ updates, view, style }) => {
   const nav = useNavigation();
   const { colors } = useTheme();
+  const API = React.useContext(AppContext).appState.API;
   switch (view) {
     case 'activity': {
       return (
@@ -107,6 +109,8 @@ const ItemList = ({ updates, view, style }) => {
                 }}
                 renderItem={p => (
                   <Post
+                    apiInstance={API}
+                    themeColors={colors}
                     post={p.item}
                     nav={nav}
                     key={p.index}

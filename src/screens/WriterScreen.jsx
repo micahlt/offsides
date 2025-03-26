@@ -180,7 +180,7 @@ function WriterScreen({ navigation, route }) {
               <IconButton icon="repeat-variant" size={24} iconColor={colors.primary} style={{ marginLeft: -5, marginRight: -3 }} />
               <Text variant="labelLarge" style={{ color: colors.primary }}>Reposting</Text>
             </View>
-            <Post post={repost} repost={true} minimal={true} />
+            <Post themeColors={colors} apiInstance={API} post={repost} repost={true} minimal={true} />
           </View>}
         </View>
         <View

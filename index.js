@@ -1,3 +1,4 @@
+import "./src/utils/wdyr";
 import * as React from 'react';
 import { AppRegistry, useColorScheme } from 'react-native';
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from 'react-native-paper';
