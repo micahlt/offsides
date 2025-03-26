@@ -34,22 +34,23 @@ function Post({
   const [vote, setVote] = React.useState(post.vote_status);
   const [voteCount, setVoteCount] = React.useState(post.vote_total);
   const [width, setWidth] = React.useState();
+  const postID = post.id;
 
   const upvote = React.useCallback(() => {
     const action = vote == 'upvote' ? 'none' : 'upvote';
-    API.setVote(post.id, action).then(res => {
+    API.setVote(postID, action).then(res => {
       setVote(action);
       setVoteCount(res.post.vote_total);
     });
-  }, [vote, post.id]);
+  }, [vote, postID, API]);
 
   const downvote = React.useCallback(() => {
     const action = vote == 'downvote' ? 'none' : 'downvote';
-    API.setVote(post.id, action).then(res => {
+    API.setVote(postID, action).then(res => {
       setVote(action);
       setVoteCount(res.post.vote_total);
     });
-  }, [vote, post.id]);
+  }, [vote, postID, API]);
 
   // if (post.attachments.length > 0) {
   //   post.attachments.forEach(a => {
@@ -65,7 +66,7 @@ function Post({
         {
           text: 'Confirm',
           onPress: async () => {
-            await API.deletePostOrComment(post.id);
+            await API.deletePostOrComment(postID);
             nav.replace('Home');
           },
         },
@@ -74,20 +75,23 @@ function Post({
         },
       ],
     );
-  }, [post.id]);
+  }, [postID, API]);
 
   const createRepost = React.useCallback(() => {
     nav.push('Writer', {
-      repostID: post.id,
+      repostID: postID,
       mode: "post",
       groupID: post.group_id,
     })
-  }, [post.id]);
+  }, [postID]);
+
+  const MemoizedPost = React.memo(Post);
 
   return (
     <Card
-      onLayout={event => {
-        setWidth(event.nativeEvent.layout.width);
+      onLayout={(event) => {
+        const newWidth = event.nativeEvent.layout.width;
+        if (newWidth !== width) setWidth(newWidth);
       }}
       mode={cardMode}
       style={repost ? { marginBottom: 10 } : {}}>
@@ -134,7 +138,7 @@ function Post({
 
         {width && !minimal &&
           // Assets are things like images and videos
-          post.assets.map(asset => (
+          post.assets?.map(asset => (
             <React.Fragment key={asset.id}>
               {asset.type == 'image' && (
                 <AutoImage
@@ -208,7 +212,7 @@ function Post({
         {post.poll && <Poll poll={post.poll} />}
 
         {post.quote_post && !repost && (
-          <Post post={post.quote_post.post} nav={nav} repost={true} />
+          <MemoizedPost post={post.quote_post.post} nav={nav} repost={true} />
         )}
 
         {!minimal && <View

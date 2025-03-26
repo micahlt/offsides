@@ -172,7 +172,7 @@ function WriterScreen({ navigation, route }) {
             onChangeText={val => setTextContent(val)}
           />
           <ProgressBar style={{ marginHorizontal: 11, marginBottom: 5, borderRadius: 10 }} progress={textContent.length / 256} color={textContent.length > 256 ? colors.error : undefined} />
-          <Text style={{ marginHorizontal: 10, marginBottom: 10, color: colors.onSurface }} variant="labelLarge">
+          <Text style={{ marginHorizontal: 10, marginBottom: 10, color: textContent.length <= 256 ? colors.onSurface : colors.error }} variant="labelLarge">
             {textContent.length} / 256 chars
           </Text>
           {repost && <View style={{ padding: 10, paddingTop: 0, marginTop: -5 }}>
