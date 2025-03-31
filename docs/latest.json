@@ -1,4 +1,4 @@
 {
-  "latestVersion": "0.8.9",
-  "changelog": "This update includes minor performance improvements for scrolling the homepage."
+  "latestVersion": "0.8.10",
+  "changelog": "This update includes a fix for auth that caused users to not be able to log in with a new phone number."
 }
