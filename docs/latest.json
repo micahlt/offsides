@@ -1,4 +1,4 @@
 {
-  "latestVersion": "0.8.10",
-  "changelog": "This update includes a fix for auth that caused users to not be able to log in with a new phone number."
+  "latestVersion": "0.9.0",
+  "changelog": "This update fixes an issue where the app requested an update after already being up to date."
 }
