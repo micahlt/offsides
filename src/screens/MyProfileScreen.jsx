@@ -17,6 +17,7 @@ import timesago from 'timesago';
 import { useFocusEffect } from '@react-navigation/native';
 import crashlytics from '@react-native-firebase/crashlytics';
 import UserContent from '../components/UserContent';
+import EnhancedUserContent from '../components/EnhancedUserContent';
 import { useMMKVObject } from 'react-native-mmkv';
 
 const BORDER_RADIUS = 15;
@@ -182,7 +183,7 @@ function MyProfileScreen({ navigation }) {
             </Card>
           </View>
           <Divider />
-          <UserContent updates={updates} />
+          <EnhancedUserContent updates={updates} />
         </View>
       )}
     </View>

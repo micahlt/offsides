@@ -16,6 +16,8 @@ import EditProfileScreen from './screens/EditProfileScreen';
 import WriterScreen from './screens/WriterScreen';
 import MessageScreen from './screens/MessagesScreen';
 import ThreadScreen from './screens/ThreadScreen';
+import PaginationTestScreen from './screens/PaginationTestScreen';
+import EnhancedAPITestScreen from './screens/EnhancedAPITestScreen';
 import { storage, hasMigratedFromAsyncStorage, migrateFromAsyncStorage } from './utils/mmkv';
 import { useMMKVBoolean, useMMKVString } from 'react-native-mmkv';
 
@@ -124,6 +126,8 @@ export default function App() {
                 animation: 'fade_from_bottom',
               }}
             />
+            <Stack.Screen name="PaginationTest" component={PaginationTestScreen} />
+            <Stack.Screen name="EnhancedAPITest" component={EnhancedAPITestScreen} />
           </Stack.Navigator>
         )}
       </NavigationContainer>
