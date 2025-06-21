@@ -124,13 +124,6 @@ function MyProfileScreen({ navigation }) {
               onPress={() => navigation.push('EditProfile')}>
               Edit
             </Button>
-            <Button
-              icon="chart-line"
-              size={16}
-              mode="outlined"
-              onPress={() => navigation.push('UserStats')}>
-              Stats
-            </Button>
             <Text
               variant="titleMedium"
               style={{ textAlign: 'right', flexGrow: 1, marginRight: 10 }}>
@@ -138,58 +131,34 @@ function MyProfileScreen({ navigation }) {
             </Text>
           </View>
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            <Card style={{ flexGrow: 1 }}>
-              <Card.Title
-                title="Followers"
-                titleVariant="labelLarge"
-                titleStyle={{ minHeight: 10 }}
-              />
-              <Card.Content>
-                <Text variant="titleLarge" style={s.stat}>
-                  {updates?.user?.follower_count || '--'}
+            <Card style={{ flex: 1 }}>
+              <Card.Content style={{ paddingVertical: 12 }}>
+                <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginBottom: 4 }}>
+                  Post Karma
                 </Text>
-              </Card.Content>
-            </Card>
-            <Card style={{ flexGrow: 1 }}>
-              <Card.Title
-                title="Post Karma"
-                titleVariant="labelLarge"
-                titleStyle={{ minHeight: 10 }}
-              />
-              <Card.Content>
                 <Text variant="titleLarge" style={s.stat}>
                   {updates?.karma?.post || '--'}
                 </Text>
               </Card.Content>
             </Card>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <Card style={{ flexGrow: 1 }}>
-              <Card.Title
-                title="Groups"
-                titleVariant="labelLarge"
-                titleStyle={{ minHeight: 10 }}
-              />
-              <Card.Content>
-                <Text variant="titleLarge" style={s.stat}>
-                  {updates?.groups?.length || '--'}
+            <Card style={{ flex: 1 }}>
+              <Card.Content style={{ paddingVertical: 12 }}>
+                <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginBottom: 4 }}>
+                  Comment Karma
                 </Text>
-              </Card.Content>
-            </Card>
-            <Card style={{ flexGrow: 1 }}>
-              <Card.Title
-                title="Comment Karma"
-                titleVariant="labelLarge"
-                titleStyle={{ minHeight: 10 }}
-              />
-              <Card.Content>
                 <Text variant="titleLarge" style={s.stat}>
                   {updates?.karma?.comment || '--'}
                 </Text>
               </Card.Content>
             </Card>
           </View>
-          <Divider />
+          <Card onPress={() => navigation.push('UserStats')}>
+            <Card.Content style={{ paddingVertical: 8, paddingHorizontal: 16, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' }}>
+              <Text variant="bodySmall">
+                Stats Page
+              </Text>
+            </Card.Content>
+          </Card>
           <EnhancedUserContent updates={updates} />
         </View>
       )}
