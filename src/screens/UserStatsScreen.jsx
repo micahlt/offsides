@@ -38,7 +38,7 @@ function UserStatsScreen({ navigation }) {
   // Background processing state
   const [backgroundProgress, setBackgroundProgress] = useMMKVObject('userStatsBackgroundProgress');
   const [isBackgroundFetching, setIsBackgroundFetching] = useMMKVObject('userStatsBackgroundFetching');
-  const appState = useRef(AppState.currentState);
+  const appStateRef = useRef(AppState.currentState);
   const backgroundTaskId = useRef(null);
 
   // Ensure arrays have defaults
@@ -160,7 +160,7 @@ function UserStatsScreen({ navigation }) {
   // AppState listener for background processing
   useEffect(() => {
     const subscription = AppState.addEventListener('change', nextAppState => {
-      appState.current = nextAppState;
+      appStateRef.current = nextAppState;
       
       if (nextAppState === 'active' && isBackgroundFetching) {
         // User returned while background fetch is running
@@ -249,7 +249,7 @@ function UserStatsScreen({ navigation }) {
         }
         
         // Dynamic delay based on app state - slower when backgrounded to reduce memory pressure
-        const isBackgrounded = appState.current !== 'active';
+        const isBackgrounded = appStateRef.current !== 'active';
         const delay = isBackgrounded ? 800 : 200; // Slower when backgrounded
         await new Promise(resolve => setTimeout(resolve, delay));
         
@@ -314,7 +314,7 @@ function UserStatsScreen({ navigation }) {
         }
         
         // Dynamic delay based on app state - slower when backgrounded
-        const isBackgrounded = appState.current !== 'active';
+        const isBackgrounded = appStateRef.current !== 'active';
         const delay = isBackgrounded ? 800 : 200;
         await new Promise(resolve => setTimeout(resolve, delay));
         
@@ -600,7 +600,7 @@ function UserStatsScreen({ navigation }) {
           <Card style={{ marginBottom: 16 }}>
             <Card.Content>
               <Text variant="titleSmall" style={{ marginBottom: 8 }}>
-                {isBackgroundFetching && appState.current !== 'active' ? 'Processing in Background...' : 'Collecting Data...'}
+                {isBackgroundFetching && appStateRef.current !== 'active' ? 'Processing in Background...' : 'Collecting Data...'}
               </Text>
               <ProgressBar progress={progress} style={{ marginBottom: 8 }} />
               <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
