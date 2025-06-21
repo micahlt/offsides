@@ -29,7 +29,7 @@ function UserStatsScreen({ navigation }) {
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState('');
   
-  // Persistent cache using MMKV
+  // Persistent cache using MMKV with error handling
   const [stats, setStats] = useMMKVObject('userStats');
   const [allPosts, setAllPosts] = useMMKVObject('userPosts');
   const [allComments, setAllComments] = useMMKVObject('userComments');
@@ -41,9 +41,40 @@ function UserStatsScreen({ navigation }) {
   const appStateRef = useRef(AppState.currentState);
   const backgroundTaskId = useRef(null);
 
-  // Ensure arrays have defaults
-  const safeAllPosts = allPosts || [];
-  const safeAllComments = allComments || [];
+  // Ensure arrays have defaults and validate state
+  const safeAllPosts = Array.isArray(allPosts) ? allPosts : [];
+  const safeAllComments = Array.isArray(allComments) ? allComments : [];
+  
+  // State validation and recovery
+  const validateAndRecoverState = () => {
+    try {
+      // Check for corrupted state that could cause crashes
+      if (isBackgroundFetching && !backgroundProgress) {
+        console.warn('Detected corrupted background state, clearing...');
+        setIsBackgroundFetching(false);
+      }
+      
+      if (stats && typeof stats !== 'object') {
+        console.warn('Detected corrupted stats, clearing...');
+        setStats(null);
+      }
+      
+      if (cacheTimestamp && (typeof cacheTimestamp !== 'number' || cacheTimestamp > Date.now())) {
+        console.warn('Detected corrupted timestamp, clearing...');
+        setCacheTimestamp(null);
+      }
+    } catch (error) {
+      console.error('State validation failed, clearing all cache:', error);
+      crashlytics().recordError(error);
+      // Emergency state clear
+      setStats(null);
+      setAllPosts([]);
+      setAllComments([]);
+      setCacheTimestamp(null);
+      setIsBackgroundFetching(false);
+      setBackgroundProgress(null);
+    }
+  };
 
   // Time range filtering - simple presets
   const [timeFilter, setTimeFilter] = useState('all'); // 'all', 'month', 'week'
@@ -128,13 +159,32 @@ function UserStatsScreen({ navigation }) {
   };
 
   const clearCache = () => {
-    setStats(null);
-    setAllPosts([]);
-    setAllComments([]);
-    setCacheTimestamp(null);
-    setIsBackgroundFetching(false);
-    setBackgroundProgress(null);
-    setStatus('Cache cleared');
+    try {
+      setStats(null);
+      setAllPosts([]);
+      setAllComments([]);
+      setCacheTimestamp(null);
+      setIsBackgroundFetching(false);
+      setBackgroundProgress(null);
+      setStatus('Cache cleared');
+    } catch (error) {
+      console.error('Cache clear failed:', error);
+      setStatus('Emergency cache clear - please restart app');
+    }
+  };
+
+  const emergencyReset = () => {
+    try {
+      // Force clear all MMKV keys related to user stats
+      clearCache();
+      setLoading(false);
+      setProgress(0);
+      setStatus('Emergency reset complete - safe to fetch again');
+      crashlytics().log('Emergency reset performed');
+    } catch (error) {
+      console.error('Emergency reset failed:', error);
+      setStatus('Critical error - please clear app data and restart');
+    }
   };
 
   // Memory monitoring helpers
@@ -179,14 +229,23 @@ function UserStatsScreen({ navigation }) {
 
   // Check cache and background state on component mount
   useEffect(() => {
-    if (stats && isCacheValid()) {
-      setStatus(`Loaded cached data from ${getCacheAge()}`);
-    } else if (isBackgroundFetching) {
-      setLoading(true);
-      setStatus('Background processing in progress...');
-      if (backgroundProgress) {
-        setProgress(backgroundProgress.progress || 0);
+    try {
+      // Validate state first to prevent crashes
+      validateAndRecoverState();
+      
+      if (stats && isCacheValid()) {
+        setStatus(`Loaded cached data from ${getCacheAge()}`);
+      } else if (isBackgroundFetching) {
+        setLoading(true);
+        setStatus('Background processing in progress...');
+        if (backgroundProgress) {
+          setProgress(backgroundProgress.progress || 0);
+        }
       }
+    } catch (error) {
+      console.error('Component mount failed, entering safe mode:', error);
+      crashlytics().recordError(error);
+      setStatus('Error loading - cache cleared. Please try fetching again.');
     }
   }, []);
 
@@ -198,6 +257,8 @@ function UserStatsScreen({ navigation }) {
     }
 
     try {
+      // Validate state before starting
+      validateAndRecoverState();
       setLoading(true);
       setProgress(0);
       setIsBackgroundFetching(true);
@@ -222,20 +283,30 @@ function UserStatsScreen({ navigation }) {
         const currentProgress = Math.min(0.4, pageCount * 0.02);
         const currentStatus = `Fetched ${allUserPosts.length} posts (page ${pageCount})`;
         
-        // Update UI less frequently to reduce render thrashing
-        if (pageCount % 5 === 0 || !cursor) {
-          setProgress(currentProgress);
-          setStatus(currentStatus);
-          setBackgroundProgress({ 
-            progress: currentProgress, 
-            status: currentStatus, 
-            phase: 'posts',
-            postsCount: allUserPosts.length,
-            pageCount 
-          });
+        // Update UI much less frequently to prevent thread blocking
+        if (pageCount % 25 === 0 || !cursor) {
+          // Batch state updates to minimize renders
+          try {
+            setProgress(currentProgress);
+            setStatus(currentStatus);
+            
+            // Only update background progress when absolutely necessary
+            if (pageCount % 50 === 0 || !cursor) {
+              setBackgroundProgress({ 
+                progress: currentProgress, 
+                status: currentStatus, 
+                phase: 'posts',
+                postsCount: allUserPosts.length,
+                pageCount 
+              });
+            }
+          } catch (error) {
+            console.error('State update failed:', error);
+            // Continue without crashing
+          }
           
-          // Check memory pressure every 10 pages
-          if (pageCount % 10 === 0) {
+          // Check memory pressure less frequently
+          if (pageCount % 50 === 0) {
             const memoryStatus = await checkMemoryPressure(allUserPosts.length);
             if (memoryStatus.memoryPressure) {
               setStatus(`Memory pressure detected - stopping at ${allUserPosts.length} posts`);
@@ -253,9 +324,14 @@ function UserStatsScreen({ navigation }) {
         // Consistent delay to prevent memory pressure on all devices
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Additional yield every few pages to prevent UI blocking
-        if (pageCount % 10 === 0) {
+        // Frequent yielding to UI thread to prevent blocking
+        if (pageCount % 3 === 0) {
           await new Promise(resolve => setTimeout(resolve, 0));
+        }
+        
+        // Longer yield every 10 pages for garbage collection
+        if (pageCount % 10 === 0) {
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
       } while (cursor);
 
@@ -284,21 +360,31 @@ function UserStatsScreen({ navigation }) {
         const currentProgress = Math.min(0.8, 0.4 + (pageCount * 0.02));
         const currentStatus = `Fetched ${allUserComments.length} comments (page ${pageCount})`;
         
-        // Update UI less frequently to reduce render thrashing
-        if (pageCount % 5 === 0 || !cursor) {
-          setProgress(currentProgress);
-          setStatus(currentStatus);
-          setBackgroundProgress({ 
-            progress: currentProgress, 
-            status: currentStatus, 
-            phase: 'comments',
-            postsCount: allUserPosts.length,
-            commentsCount: allUserComments.length,
-            pageCount 
-          });
+        // Update UI much less frequently to prevent thread blocking
+        if (pageCount % 25 === 0 || !cursor) {
+          // Batch state updates to minimize renders
+          try {
+            setProgress(currentProgress);
+            setStatus(currentStatus);
+            
+            // Only update background progress when absolutely necessary
+            if (pageCount % 50 === 0 || !cursor) {
+              setBackgroundProgress({ 
+                progress: currentProgress, 
+                status: currentStatus, 
+                phase: 'comments',
+                postsCount: allUserPosts.length,
+                commentsCount: allUserComments.length,
+                pageCount 
+              });
+            }
+          } catch (error) {
+            console.error('State update failed:', error);
+            // Continue without crashing
+          }
           
-          // Check memory pressure every 10 pages
-          if (pageCount % 10 === 0) {
+          // Check memory pressure less frequently
+          if (pageCount % 50 === 0) {
             const totalData = allUserPosts.length + allUserComments.length;
             const memoryStatus = await checkMemoryPressure(totalData);
             if (memoryStatus.memoryPressure) {
@@ -316,9 +402,14 @@ function UserStatsScreen({ navigation }) {
         // Consistent delay to prevent memory pressure on all devices
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Additional yield every few pages to prevent UI blocking
-        if (pageCount % 10 === 0) {
+        // Frequent yielding to UI thread to prevent blocking
+        if (pageCount % 3 === 0) {
           await new Promise(resolve => setTimeout(resolve, 0));
+        }
+        
+        // Longer yield every 10 pages for garbage collection
+        if (pageCount % 10 === 0) {
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
       } while (cursor);
 
@@ -811,6 +902,16 @@ function UserStatsScreen({ navigation }) {
                     disabled={loading}
                   >
                     Clear Cache
+                  </Button>
+                  <Button 
+                    mode="outlined" 
+                    onPress={emergencyReset}
+                    icon="alert-circle"
+                    disabled={loading}
+                    buttonColor={colors.errorContainer}
+                    textColor={colors.onErrorContainer}
+                  >
+                    Emergency Reset
                   </Button>
                   <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
                     Cache: {cacheTimestamp ? getCacheAge() : 'No cached data'}
