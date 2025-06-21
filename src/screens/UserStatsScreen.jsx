@@ -109,11 +109,9 @@ function UserStatsScreen({ navigation }) {
     };
   };
 
-  // Cache helper functions
+  // Cache helper functions - cache persists until manually refreshed
   const isCacheValid = () => {
-    if (!cacheTimestamp || !stats) return false;
-    const oneHour = 60 * 60 * 1000; // 1 hour in milliseconds
-    return (Date.now() - cacheTimestamp) < oneHour;
+    return !!(cacheTimestamp && stats);
   };
 
   const getCacheAge = () => {
@@ -122,7 +120,11 @@ function UserStatsScreen({ navigation }) {
     if (ageMinutes < 1) return 'just now';
     if (ageMinutes < 60) return `${ageMinutes} minute${ageMinutes === 1 ? '' : 's'} ago`;
     const ageHours = Math.floor(ageMinutes / 60);
-    return `${ageHours} hour${ageHours === 1 ? '' : 's'} ago`;
+    if (ageHours < 24) return `${ageHours} hour${ageHours === 1 ? '' : 's'} ago`;
+    const ageDays = Math.floor(ageHours / 24);
+    if (ageDays < 7) return `${ageDays} day${ageDays === 1 ? '' : 's'} ago`;
+    const ageWeeks = Math.floor(ageDays / 7);
+    return `${ageWeeks} week${ageWeeks === 1 ? '' : 's'} ago`;
   };
 
   const clearCache = () => {
@@ -248,10 +250,8 @@ function UserStatsScreen({ navigation }) {
           break;
         }
         
-        // Dynamic delay based on app state - slower when backgrounded to reduce memory pressure
-        const isBackgrounded = appStateRef.current !== 'active';
-        const delay = isBackgrounded ? 800 : 200; // Slower when backgrounded
-        await new Promise(resolve => setTimeout(resolve, delay));
+        // Consistent delay to prevent memory pressure on all devices
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Additional yield every few pages to prevent UI blocking
         if (pageCount % 10 === 0) {
@@ -313,10 +313,8 @@ function UserStatsScreen({ navigation }) {
           break;
         }
         
-        // Dynamic delay based on app state - slower when backgrounded
-        const isBackgrounded = appStateRef.current !== 'active';
-        const delay = isBackgrounded ? 800 : 200;
-        await new Promise(resolve => setTimeout(resolve, delay));
+        // Consistent delay to prevent memory pressure on all devices
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Additional yield every few pages to prevent UI blocking
         if (pageCount % 10 === 0) {
