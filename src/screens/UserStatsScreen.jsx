@@ -450,11 +450,52 @@ function UserStatsScreen({ navigation }) {
     const totalComments = comments.length;
     const totalContent = totalPosts + totalComments;
     
-    // Vote analytics
+    // Vote analytics - average and median
     const totalPostVotes = posts.reduce((sum, post) => sum + (post.vote_total || 0), 0);
     const totalCommentVotes = comments.reduce((sum, comment) => sum + (comment.vote_total || 0), 0);
     const avgPostVotes = totalPosts > 0 ? (totalPostVotes / totalPosts).toFixed(1) : 0;
     const avgCommentVotes = totalComments > 0 ? (totalCommentVotes / totalComments).toFixed(1) : 0;
+    
+    // Calculate median votes
+    const getMedian = (values) => {
+      if (values.length === 0) return 0;
+      const sorted = values.slice().sort((a, b) => a - b);
+      const mid = Math.floor(sorted.length / 2);
+      return sorted.length % 2 === 0 
+        ? ((sorted[mid - 1] + sorted[mid]) / 2).toFixed(1)
+        : sorted[mid].toFixed(1);
+    };
+    
+    const postVotes = posts.map(post => post.vote_total || 0);
+    const commentVotes = comments.map(comment => comment.vote_total || 0);
+    const medianPostVotes = getMedian(postVotes);
+    const medianCommentVotes = getMedian(commentVotes);
+    
+    // Vote distribution analysis
+    const createVoteDistribution = (votes) => {
+      const buckets = {
+        '0': 0,
+        '1-5': 0,
+        '6-10': 0,
+        '11-20': 0,
+        '21-50': 0,
+        '50+': 0
+      };
+      
+      votes.forEach(vote => {
+        if (vote === 0) buckets['0']++;
+        else if (vote <= 5) buckets['1-5']++;
+        else if (vote <= 10) buckets['6-10']++;
+        else if (vote <= 20) buckets['11-20']++;
+        else if (vote <= 50) buckets['21-50']++;
+        else buckets['50+']++;
+      });
+      
+      return buckets;
+    };
+    
+    const postVoteDistribution = createVoteDistribution(postVotes);
+    const commentVoteDistribution = createVoteDistribution(commentVotes);
     
     // Find top content
     const topPost = posts.length > 0 ? posts.reduce((max, post) => 
@@ -532,6 +573,10 @@ function UserStatsScreen({ navigation }) {
       totalCommentVotes,
       avgPostVotes,
       avgCommentVotes,
+      medianPostVotes,
+      medianCommentVotes,
+      postVoteDistribution,
+      commentVoteDistribution,
       topPost,
       topComment,
       peakHour,
@@ -695,12 +740,12 @@ function UserStatsScreen({ navigation }) {
             
             <View style={{ flexDirection: 'row', marginBottom: 8 }}>
               <StatTile 
-                title="Avg Post Votes" 
-                value={currentAnalytics.avgPostVotes}
+                title="Avg/Med Post Votes" 
+                value={`${currentAnalytics.avgPostVotes}/${currentAnalytics.medianPostVotes}`}
               />
               <StatTile 
-                title="Avg Comment Votes" 
-                value={currentAnalytics.avgCommentVotes}
+                title="Avg/Med Comment Votes" 
+                value={`${currentAnalytics.avgCommentVotes}/${currentAnalytics.medianCommentVotes}`}
               />
             </View>
             
@@ -743,35 +788,153 @@ function UserStatsScreen({ navigation }) {
               </Card>
             )}
 
+            {/* Vote Distribution Charts */}
+            <Card style={{ marginBottom: 16 }}>
+              <Card.Content>
+                <Text variant="titleSmall" style={{ marginBottom: 12 }}>Post Vote Distribution</Text>
+                <View style={{ height: 120, paddingBottom: 20 }}>
+                  <View style={{ flexDirection: 'row', height: 80, marginBottom: 8 }}>
+                    {/* Y-axis */}
+                    <View style={{ width: 30, justifyContent: 'space-between', alignItems: 'flex-end', paddingRight: 8 }}>
+                      {(() => {
+                        const maxCount = Math.max(...Object.values(currentAnalytics.postVoteDistribution));
+                        const steps = [maxCount, Math.floor(maxCount * 0.75), Math.floor(maxCount * 0.5), Math.floor(maxCount * 0.25), 0];
+                        return steps.map((value, index) => (
+                          <Text key={index} variant="labelSmall" style={{ color: colors.onSurfaceVariant, fontSize: 10 }}>
+                            {value}
+                          </Text>
+                        ));
+                      })()}
+                    </View>
+                    {/* Bars */}
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                      {Object.entries(currentAnalytics.postVoteDistribution).map(([range, count]) => {
+                        const maxCount = Math.max(...Object.values(currentAnalytics.postVoteDistribution));
+                        const height = maxCount > 0 ? (count / maxCount) * 70 : 0;
+                        return (
+                          <View key={range} style={{ alignItems: 'center', flex: 1 }}>
+                            <Surface 
+                              style={{ 
+                                width: 30, 
+                                height: Math.max(2, height), 
+                                backgroundColor: colors.primary,
+                                borderRadius: 2
+                              }} 
+                            />
+                          </View>
+                        );
+                      })}
+                    </View>
+                  </View>
+                  <View style={{ flexDirection: 'row', marginLeft: 30 }}>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
+                      {Object.keys(currentAnalytics.postVoteDistribution).map(range => (
+                        <Text key={range} variant="labelSmall" style={{ color: colors.onSurfaceVariant, textAlign: 'center', flex: 1 }}>
+                          {range}
+                        </Text>
+                      ))}
+                    </View>
+                  </View>
+                </View>
+              </Card.Content>
+            </Card>
+
+            <Card style={{ marginBottom: 16 }}>
+              <Card.Content>
+                <Text variant="titleSmall" style={{ marginBottom: 12 }}>Comment Vote Distribution</Text>
+                <View style={{ height: 120, paddingBottom: 20 }}>
+                  <View style={{ flexDirection: 'row', height: 80, marginBottom: 8 }}>
+                    {/* Y-axis */}
+                    <View style={{ width: 30, justifyContent: 'space-between', alignItems: 'flex-end', paddingRight: 8 }}>
+                      {(() => {
+                        const maxCount = Math.max(...Object.values(currentAnalytics.commentVoteDistribution));
+                        const steps = [maxCount, Math.floor(maxCount * 0.75), Math.floor(maxCount * 0.5), Math.floor(maxCount * 0.25), 0];
+                        return steps.map((value, index) => (
+                          <Text key={index} variant="labelSmall" style={{ color: colors.onSurfaceVariant, fontSize: 10 }}>
+                            {value}
+                          </Text>
+                        ));
+                      })()}
+                    </View>
+                    {/* Bars */}
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                      {Object.entries(currentAnalytics.commentVoteDistribution).map(([range, count]) => {
+                        const maxCount = Math.max(...Object.values(currentAnalytics.commentVoteDistribution));
+                        const height = maxCount > 0 ? (count / maxCount) * 70 : 0;
+                        return (
+                          <View key={range} style={{ alignItems: 'center', flex: 1 }}>
+                            <Surface 
+                              style={{ 
+                                width: 30, 
+                                height: Math.max(2, height), 
+                                backgroundColor: colors.secondary,
+                                borderRadius: 2
+                              }} 
+                            />
+                          </View>
+                        );
+                      })}
+                    </View>
+                  </View>
+                  <View style={{ flexDirection: 'row', marginLeft: 30 }}>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
+                      {Object.keys(currentAnalytics.commentVoteDistribution).map(range => (
+                        <Text key={range} variant="labelSmall" style={{ color: colors.onSurfaceVariant, textAlign: 'center', flex: 1 }}>
+                          {range}
+                        </Text>
+                      ))}
+                    </View>
+                  </View>
+                </View>
+              </Card.Content>
+            </Card>
+
             {/* Hourly Activity Chart */}
             <Card style={{ marginBottom: 16 }}>
               <Card.Content>
                 <Text variant="titleSmall" style={{ marginBottom: 12 }}>Hourly Activity</Text>
                 <View style={{ height: 120, paddingBottom: 20 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', height: 80, marginBottom: 8 }}>
-                    {currentAnalytics.hourCounts.map((count, hour) => {
-                      const maxCount = Math.max(...currentAnalytics.hourCounts);
-                      const height = maxCount > 0 ? (count / maxCount) * 70 : 0;
-                      return (
-                        <View key={hour} style={{ alignItems: 'center', flex: 1 }}>
-                          <Surface 
-                            style={{ 
-                              width: Math.max(2, (width - 100) / 24), 
-                              height: Math.max(2, height), 
-                              backgroundColor: colors.primary,
-                              borderRadius: 1
-                            }} 
-                          />
-                        </View>
-                      );
-                    })}
+                  <View style={{ flexDirection: 'row', height: 80, marginBottom: 8 }}>
+                    {/* Y-axis */}
+                    <View style={{ width: 30, justifyContent: 'space-between', alignItems: 'flex-end', paddingRight: 8 }}>
+                      {(() => {
+                        const maxCount = Math.max(...currentAnalytics.hourCounts);
+                        const steps = [maxCount, Math.floor(maxCount * 0.75), Math.floor(maxCount * 0.5), Math.floor(maxCount * 0.25), 0];
+                        return steps.map((value, index) => (
+                          <Text key={index} variant="labelSmall" style={{ color: colors.onSurfaceVariant, fontSize: 10 }}>
+                            {value}
+                          </Text>
+                        ));
+                      })()}
+                    </View>
+                    {/* Bars */}
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                      {currentAnalytics.hourCounts.map((count, hour) => {
+                        const maxCount = Math.max(...currentAnalytics.hourCounts);
+                        const height = maxCount > 0 ? (count / maxCount) * 70 : 0;
+                        return (
+                          <View key={hour} style={{ alignItems: 'center', flex: 1 }}>
+                            <Surface 
+                              style={{ 
+                                width: Math.max(2, (width - 130) / 24), 
+                                height: Math.max(2, height), 
+                                backgroundColor: colors.primary,
+                                borderRadius: 1
+                              }} 
+                            />
+                          </View>
+                        );
+                      })}
+                    </View>
                   </View>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    {[0, 6, 12, 18].map(hour => (
-                      <Text key={hour} variant="labelSmall" style={{ color: colors.onSurfaceVariant }}>
-                        {formatHour(hour)}
-                      </Text>
-                    ))}
+                  <View style={{ flexDirection: 'row', marginLeft: 30 }}>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
+                      {[0, 6, 12, 18].map(hour => (
+                        <Text key={hour} variant="labelSmall" style={{ color: colors.onSurfaceVariant }}>
+                          {formatHour(hour)}
+                        </Text>
+                      ))}
+                    </View>
                   </View>
                 </View>
               </Card.Content>
@@ -782,30 +945,47 @@ function UserStatsScreen({ navigation }) {
               <Card.Content>
                 <Text variant="titleSmall" style={{ marginBottom: 12 }}>Day of Week Activity</Text>
                 <View style={{ height: 120, paddingBottom: 20 }}>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', height: 80, marginBottom: 8 }}>
-                    {currentAnalytics.dayOfWeekCounts.map((count, day) => {
-                      const maxCount = Math.max(...currentAnalytics.dayOfWeekCounts);
-                      const height = maxCount > 0 ? (count / maxCount) * 70 : 0;
-                      return (
-                        <View key={day} style={{ alignItems: 'center', flex: 1 }}>
-                          <Surface 
-                            style={{ 
-                              width: 30, 
-                              height: Math.max(2, height), 
-                              backgroundColor: colors.primary,
-                              borderRadius: 2
-                            }} 
-                          />
-                        </View>
-                      );
-                    })}
+                  <View style={{ flexDirection: 'row', height: 80, marginBottom: 8 }}>
+                    {/* Y-axis */}
+                    <View style={{ width: 30, justifyContent: 'space-between', alignItems: 'flex-end', paddingRight: 8 }}>
+                      {(() => {
+                        const maxCount = Math.max(...currentAnalytics.dayOfWeekCounts);
+                        const steps = [maxCount, Math.floor(maxCount * 0.75), Math.floor(maxCount * 0.5), Math.floor(maxCount * 0.25), 0];
+                        return steps.map((value, index) => (
+                          <Text key={index} variant="labelSmall" style={{ color: colors.onSurfaceVariant, fontSize: 10 }}>
+                            {value}
+                          </Text>
+                        ));
+                      })()}
+                    </View>
+                    {/* Bars */}
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                      {currentAnalytics.dayOfWeekCounts.map((count, day) => {
+                        const maxCount = Math.max(...currentAnalytics.dayOfWeekCounts);
+                        const height = maxCount > 0 ? (count / maxCount) * 70 : 0;
+                        return (
+                          <View key={day} style={{ alignItems: 'center', flex: 1 }}>
+                            <Surface 
+                              style={{ 
+                                width: 30, 
+                                height: Math.max(2, height), 
+                                backgroundColor: colors.primary,
+                                borderRadius: 2
+                              }} 
+                            />
+                          </View>
+                        );
+                      })}
+                    </View>
                   </View>
-                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                      <Text key={day} variant="labelSmall" style={{ color: colors.onSurfaceVariant, textAlign: 'center', flex: 1 }}>
-                        {day}
-                      </Text>
-                    ))}
+                  <View style={{ flexDirection: 'row', marginLeft: 30 }}>
+                    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-between' }}>
+                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                        <Text key={day} variant="labelSmall" style={{ color: colors.onSurfaceVariant, textAlign: 'center', flex: 1 }}>
+                          {day}
+                        </Text>
+                      ))}
+                    </View>
                   </View>
                 </View>
               </Card.Content>
