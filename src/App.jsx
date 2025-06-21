@@ -18,6 +18,7 @@ import MessageScreen from './screens/MessagesScreen';
 import ThreadScreen from './screens/ThreadScreen';
 import PaginationTestScreen from './screens/PaginationTestScreen';
 import EnhancedAPITestScreen from './screens/EnhancedAPITestScreen';
+import UserStatsScreen from './screens/UserStatsScreen';
 import { storage, hasMigratedFromAsyncStorage, migrateFromAsyncStorage } from './utils/mmkv';
 import { useMMKVBoolean, useMMKVString } from 'react-native-mmkv';
 
@@ -128,6 +129,7 @@ export default function App() {
             />
             <Stack.Screen name="PaginationTest" component={PaginationTestScreen} />
             <Stack.Screen name="EnhancedAPITest" component={EnhancedAPITestScreen} />
+            <Stack.Screen name="UserStats" component={UserStatsScreen} />
           </Stack.Navigator>
         )}
       </NavigationContainer>

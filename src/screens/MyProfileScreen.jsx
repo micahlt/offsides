@@ -124,6 +124,13 @@ function MyProfileScreen({ navigation }) {
               onPress={() => navigation.push('EditProfile')}>
               Edit
             </Button>
+            <Button
+              icon="chart-line"
+              size={16}
+              mode="outlined"
+              onPress={() => navigation.push('UserStats')}>
+              Stats
+            </Button>
             <Text
               variant="titleMedium"
               style={{ textAlign: 'right', flexGrow: 1, marginRight: 10 }}>
