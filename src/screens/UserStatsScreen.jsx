@@ -173,19 +173,6 @@ function UserStatsScreen({ navigation }) {
     }
   };
 
-  const emergencyReset = () => {
-    try {
-      // Force clear all MMKV keys related to user stats
-      clearCache();
-      setLoading(false);
-      setProgress(0);
-      setStatus('Emergency reset complete - safe to fetch again');
-      crashlytics().log('Emergency reset performed');
-    } catch (error) {
-      console.error('Emergency reset failed:', error);
-      setStatus('Critical error - please clear app data and restart');
-    }
-  };
 
   // Memory monitoring helpers
   const checkMemoryPressure = async (dataSize) => {
@@ -645,36 +632,23 @@ function UserStatsScreen({ navigation }) {
       </Appbar.Header>
       
       <ScrollView style={{ padding: 16 }} showsVerticalScrollIndicator={false}>
-        {/* Header Section */}
-        <Card style={{ marginBottom: 16 }}>
-          <Card.Content>
-            <Text variant="titleMedium" style={{ marginBottom: 8 }}>
-              Personal Analytics Dashboard
-            </Text>
-            <Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant, marginBottom: 12 }}>
-              Analyze your posting behavior, activity patterns, and content performance.
-            </Text>
-            {!stats && !loading && (
-              <>
-                <Button 
-                  mode="contained" 
-                  onPress={() => fetchAllContent(false)}
-                  icon="chart-line"
-                >
-                  Fetch Analytics
-                </Button>
-                <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginTop: 8, fontStyle: 'italic' }}>
-                  This will take a few minutes. Feel free to browse the app while we work in the background!
-                </Text>
-              </>
-            )}
-            {stats && !loading && (
-              <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginTop: 8 }}>
-                Last updated: {getCacheAge()}
+        {/* Fetch Button */}
+        {!stats && !loading && (
+          <Card style={{ marginBottom: 16 }}>
+            <Card.Content>
+              <Button 
+                mode="contained" 
+                onPress={() => fetchAllContent(false)}
+                icon="chart-line"
+              >
+                Fetch Analytics
+              </Button>
+              <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant, marginTop: 8, fontStyle: 'italic' }}>
+                This will take a few minutes. Feel free to browse the app while we work in the background!
               </Text>
-            )}
-          </Card.Content>
-        </Card>
+            </Card.Content>
+          </Card>
+        )}
 
         {/* Time Filter */}
         {stats && (
@@ -704,15 +678,6 @@ function UserStatsScreen({ navigation }) {
           </Card>
         )}
 
-        {!loading && status && (
-          <Card style={{ marginBottom: 16 }}>
-            <Card.Content>
-              <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
-                {status}
-              </Text>
-            </Card.Content>
-          </Card>
-        )}
 
         {currentAnalytics && (
           <>
@@ -750,16 +715,18 @@ function UserStatsScreen({ navigation }) {
               />
             </View>
             
-            <View style={{ flexDirection: 'row', marginBottom: 16 }}>
-              <StatTile 
-                title="Posts/Month" 
-                value={currentAnalytics.avgPostsPerMonth}
-              />
-              <StatTile 
-                title="Comments/Month" 
-                value={currentAnalytics.avgCommentsPerMonth}
-              />
-            </View>
+            {timeFilter === 'all' && (
+              <View style={{ flexDirection: 'row', marginBottom: 16 }}>
+                <StatTile 
+                  title="Posts/Month" 
+                  value={currentAnalytics.avgPostsPerMonth}
+                />
+                <StatTile 
+                  title="Comments/Month" 
+                  value={currentAnalytics.avgCommentsPerMonth}
+                />
+              </View>
+            )}
 
             {/* Top Post - Full Width */}
             {currentAnalytics.topPost && (
@@ -883,7 +850,7 @@ function UserStatsScreen({ navigation }) {
             </Card>
 
             {/* Data Management */}
-            <Card style={{ marginBottom: 16 }}>
+            <Card style={{ marginBottom: 32 }}>
               <Card.Content>
                 <Text variant="titleSmall" style={{ marginBottom: 12 }}>Data Management</Text>
                 <View style={{ gap: 8 }}>
@@ -902,16 +869,6 @@ function UserStatsScreen({ navigation }) {
                     disabled={loading}
                   >
                     Clear Cache
-                  </Button>
-                  <Button 
-                    mode="outlined" 
-                    onPress={emergencyReset}
-                    icon="alert-circle"
-                    disabled={loading}
-                    buttonColor={colors.errorContainer}
-                    textColor={colors.onErrorContainer}
-                  >
-                    Emergency Reset
                   </Button>
                   <Text variant="bodySmall" style={{ color: colors.onSurfaceVariant }}>
                     Cache: {cacheTimestamp ? getCacheAge() : 'No cached data'}
