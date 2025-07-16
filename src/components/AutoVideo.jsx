@@ -28,9 +28,6 @@ const AutoVideo = ({
         paused={true}
         source={{
           uri: src,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
           type: 'm3u8',
         }}
         style={{ width: '100%', height: '100%' }}
