@@ -37,6 +37,7 @@ import BottomSheet from '@devvie/bottom-sheet';
 import { needsUpdate } from '../utils';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useMMKVObject, useMMKVString } from 'react-native-mmkv';
+import { FlashList } from '@shopify/flash-list';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import Onboarding from '../components/Onboarding';
 
@@ -337,8 +338,9 @@ function HomeScreen({ navigation }) {
             </Text>
           </View>
         ) : (
-          <FlatList
-            contentContainerStyle={{ gap: 10, padding: 10, paddingBottom: 90 }}
+          <FlashList
+            contentContainerStyle={{ rowGap: 10, marginHorizontal: 10 }}
+            ItemSeparatorComponent={() => <View style={{ marginBottom: 10 }}></View>}
             data={uniquePosts}
             renderItem={renderItem}
             estimatedItemSize={450}

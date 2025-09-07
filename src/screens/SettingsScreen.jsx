@@ -86,7 +86,7 @@ function SettingsScreen({ navigation }) {
           </Button>
         </View>
         {updateAvailable && (
-          <Card style={{ width: '90%' }} mode="contained">
+          <Card style={{ width: '90%', marginBottom: 15 }} mode="contained">
             <Card.Title
               title="Update Available"
               titleVariant="titleMedium"

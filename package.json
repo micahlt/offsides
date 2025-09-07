@@ -1,6 +1,6 @@
 {
   "name": "offsides",
-  "version": "0.9.0",
+  "version": "0.9.2",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -19,6 +19,7 @@
     "@react-navigation/native": "^7.0.14",
     "@react-navigation/native-stack": "^7.2.0",
     "@react-navigation/stack": "^7.1.1",
+    "@shopify/flash-list": "^2.0.3",
     "expo": "^52.0.23",
     "expo-clipboard": "~7.0.0",
     "js-sha256": "^0.11.0",
