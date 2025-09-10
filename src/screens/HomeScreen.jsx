@@ -347,6 +347,7 @@ function HomeScreen({ navigation }) {
             onRefresh={() => fetchPosts(true)}
             refreshing={loadingPosts}
             onEndReachedThreshold={0.5}
+            keyExtractor={item => item._id}
             onEndReached={() => fetchPosts(false)}
             ListHeaderComponent={updateBadge && <Card style={{ width: '100%' }} mode="contained">
               <Card.Title
@@ -365,7 +366,6 @@ function HomeScreen({ navigation }) {
               />
             </Card>}
             windowSize={10}
-            keyExtractor={item => item.id}
           />
         )}
         {currentGroup?.name && <FAB

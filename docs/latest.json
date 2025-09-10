@@ -1,4 +1,4 @@
 {
-  "latestVersion": "0.9.2",
-  "changelog": "This update fixes videos not playing (thanks to Gabor Szita) and fixes issues caused by scrolling far down on a feed of posts."
+  "latestVersion": "0.9.3",
+  "changelog": "This update fixes incorrect upvote counts and group images in the posts feed."
 }

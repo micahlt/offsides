@@ -1,5 +1,5 @@
 import { SidechatPostOrComment } from 'sidechat.js/src/types';
-import React from 'react';
+import React, { useState } from 'react';
 import { Alert, Linking, View } from 'react-native';
 import { Card, Chip, IconButton, Text, useTheme } from 'react-native-paper';
 import { setStringAsync as copyToClipboard } from 'expo-clipboard';
@@ -8,6 +8,7 @@ import AutoImage from './AutoImage';
 import AutoVideo from './AutoVideo';
 import UserAvatar from './UserAvatar';
 import Poll from './Poll';
+import { useRecyclingState } from '@shopify/flash-list';
 
 const BORDER_RADIUS = 12;
 
@@ -31,9 +32,11 @@ function Post({
   if (!post || !API) {
     return <></>;
   }
-  const [vote, setVote] = React.useState(post.vote_status);
-  const [voteCount, setVoteCount] = React.useState(post.vote_total);
-  const [width, setWidth] = React.useState();
+  const [vote, setVote] = useRecyclingState(post.vote_status, [post]);
+  const [voteCount, setVoteCount] = useRecyclingState(post.vote_total, [post]);
+  const [width, setWidth] = useState();
+  const [group, setGroup] = useRecyclingState(post.group, [post]);
+  const [identity, setIdentity] = useRecyclingState(post?.identity, [post]);
   const postID = post.id;
 
   const upvote = React.useCallback(() => {
@@ -98,8 +101,8 @@ function Post({
       <Card.Content>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <UserAvatar
-            group={post.group}
-            conversationIcon={post?.identity?.conversation_icon}
+            group={group}
+            conversationIcon={identity?.conversation_icon}
             size={46}
             borderRadius={BORDER_RADIUS}
           />
