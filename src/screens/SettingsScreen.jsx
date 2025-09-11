@@ -85,6 +85,20 @@ function SettingsScreen({ navigation }) {
             Website
           </Button>
         </View>
+        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 20 }}>
+          <Button
+            mode="outlined"
+            onPress={() => navigation.push('PaginationTest')}
+            style={{ flex: 1 }}>
+            Test API
+          </Button>
+          <Button
+            mode="contained"
+            onPress={() => navigation.push('EnhancedAPITest')}
+            style={{ flex: 1 }}>
+            Test Enhanced API
+          </Button>
+        </View>
         {updateAvailable && (
           <Card style={{ width: '90%', marginBottom: 15 }} mode="contained">
             <Card.Title
