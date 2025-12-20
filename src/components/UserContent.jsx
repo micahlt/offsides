@@ -61,14 +61,13 @@ const ItemList = ({ updates, view, style }) => {
       return (
         <Card style={style}>
           <Card.Content
-            style={{ rowGap: 8, marginTop: -16, marginBottom: -16 }}>
+            style={{ rowGap: 8, margin: -16 }}>
             <FlatList
               showsVerticalScrollIndicator={false}
               data={updates.activity_items?.items?.filter(i => !i.is_seen)}
               contentContainerStyle={{
-                gap: 10,
-                paddingTop: 15,
-                paddingBottom: 15,
+                rowGap: 10,
+                padding: 15
               }}
               keyExtractor={item => item.id}
               renderItem={a => (
@@ -100,12 +99,11 @@ const ItemList = ({ updates, view, style }) => {
         <Card style={style}>
           {updates.user_posts?.posts && updates.user_posts.posts.length > 0 ? (
             <Card.Content
-              style={{ rowGap: 8, marginTop: -16, marginBottom: -16 }}>
+              style={{ rowGap: 8, margin: -16 }}>
               <FlatList
                 data={updates.user_posts.posts}
                 contentContainerStyle={{
-                  paddingTop: 15,
-                  paddingBottom: 15,
+                  padding: 15
                 }}
                 renderItem={p => (
                   <Post
@@ -148,15 +146,14 @@ const ItemList = ({ updates, view, style }) => {
           {updates.user_comments?.posts &&
             updates.user_comments.posts.length > 0 ? (
             <Card.Content
-              style={{ rowGap: 8, marginTop: -16, marginBottom: -16 }}>
+              style={{ rowGap: 8, margin: -16 }}>
               <FlatList
                 data={updates.user_comments.posts.filter(p => {
                   return p.authored_by_user;
                 })}
                 contentContainerStyle={{
                   gap: 10,
-                  paddingTop: 15,
-                  paddingBottom: 15,
+                  padding: 15
                 }}
                 renderItem={p => (
                   <Comment

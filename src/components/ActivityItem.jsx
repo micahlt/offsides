@@ -49,17 +49,31 @@ function ActivityItem({ activity }) {
   const deviceWidth = Dimensions.get('window').width;
 
   const xPos = useSharedValue(0);
-  const animatedTranslation = useAnimatedStyle(() => ({
+  const measuredHeight = useSharedValue(0);
+  const heightModifier = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: xPos.value }],
+    height: heightModifier.value === 1 ? undefined : measuredHeight.value * heightModifier.value,
+    opacity: heightModifier.value,
+    overflow: 'hidden',
   }));
+
   const swipeAway = Gesture.Pan()
-    .activeOffsetX(25)
-    .failOffsetY(25)
+    .activeOffsetX([-10, 10])
+    .failOffsetY([-10, 10])
     .onUpdate((e) => {
       xPos.value = e.translationX;
     }).onEnd((e) => {
-      if (Math.abs(e.translationX) > deviceWidth / 3) {
-        xPos.value = withTiming(e.translationX > 0 ? deviceWidth : 0 - deviceWidth, { duration: 100 });
+      const SWIPE_THRESHOLD = deviceWidth / 3;
+      const VELOCITY_THRESHOLD = 500;
+      const isSwipedEnough = Math.abs(e.translationX) > SWIPE_THRESHOLD;
+      const isFling = Math.abs(e.velocityX) > VELOCITY_THRESHOLD;
+      const directionsMatch = (e.translationX > 0 && e.velocityX > 0) || (e.translationX < 0 && e.velocityX < 0);
+
+      if (isSwipedEnough || (isFling && directionsMatch)) {
+        xPos.value = withTiming(e.translationX > 0 ? deviceWidth : -deviceWidth, { duration: 100 });
+        heightModifier.value = withTiming(0, { duration: 200 });
         runOnJS(readActivity)(() => null);
       } else {
         xPos.value = withTiming(0, { duration: 50 });
@@ -208,7 +222,11 @@ function ActivityItem({ activity }) {
 
   return (
     <GestureDetector gesture={swipeAway}>
-      <Animated.View style={animatedTranslation}>
+      <Animated.View
+        style={animatedStyle}
+        onLayout={e => {
+          measuredHeight.value = e.nativeEvent.layout.height;
+        }}>
         <TouchableRipple
           onPress={() => readActivity(() => nav.push(linkRoute, linkProps))}
           borderless={true}
