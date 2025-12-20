@@ -1,4 +1,4 @@
 {
-  "latestVersion": "0.9.3",
-  "changelog": "This update fixes incorrect upvote counts and group images in the posts feed."
+  "latestVersion": "0.9.4",
+  "changelog": "This update allows you to add your own polls to your posts (thanks to Gabor Szita!)"
 }
