@@ -102,7 +102,7 @@ function HomeScreen({ navigation }) {
   const uniquePosts = useUniqueList(posts);
   const renderItem = React.useCallback(each => {
     return <Post themeColors={customTheme || colors} apiInstance={API} post={each.item} nav={navigation} />;
-  }, []);
+  }, [customTheme]);
   const updateSortIcon = () => {
     if (!postSortMethod) return;
     crashlytics().log('Setting sort icon');
