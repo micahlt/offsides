@@ -13,6 +13,8 @@ import {
   Tooltip,
   IconButton,
   ActivityIndicator,
+  Button,
+  Divider,
 } from 'react-native-paper';
 import { AppContext } from '../App';
 import { launchImageLibrary } from 'react-native-image-picker';
@@ -38,6 +40,27 @@ function WriterScreen({ navigation, route }) {
   const [repost, setRepost] = React.useState(
     /** @type {SidechatPostOrComment} */(null),
   );
+  const [isPoll, setIsPoll] = React.useState(false);
+  const [pollOptions, setPollOptions] = React.useState(['', '']);
+
+  const addPollOption = () => {
+    if (pollOptions.length < 4) {
+      setPollOptions([...pollOptions, '']);
+    }
+  };
+
+  const removePollOption = (index) => {
+    if (pollOptions.length > 1) {
+      setPollOptions(pollOptions.filter((_, i) => i !== index));
+    }
+  };
+
+  const updatePollOption = (index, text) => {
+    const newOptions = [...pollOptions];
+    newOptions[index] = text;
+    setPollOptions(newOptions);
+  };
+
   React.useEffect(() => {
     if (repostID) {
       API.getPost(repostID).then((p) => {
@@ -47,8 +70,13 @@ function WriterScreen({ navigation, route }) {
       });
     }
   }, [repostID])
+
+  const isPollValid = !isPoll || pollOptions.every(opt => opt.trim().length > 0);
+
   const createPostOrComment = async () => {
     if (mode == 'post') {
+      const validPollOptions = isPoll ? pollOptions : undefined;
+
       const p = await API.createPost(
         textContent,
         groupID,
@@ -56,7 +84,8 @@ function WriterScreen({ navigation, route }) {
         null,
         null,
         anonMode,
-        repostID
+        repostID,
+        validPollOptions,
       );
       if (!p?.message) {
         setPostSortMethod('recent');
@@ -137,7 +166,7 @@ function WriterScreen({ navigation, route }) {
         <Appbar.Action
           icon="send"
           onPress={createPostOrComment}
-          disabled={textContent.length < 1}
+          disabled={textContent.length < 1 || !isPollValid}
           isLeading={true}
         />
       </Appbar.Header>
@@ -175,6 +204,48 @@ function WriterScreen({ navigation, route }) {
           <Text style={{ marginHorizontal: 10, marginBottom: 10, color: textContent.length <= 256 ? colors.onSurface : colors.error }} variant="labelLarge">
             {textContent.length} / 256 chars
           </Text>
+          {mode === 'post' && isPoll && (
+            <View style={{ marginHorizontal: 10, marginBottom: 10 }}>
+              <Divider style={{ marginBottom: 10 }} />
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                <Icon source="poll" size={20} color={colors.primary} />
+                <Text variant="titleMedium" style={{ marginLeft: 8, color: colors.primary }}>Poll Options</Text>
+              </View>
+              {pollOptions.map((option, index) => (
+                <View key={index} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                  <TextInput
+                    style={{
+                      flex: 1,
+                      backgroundColor: colors.elevation.level3,
+                      borderRadius: BORDER_RADIUS,
+                    }}
+                    mode="outlined"
+                    placeholder={`Option ${index + 1}`}
+                    value={option}
+                    onChangeText={(text) => updatePollOption(index, text)}
+                    maxLength={80}
+                  />
+                  {pollOptions.length > 2 && (
+                    <IconButton
+                      icon="close"
+                      size={20}
+                      onPress={() => removePollOption(index)}
+                    />
+                  )}
+                </View>
+              ))}
+              {pollOptions.length < 4 && (
+                <Button
+                  mode="outlined"
+                  onPress={addPollOption}
+                  icon="plus"
+                  style={{ marginTop: 5 }}
+                >
+                  Add Option
+                </Button>
+              )}
+            </View>
+          )}
           {repost && <View style={{ padding: 10, paddingTop: 0, marginTop: -5 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: "flex-start", marginBottom: -5 }}>
               <IconButton icon="repeat-variant" size={24} iconColor={colors.primary} style={{ marginLeft: -5, marginRight: -3 }} />
@@ -260,6 +331,42 @@ function WriterScreen({ navigation, route }) {
                     </Text>
                   </>
                 )}
+              </View>
+            </TouchableRipple>
+          )}
+          {mode === 'post' && (
+            <TouchableRipple
+              onPress={() => {
+                setIsPoll(!isPoll);
+                if (!isPoll) {
+                  setPollOptions(['', '']);
+                }
+              }}
+              style={{ borderRadius: BORDER_RADIUS, marginLeft: 15 }}
+              borderless={true}>
+              <View
+                style={{
+                  borderStyle: isPoll ? 'solid' : 'dashed',
+                  aspectRatio: '1 / 1',
+                  borderWidth: 2,
+                  borderRadius: BORDER_RADIUS,
+                  borderColor: isPoll ? colors.primary : colors.outline,
+                  backgroundColor: isPoll ? colors.primaryContainer : 'transparent',
+                  height: '80%',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                <Icon
+                  source="poll"
+                  size={32}
+                  color={isPoll ? colors.onPrimaryContainer : colors.primary}
+                />
+                <Text
+                  style={{ marginTop: 10, color: isPoll ? colors.onPrimaryContainer : colors.onSurface }}
+                  variant="labelMedium">
+                  {'Create Poll'}
+                </Text>
               </View>
             </TouchableRipple>
           )}
