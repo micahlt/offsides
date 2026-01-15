@@ -4,7 +4,7 @@ import { View, Alert, Linking } from 'react-native';
 import { Button, Card, IconButton, Text, useTheme } from 'react-native-paper';
 import { setStringAsync as copyToClipboard } from 'expo-clipboard';
 import timesago from 'timesago';
-import { AppContext } from '../App';
+import { AppContext } from '../App.jsx';
 import AutoImage from './AutoImage';
 import UserAvatar from './UserAvatar.jsx';
 import Poll from './Poll.jsx';

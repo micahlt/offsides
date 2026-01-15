@@ -1,4 +1,4 @@
-import { SidechatSimpleAsset } from 'sidechat.js/src/types';
+import { SidechatSimpleAsset } from 'sidechat.js/src/types/SidechatTypes.js';
 import React, { useEffect } from 'react';
 import { View, StatusBar, Image } from 'react-native';
 import {

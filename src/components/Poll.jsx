@@ -1,4 +1,4 @@
-import { SidechatPoll } from 'sidechat.js/src/types';
+import { SidechatPoll } from 'sidechat.js/src/types/SidechatTypes.js';
 import * as React from 'react';
 import { View, ToastAndroid } from 'react-native';
 import { Text, TouchableRipple, useTheme } from 'react-native-paper';

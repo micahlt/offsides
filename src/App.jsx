@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import React, { Context } from 'react';
-import { OffsidesAppState } from './types/OffsidesTypes';
+import { OffsidesAppState } from './types/OffsidesTypes.js';
 import { InteractionManager, StatusBar, useColorScheme } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';

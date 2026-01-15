@@ -75,3 +75,6 @@ yarn-error.log
 
 # Expo
 .expo/
+
+# Google services
+google-services.json

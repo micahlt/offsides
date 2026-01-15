@@ -1,4 +1,4 @@
-import { SidechatAuthToken } from 'sidechat.js/src/types';
+import { SidechatAuthToken } from 'sidechat.js/src/types/SidechatTypes.js';
 import { SidechatAPIClient } from 'sidechat.js';
 
 /**

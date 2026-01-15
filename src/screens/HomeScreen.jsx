@@ -1,7 +1,7 @@
 import {
   SidechatCursorString,
   SidechatPostOrComment,
-} from 'sidechat.js/src/types';
+} from 'sidechat.js/src/types/SidechatTypes.js';
 import React from 'react';
 import {
   View,
@@ -343,13 +343,12 @@ function HomeScreen({ navigation }) {
             ItemSeparatorComponent={() => <View style={{ marginBottom: 10 }}></View>}
             data={uniquePosts}
             renderItem={renderItem}
-            estimatedItemSize={450}
             onRefresh={() => fetchPosts(true)}
             refreshing={loadingPosts}
             onEndReachedThreshold={0.5}
             keyExtractor={item => item._id}
             onEndReached={() => fetchPosts(false)}
-            ListHeaderComponent={updateBadge && <Card style={{ width: '100%' }} mode="contained">
+            ListHeaderComponent={updateBadge ? <Card style={{ width: '100%' }} mode="contained">
               <Card.Title
                 title="Update available"
                 titleVariant="titleMedium"
@@ -364,7 +363,7 @@ function HomeScreen({ navigation }) {
                   Download
                 </Button>}
               />
-            </Card>}
+            </Card> : <></>}
             windowSize={10}
           />
         )}

@@ -120,7 +120,7 @@ function ThreadScreen({ navigation, route }) {
         renderItem={({ item }) => (
           <TouchableRipple
             borderless={true}
-            onPress={() => {}}
+            onPress={() => { }}
             style={{
               borderRadius: 10,
               marginLeft: item.authored_by_user ? 50 : 0,

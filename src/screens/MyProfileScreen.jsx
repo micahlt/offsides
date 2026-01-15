@@ -18,6 +18,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import crashlytics from '@react-native-firebase/crashlytics';
 import UserContent from '../components/UserContent';
 import { useMMKVObject } from 'react-native-mmkv';
+import { needsUpdate } from '../utils';
 
 const BORDER_RADIUS = 15;
 

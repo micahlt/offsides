@@ -1,4 +1,4 @@
-import { SidechatPostOrComment } from 'sidechat.js/src/types';
+import { SidechatPostOrComment } from 'sidechat.js/src/types/SidechatTypes.js';
 import React, { useState } from 'react';
 import { Alert, Linking, View } from 'react-native';
 import { Card, Chip, IconButton, Text, useTheme } from 'react-native-paper';
@@ -125,7 +125,7 @@ function Post({
           </View>
           {post.authored_by_user && (
             <IconButton
-              icon="delete"
+              icon="house"
               size={20}
               style={{ marginRight: 0 }}
               onPress={deletePost}
