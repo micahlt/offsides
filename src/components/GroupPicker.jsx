@@ -11,7 +11,7 @@ import {
   Text,
   useTheme,
 } from 'react-native-paper';
-import { AppContext } from '../App';
+import AppContext from '../utils/AppContext';
 import Group from './Group';
 import { useMMKVObject } from 'react-native-mmkv';
 

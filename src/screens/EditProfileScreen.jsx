@@ -12,7 +12,7 @@ import {
   Text,
   HelperText,
 } from 'react-native-paper';
-import { AppContext } from '../App';
+import AppContext from '../utils/AppContext';
 import EmojiPicker from 'rn-emoji-keyboard';
 import BottomSheet from '@devvie/bottom-sheet';
 import { SidechatColorList } from 'sidechat.js';

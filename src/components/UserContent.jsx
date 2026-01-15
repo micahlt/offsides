@@ -12,7 +12,7 @@ import crashlytics from '@react-native-firebase/crashlytics';
 import ActivityItem from '../components/ActivityItem';
 import Post from './Post';
 import Comment from './Comment';
-import { AppContext } from '../App';
+import AppContext from '../utils/AppContext';
 
 function UserContent({ updates }) {
   useEffect(() => {

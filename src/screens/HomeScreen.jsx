@@ -27,7 +27,7 @@ import {
   Badge,
 } from 'react-native-paper';
 import crashlytics from '@react-native-firebase/crashlytics';
-import { AppContext } from '../App';
+import AppContext from '../utils/AppContext';
 import Post from '../components/Post';
 import GroupPicker from '../components/GroupPicker';
 import useUniqueList from '../hooks/useUniqueList';
@@ -38,7 +38,8 @@ import { needsUpdate } from '../utils';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useMMKVObject, useMMKVString } from 'react-native-mmkv';
 import { FlashList } from '@shopify/flash-list';
-import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import Onboarding from '../components/Onboarding';
 
 const BORDER_RADIUS = 12;
@@ -181,7 +182,7 @@ function HomeScreen({ navigation }) {
             nextIndex = userGroups.length - 1;
           }
         }
-        runOnJS(setCurrentGroup)(userGroups[nextIndex]);
+        scheduleOnRN(() => setCurrentGroup(userGroups[nextIndex]));
       }
     });
 

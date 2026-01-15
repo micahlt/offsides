@@ -18,15 +18,10 @@ import MessageScreen from './screens/MessagesScreen';
 import ThreadScreen from './screens/ThreadScreen';
 import { storage, hasMigratedFromAsyncStorage, migrateFromAsyncStorage } from './utils/mmkv';
 import { useMMKVBoolean, useMMKVString } from 'react-native-mmkv';
+import AppContext from './utils/AppContext';
 
 
 const Stack = createNativeStackNavigator();
-
-/**
- * Global app context for Offsides.  Contains API as well as current app state.
- * @type {Context<{appState: OffsidesAppState, setAppState: Function}>}
- */
-const AppContext = React.createContext();
 
 export default function App() {
   const colorScheme = useColorScheme();

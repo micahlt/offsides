@@ -7,7 +7,7 @@ import {
   ProgressBar,
   Searchbar,
 } from 'react-native-paper';
-import { AppContext } from '../App';
+import AppContext from '../utils/AppContext';
 import Group from '../components/Group';
 import { useMMKVObject } from 'react-native-mmkv';
 

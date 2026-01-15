@@ -7,7 +7,7 @@ import {
   InteractionManager,
 } from 'react-native';
 import { Appbar, useTheme, Text, FAB, Divider } from 'react-native-paper';
-import { AppContext } from '../App';
+import AppContext from '../utils/AppContext';
 import Comment from './Comment';
 import Post from './Post';
 import useUniqueList from '../hooks/useUniqueList';

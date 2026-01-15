@@ -16,7 +16,7 @@ import {
   Button,
   Divider,
 } from 'react-native-paper';
-import { AppContext } from '../App';
+import AppContext from '../utils/AppContext';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useMMKVBoolean, useMMKVString } from 'react-native-mmkv';
 import Post from '../components/Post';

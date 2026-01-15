@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { ImageBackground, useWindowDimensions, View } from 'react-native';
 import { Button, Text, useTheme } from 'react-native-paper';
-import { AppContext } from '../App';
+import AppContext from '../utils/AppContext';
 import Group from './Group';
 import { useNavigation } from '@react-navigation/native';
 import PatternBG from '../assets/bgpattern.png';

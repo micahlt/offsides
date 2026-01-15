@@ -12,7 +12,7 @@ import {
 import RNRestart from 'react-native-restart';
 import { version } from '../../package.json';
 import { storage } from '../utils/mmkv';
-import { AppContext } from '../App';
+import AppContext from '../utils/AppContext';
 import offsidesLogo from '../assets/Offsides.png';
 import { needsUpdate } from '../utils';
 import { useMMKVObject } from 'react-native-mmkv';

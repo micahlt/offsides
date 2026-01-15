@@ -1,6 +1,7 @@
 module.exports = {
     name: "Offsides",
     slug: "offsides",
+    displayName: "Offsides",
     version: "0.9.4",
     platforms: ["android"],
     githubUrl: "https://github.com/micahlt/offsides",
@@ -27,6 +28,7 @@ module.exports = {
     "plugins": [
         "expo-font",
         "expo-asset",
+        "react-native-video",
         "@react-native-firebase/app",
         "@react-native-firebase/crashlytics"
     ]

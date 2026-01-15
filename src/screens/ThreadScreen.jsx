@@ -10,7 +10,7 @@ import {
   useTheme,
 } from 'react-native-paper';
 import { useIsFocused } from '@react-navigation/native';
-import { AppContext } from '../App';
+import AppContext from '../utils/AppContext';
 import timesago from 'timesago';
 import DeviceInfo from 'react-native-device-info';
 import { sha256 } from 'js-sha256';

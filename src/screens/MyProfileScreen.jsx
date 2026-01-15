@@ -12,7 +12,7 @@ import {
   Button,
   Badge,
 } from 'react-native-paper';
-import { AppContext } from '../App';
+import AppContext from '../utils/AppContext';
 import timesago from 'timesago';
 import { useFocusEffect } from '@react-navigation/native';
 import crashlytics from '@react-native-firebase/crashlytics';

@@ -9,17 +9,21 @@ import {
   useTheme,
 } from 'react-native-paper';
 import RNRestart from 'react-native-restart';
-import { AppContext } from '../App';
+import AppContext from '../utils/AppContext';
 import DeviceInfo from 'react-native-device-info';
 import { sha256 } from 'js-sha256';
 import PatternBG from '../assets/bgpattern.png';
-import { initPhoneNumberHint } from 'react-native-phone-hint';
+import { showPhoneNumberHint } from '@shayrn/react-native-android-phone-number-hint';
 import { useSmsUserConsent } from '@eabdullazyanov/react-native-sms-user-consent';
 import crashlytics from '@react-native-firebase/crashlytics';
 import { storage } from '../utils/mmkv';
 import { useMMKVObject } from 'react-native-mmkv';
+import { Alert, AlertDescription, AlertTitle } from '@/reusables/ui/alert';
+import { Terminal } from 'lucide-react-native';
+import { verifyInstallation } from 'nativewind';
 
 function LoginScreen({ }) {
+  verifyInstallation();
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const { colors } = useTheme();
@@ -54,7 +58,7 @@ function LoginScreen({ }) {
       crashlytics().log(`Initializing native AndroidPhoneNumberHint`);
       (async () => {
         try {
-          let num = await initPhoneNumberHint();
+          let num = await showPhoneNumberHint();
           num = num.replace('+1', '').replace(/\D/g, '');
           setPhoneNumber(num);
           sendSMS(num);
@@ -299,6 +303,10 @@ function LoginScreen({ }) {
               </Card.Content>
             </Card>
           )}
+          <Alert variant="destructive" icon={Terminal}>
+            <AlertTitle>Heads up</AlertTitle>
+            <AlertDescription>Test this</AlertDescription>
+          </Alert>
           <Card mode="elevated">
             {phase == 'sendSMS' && (
               <Card.Content style={s.centeredCard}>

@@ -1,11 +1,11 @@
 module.exports = {
-  presets: ['babel-preset-expo'],
+  presets: [
+    ["babel-preset-expo", { jsxImportSource: "nativewind" }],
+    "nativewind/babel",
+  ],
   env: {
     production: {
       plugins: ['react-native-paper/babel'],
-    },
-    development: {
-      plugins: [['@babel/plugin-transform-react-jsx', { runtime: 'classic' }]],
     },
   },
   plugins: ['react-native-reanimated/plugin', ['babel-plugin-module-resolver',
