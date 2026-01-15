@@ -75,7 +75,7 @@ function ActivityItem({ activity }) {
       if (isSwipedEnough || (isFling && directionsMatch)) {
         xPos.value = withTiming(e.translationX > 0 ? deviceWidth : -deviceWidth, { duration: 100 });
         heightModifier.value = withTiming(0, { duration: 200 });
-        scheduleOnRN(readActivity, () => null);
+        scheduleOnRN(() => readActivity(() => null));
       } else {
         xPos.value = withTiming(0, { duration: 50 });
       }
