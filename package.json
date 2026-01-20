@@ -35,6 +35,8 @@
     "@rn-primitives/separator": "^1.2.0",
     "@rn-primitives/slot": "^1.2.0",
     "@rn-primitives/switch": "^1.2.0",
+    "@rn-primitives/toggle": "^1.2.0",
+    "@rn-primitives/toggle-group": "^1.2.0",
     "@shayrn/react-native-android-phone-number-hint": "^0.1.12",
     "@shopify/flash-list": "2.0.2",
     "babel-plugin-module-resolver": "^5.0.2",

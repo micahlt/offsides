@@ -1,24 +1,35 @@
 import React from 'react';
-import { View, StatusBar, StyleSheet } from 'react-native';
-import {
-  Appbar,
-  useTheme,
-  Text,
-  Card,
-  Avatar,
-  ProgressBar,
-  TouchableRipple,
-  Divider,
-  Button,
-  Badge,
-} from 'react-native-paper';
+import { View, StatusBar, Pressable } from 'react-native';
 import AppContext from '../utils/AppContext';
 import timesago from 'timesago';
 import { useFocusEffect } from '@react-navigation/native';
 import crashlytics from '@react-native-firebase/crashlytics';
 import UserContent from '../components/UserContent';
+import Header from '../components/Header';
 import { useMMKVObject } from 'react-native-mmkv';
 import { needsUpdate } from '../utils';
+
+// Reusable components
+import { Card, CardContent } from '@/reusables/ui/card';
+import { Button } from '@/reusables/ui/button';
+import { Text } from '@/reusables/ui/text';
+import { Badge } from '@/reusables/ui/badge';
+import { Separator } from '@/reusables/ui/separator';
+import { Progress } from '@/reusables/ui/progress';
+import { Avatar, AvatarFallback, AvatarImage } from '@/reusables/ui/avatar';
+import { Icon } from '@/reusables/ui/icon';
+import {
+  ArrowLeft,
+  MessageSquare,
+  Settings,
+  Pencil,
+  User as UserIcon,
+  Users,
+  Trophy,
+  MessageCircle
+} from 'lucide-react-native';
+import { cn } from '@/lib/utils';
+import { TextClassContext } from '@/reusables/ui/text';
 
 const BORDER_RADIUS = 15;
 
@@ -29,12 +40,13 @@ function MyProfileScreen({ navigation }) {
   const [loading, setLoading] = React.useState(true);
   const [updateBadge, setUpdateBadge] = React.useState(false);
   const [currentGroup, setCurrentGroup] = useMMKVObject('currentGroup');
-  const { colors } = useTheme();
+
   useFocusEffect(() => {
     crashlytics().log('Loading MyProfileScreen');
     loadProfile();
     needsUpdate().then(setUpdateBadge);
   });
+
   const loadProfile = async () => {
     crashlytics().log('Fetching profile');
     const u = await API.getUpdates(currentGroup?.id);
@@ -42,147 +54,127 @@ function MyProfileScreen({ navigation }) {
     setUpdates(u);
     setLoading(false);
   };
-  const s = StyleSheet.create({
-    stat: { fontWeight: 900, color: colors.primary },
-  });
+
   return (
-    <View
-      style={{
-        backgroundColor: colors.background,
-        flex: 1,
-      }}>
-      <StatusBar animated={true} backgroundColor={colors.elevation.level2} />
-      <Appbar.Header elevated={true}>
-        <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content
-          title={
-            updates?.user?.username
-              ? `@${updates.user.username}`
-              : 'Your Profile'
-          }
-        />
-        <Appbar.Action
-          onPress={() => navigation.push('Messages')}
-          icon="chat"
-        />
-        <View>
-          <Badge
-            style={{
-              position: 'absolute',
-              bottom: 10,
-              zIndex: 1,
-              alignSelf: 'center',
-            }}
-            size={12}
-            visible={updateBadge}>
-            UPDATE
-          </Badge>
-          <Appbar.Action
-            onPress={() => navigation.push('Settings')}
-            icon="cog"
-          />
-        </View>
-      </Appbar.Header>
-      {loading && <ProgressBar indeterminate={true} visible={true} />}
-      {updates?.user && (
-        <View
-          style={{
-            rowGap: 10,
-            padding: 10,
-            flex: 1,
-            justifyContent: 'flex-start',
-            flexDirection: 'column',
-          }}>
-          <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-            <TouchableRipple
-              borderless={true}
-              style={{ borderRadius: BORDER_RADIUS }}
-              onPress={() => navigation.push('EditProfile')}>
-              {updates.user?.conversation_icon ? (
-                <Avatar.Text
-                  size={64}
-                  label={String(updates.user?.conversation_icon?.emoji || '‼️')}
-                  color="white"
-                  style={{
-                    backgroundColor:
-                      updates.user?.conversation_icon?.color || colors.primary,
-                    borderRadius: BORDER_RADIUS,
-                  }}
-                />
-              ) : (
-                <Avatar.Icon
-                  size={64}
-                  icon="account"
-                  style={{ borderRadius: BORDER_RADIUS }}
-                />
-              )}
-            </TouchableRipple>
-            <Button
-              icon="pencil"
-              size={16}
-              mode="contained-tonal"
-              onPress={() => navigation.push('EditProfile')}>
-              Edit
+    <View className="flex-1 bg-background">
+      <StatusBar animated={true} backgroundColor="#000000" barStyle="light-content" />
+
+      {/* Custom Header replacing Appbar */}
+      <Header
+        title={updates?.user?.username ? `@${updates.user.username}` : 'Your Profile'}
+        rightContent={
+          <>
+            <Button variant="ghost" size="icon" onPress={() => navigation.push('Messages')} className="h-10 w-10">
+              <Icon size={20} as={MessageSquare} className="text-foreground" />
             </Button>
-            <Text
-              variant="titleMedium"
-              style={{ textAlign: 'right', flexGrow: 1, marginRight: 10 }}>
-              joined {timesago(updates.user.created_at)}
-            </Text>
+
+            <View>
+              {updateBadge && (
+                <Badge
+                  variant="destructive"
+                  className="absolute -top-1 -right-1 z-10 px-1 py-0 h-4 min-w-[16px]"
+                >
+                  <Text className="text-[8px] font-bold text-white">!</Text>
+                </Badge>
+              )}
+              <Button variant="ghost" size="icon" onPress={() => navigation.push('Settings')} className="h-10 w-10">
+                <Icon size={20} as={Settings} className="text-foreground" />
+              </Button>
+            </View>
+          </>
+        }
+      />
+
+      {/* Loading Indicator */}
+      {loading && (
+        <Progress value={33} className="w-full h-1" />
+      )}
+
+      {updates?.user && (
+        <View className="flex-1 p-4 gap-4">
+
+          {/* Top User Info Section */}
+          <View className="flex-row items-center gap-4">
+            <Pressable
+              onPress={() => navigation.push('EditProfile')}
+              className="overflow-hidden rounded-xl active:opacity-80"
+            >
+              {updates.user?.conversation_icon ? (
+                <View
+                  style={{
+                    backgroundColor: updates.user?.conversation_icon?.color || '#000',
+                    width: 64,
+                    height: 64,
+                    borderRadius: BORDER_RADIUS,
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Text className="text-2xl text-white">
+                    {updates.user?.conversation_icon?.emoji || '‼️'}
+                  </Text>
+                </View>
+              ) : (
+                <Avatar className="h-16 w-16 rounded-xl">
+                  <AvatarFallback className="rounded-xl">
+                    <Icon as={UserIcon} className="text-muted-foreground" />
+                  </AvatarFallback>
+                </Avatar>
+              )}
+            </Pressable>
+
+            <View className="flex-1 gap-1">
+              <Button
+                variant="secondary"
+                size="sm"
+                onPress={() => navigation.push('EditProfile')}
+                className="self-start gap-2"
+              >
+                <Icon as={Pencil} className="text-secondary-foreground" size={14} />
+                <Text>Edit Profile</Text>
+              </Button>
+
+              <Text className="text-muted-foreground text-xs text-right mt-1">
+                joined {timesago(updates.user.created_at)}
+              </Text>
+            </View>
           </View>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <Card style={{ flexGrow: 1 }}>
-              <Card.Title
-                title="Followers"
-                titleVariant="labelLarge"
-                titleStyle={{ minHeight: 10 }}
-              />
-              <Card.Content>
-                <Text variant="titleLarge" style={s.stat}>
-                  {updates?.user?.follower_count || '--'}
-                </Text>
-              </Card.Content>
+
+          {/* Stats Grid */}
+          <View className="flex-row gap-2">
+            <Card className="flex-1 bg-card">
+              <CardContent className="p-4 items-center gap-2">
+                <Text className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Followers</Text>
+                <Text className="text-2xl font-bold text-primary">{updates?.user?.follower_count || '--'}</Text>
+              </CardContent>
             </Card>
-            <Card style={{ flexGrow: 1 }}>
-              <Card.Title
-                title="Post Karma"
-                titleVariant="labelLarge"
-                titleStyle={{ minHeight: 10 }}
-              />
-              <Card.Content>
-                <Text variant="titleLarge" style={s.stat}>
-                  {updates?.karma?.post || '--'}
-                </Text>
-              </Card.Content>
+
+            <Card className="flex-1 bg-card">
+              <CardContent className="p-4 items-center gap-2">
+                <Text className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Post Karma</Text>
+                <Text className="text-2xl font-bold text-primary">{updates?.karma?.post || '--'}</Text>
+              </CardContent>
             </Card>
           </View>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <Card style={{ flexGrow: 1 }}>
-              <Card.Title
-                title="Groups"
-                titleVariant="labelLarge"
-                titleStyle={{ minHeight: 10 }}
-              />
-              <Card.Content>
-                <Text variant="titleLarge" style={s.stat}>
-                  {updates?.groups?.length || '--'}
-                </Text>
-              </Card.Content>
+
+          <View className="flex-row gap-2">
+            <Card className="flex-1 bg-card">
+              <CardContent className="p-4 items-center gap-2">
+                <Text className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Groups</Text>
+                <Text className="text-2xl font-bold text-primary">{updates?.groups?.length || '--'}</Text>
+              </CardContent>
             </Card>
-            <Card style={{ flexGrow: 1 }}>
-              <Card.Title
-                title="Comment Karma"
-                titleVariant="labelLarge"
-                titleStyle={{ minHeight: 10 }}
-              />
-              <Card.Content>
-                <Text variant="titleLarge" style={s.stat}>
-                  {updates?.karma?.comment || '--'}
-                </Text>
-              </Card.Content>
+
+            <Card className="flex-1 bg-card">
+              <CardContent className="p-4 items-center gap-2">
+                <Text className="text-xs text-muted-foreground font-medium uppercase tracking-wider">Comment Karma</Text>
+                <Text className="text-2xl font-bold text-primary">{updates?.karma?.comment || '--'}</Text>
+              </CardContent>
             </Card>
           </View>
-          <Divider />
+
+          <Separator className="my-2" />
+
           <UserContent updates={updates} />
         </View>
       )}

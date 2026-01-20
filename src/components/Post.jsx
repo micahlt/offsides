@@ -1,7 +1,6 @@
 import { SidechatPostOrComment } from 'sidechat.js/src/types/SidechatTypes.js';
 import React, { useState } from 'react';
-import { Alert, Linking, View } from 'react-native';
-import { Card, Chip, IconButton, Text, useTheme } from 'react-native-paper';
+import { Alert, Linking, View, Pressable } from 'react-native';
 import { setStringAsync as copyToClipboard } from 'expo-clipboard';
 import timesago from 'timesago';
 import AutoImage from './AutoImage';
@@ -9,6 +8,22 @@ import AutoVideo from './AutoVideo';
 import UserAvatar from './UserAvatar';
 import Poll from './Poll';
 import { useRecyclingState } from '@shopify/flash-list';
+import { Card, CardContent } from '@/reusables/ui/card';
+import { Button } from '@/reusables/ui/button';
+import { Text } from '@/reusables/ui/text';
+import { Badge } from '@/reusables/ui/badge';
+import { Icon } from '@/reusables/ui/icon';
+import {
+  Link as LinkIcon,
+  SquarePlay as SquarePlay,
+  MessageCircle,
+  MessageSquare,
+  Repeat,
+  ArrowBigUp,
+  ArrowBigDown,
+  Trash2
+} from 'lucide-react-native';
+import { cn } from '@/lib/utils'; // Assuming this exists based on other files
 
 const BORDER_RADIUS = 12;
 
@@ -23,11 +38,8 @@ function Post({
   commentView = false,
   repost = false,
   minimal = false,
-  cardMode = repost ? 'outlined' : 'elevated',
   apiInstance = null,
-  themeColors = {},
 }) {
-  const colors = themeColors;
   const API = apiInstance;
   if (!post || !API) {
     return <></>;
@@ -54,12 +66,6 @@ function Post({
       setVoteCount(res.post.vote_total);
     });
   }, [vote, postID, API]);
-
-  // if (post.attachments.length > 0) {
-  //   post.attachments.forEach(a => {
-  //     if (a.type == 'youtube') console.log(post.attachments);
-  //   });
-  // }
 
   const deletePost = React.useCallback(() => {
     Alert.alert(
@@ -96,45 +102,35 @@ function Post({
         const newWidth = event.nativeEvent.layout.width;
         if (newWidth !== width) setWidth(newWidth);
       }}
-      mode={cardMode}
-      style={repost ? { marginBottom: 10 } : {}}>
-      <Card.Content>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      className={cn("w-full bg-card p-3")} // Adjusted styling for repost
+    >
+      <CardContent className="p-0">
+        <View className="flex-row items-center mb-3">
           <UserAvatar
             group={group}
             conversationIcon={identity?.conversation_icon}
-            size={46}
+            size={repost ? 36 : 46}
             borderRadius={BORDER_RADIUS}
           />
-          <View
-            style={{
-              justifyContent: 'center',
-              flexDirection: 'column',
-              flex: 1,
-            }}>
-            <Text variant="labelLarge" style={{ marginLeft: 10 }}>
+          <View className="flex-col justify-center flex-1 ml-3">
+            <Text className="text-xs text-muted-foreground">
               {timesago(post.created_at)}
             </Text>
             {post.identity.name != 'Anonymous' && (
-              <Text
-                variant="labelMedium"
-                style={{ marginLeft: 10, opacity: 0.75 }}>
+              <Text className="text-xs text-muted-foreground opacity-75">
                 @{post.identity.name}
               </Text>
             )}
           </View>
           {post.authored_by_user && (
-            <IconButton
-              icon="house"
-              size={20}
-              style={{ marginRight: 0 }}
-              onPress={deletePost}
-            />
+            <Button variant="ghost" size="icon" onPress={deletePost} className="h-8 w-8">
+              <Icon as={Trash2} className="text-muted-foreground size-4" />
+            </Button>
           )}
         </View>
 
         {post.text.trim().length > 0 && (
-          <Text variant="bodyLarge" style={{ marginTop: 10, marginBottom: minimal ? 0 : 10 }}>
+          <Text className={cn("text-base leading-5 text-left font-normal mb-2 px-1", minimal ? "mb-0" : "")}>
             {post.text}
           </Text>
         )}
@@ -144,34 +140,28 @@ function Post({
           post.assets?.map(asset => (
             <React.Fragment key={asset.id}>
               {asset.type == 'image' && (
-                <AutoImage
-                  src={asset.url}
-                  fitWidth={width - 35}
-                  srcWidth={asset.width}
-                  srcHeight={asset.height}
-                  token={API.userToken}
-                  style={
-                    post.text.trim().length < 1
-                      ? { marginTop: 10, marginBottom: 10 }
-                      : { marginBottom: 10 }
-                  }
-                />
+                <View className="mb-1 rounded-md overflow-hidden">
+                  <AutoImage
+                    src={asset.url}
+                    fitWidth={width - (repost ? 26 : 30)} // Adjust for padding
+                    srcWidth={asset.width}
+                    srcHeight={asset.height}
+                    token={API.userToken}
+                  />
+                </View>
               )}
               {asset.type == 'video' && (
-                <AutoVideo
-                  fitWidth={width - 35}
-                  srcWidth={asset.width}
-                  srcHeight={asset.height}
-                  token={API.userToken}
-                  src={asset.url}
-                  format={asset.content_type}
-                  poster={asset.thumbnail_asset.url}
-                  style={
-                    post.text.trim().length < 1
-                      ? { marginTop: 10, marginBottom: 10 }
-                      : { marginBottom: 10 }
-                  }
-                />
+                <View className="mb-1 rounded-md overflow-hidden">
+                  <AutoVideo
+                    fitWidth={width - (repost ? 26 : 30)}
+                    srcWidth={asset.width}
+                    srcHeight={asset.height}
+                    token={API.userToken}
+                    src={asset.url}
+                    format={asset.content_type}
+                    poster={asset.thumbnail_asset.url}
+                  />
+                </View>
               )}
             </React.Fragment>
           ))}
@@ -181,31 +171,27 @@ function Post({
           post.attachments.map(att => (
             <React.Fragment key={att.id}>
               {!!att?.youtube_id ? (
-                <Chip
-                  icon="youtube"
-                  style={{
-                    marginRight: 'auto',
-                    marginBottom: 5,
-                    maxWidth: '100%',
-                    overflow: 'hidden',
-                  }}
+                <Pressable
                   onPress={() => Linking.openURL(att.link_url)}
-                  onLongPress={async () => await copyToClipboard(att.link_url)}>
-                  {att.title}
-                </Chip>
+                  onLongPress={async () => await copyToClipboard(att.link_url)}
+                  className="self-start mb-2"
+                >
+                  <Badge variant="secondary" className="gap-1 pl-1 pr-2 py-1">
+                    <Icon as={SquarePlay} className="text-red-600 size-4" />
+                    <Text>{att.title}</Text>
+                  </Badge>
+                </Pressable>
               ) : att.type == 'link' ? (
-                <Chip
-                  icon="link"
-                  style={{
-                    marginRight: 'auto',
-                    marginBottom: 5,
-                    maxWidth: '100%',
-                    overflow: 'hidden',
-                  }}
+                <Pressable
                   onPress={() => Linking.openURL(att.link_url)}
-                  onLongPress={async () => await copyToClipboard(att.link_url)}>
-                  {att.display_url}
-                </Chip>
+                  onLongPress={async () => await copyToClipboard(att.link_url)}
+                  className="self-start mb-2"
+                >
+                  <Badge variant="secondary" className="gap-1 pl-1 pr-2 py-1">
+                    <Icon as={LinkIcon} className="text-blue-500 size-4" />
+                    <Text>{att.display_url}</Text>
+                  </Badge>
+                </Pressable>
               ) : (
                 <></>
               )}
@@ -215,146 +201,93 @@ function Post({
         {post.poll && <Poll poll={post.poll} />}
 
         {post.quote_post && !repost && (
-          <MemoizedPost themeColors={colors} apiInstance={apiInstance} post={post.quote_post.post} nav={nav} repost={true} />
+          <MemoizedPost apiInstance={apiInstance} post={post.quote_post.post} nav={nav} repost={true} />
         )}
 
-        {!minimal && <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginLeft: -8,
-            marginBottom: -2,
-          }}>
-          {!commentView && (
-            <>
-              <IconButton
-                icon="message-outline"
-                onPress={() =>
-                  nav.push('Comments', {
-                    postID: post.id,
-                    postObj: post,
-                  })
-                }
-                style={{ margin: 0 }}
-                size={20}
-                iconColor={colors.onSurfaceDisabled}
-              />
-              <Text variant="titleMedium" style={{ marginRight: 10 }}>
-                {post.comment_count}
+        {!minimal && !repost && (
+          <View className="flex-row items-center justify-between -ml-2 -mb-2">
+            <View className="flex-row items-center">
+              {!commentView && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1 px-2"
+                  onPress={() =>
+                    nav.push('Comments', {
+                      postID: post.id,
+                      postObj: post,
+                    })
+                  }
+                >
+                  <Icon as={MessageCircle} className="text-muted-foreground size-5" />
+                  <Text className="text-muted-foreground">{post.comment_count}</Text>
+                </Button>
+              )}
+
+              {!post.dms_disabled && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onPress={() =>
+                    nav.push('Thread', {
+                      postID: post.id,
+                      groupID: post.group_id,
+                      type: 'post',
+                    })
+                  }
+                >
+                  <Icon as={MessageSquare} className="text-muted-foreground size-5" />
+                </Button>
+              )}
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onPress={createRepost}
+              >
+                <Icon as={Repeat} className="text-muted-foreground size-5" />
+              </Button>
+            </View>
+
+            <View className="flex-row items-center bg-secondary/50 rounded-full px-0">
+              <Button
+                variant={vote == 'upvote' ? 'secondary' : 'ghost'}
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onPress={upvote}
+              >
+                <Icon
+                  as={ArrowBigUp}
+                  className={cn("size-6", vote == 'upvote' ? "text-primary fill-primary/20" : "text-muted-foreground")}
+                />
+              </Button>
+
+              <Text className={cn("mx-1 font-bold min-w-[20px] text-center",
+                vote == 'upvote' && "text-primary",
+                vote == 'downvote' && "text-destructive",
+                vote == 'none' && "text-muted-foreground"
+              )}>
+                {voteCount}
               </Text>
-            </>
-          )}
-          {!post.dms_disabled && (
-            <IconButton
-              icon="chat-outline"
-              onPress={() =>
-                nav.push('Thread', {
-                  postID: post.id,
-                  groupID: post.group_id,
-                  type: 'post',
-                })
-              }
-              style={{ margin: 0 }}
-              size={24}
-              iconColor={colors.onSurfaceDisabled}
-            />
-          )}
-          <IconButton
-            icon="repeat-variant"
-            onPress={createRepost}
-            style={{ margin: 0 }}
-            size={24}
-            iconColor={colors.onSurfaceDisabled}
-          />
-          <View style={{ flexGrow: 1 }}></View>
-          <IconButton
-            icon="arrow-up-thick"
-            onPress={upvote}
-            style={{
-              margin: 0,
-              borderRadius: BORDER_RADIUS,
-              borderColor: colors.onSurfaceDisabled,
-              borderWidth: 2,
-            }}
-            size={20}
-            iconColor={
-              vote == 'upvote' ? colors.onPrimaryContainer : colors.onSurface
-            }
-            containerColor={vote == 'upvote' ? colors.inversePrimary : null}
-          />
-          <Text
-            variant="titleMedium"
-            style={{
-              marginRight: 10,
-              marginLeft: 10,
-              color: voteCount <= 0 ? colors.error : colors.primary,
-            }}>
-            {voteCount}
-          </Text>
-          <IconButton
-            icon="arrow-down-thick"
-            onPress={downvote}
-            style={{
-              margin: 0,
-              borderRadius: BORDER_RADIUS,
-              borderColor: colors.onSurfaceDisabled,
-              borderWidth: 2,
-            }}
-            size={20}
-            iconColor={vote == 'downvote' ? colors.onError : colors.onSurface}
-            containerColor={vote == 'downvote' ? colors.error : null}
-          />
-        </View>}
-      </Card.Content>
+
+              <Button
+                variant={vote == 'downvote' ? 'secondary' : 'ghost'}
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onPress={downvote}
+              >
+                <Icon
+                  as={ArrowBigDown}
+                  className={cn("size-6", vote == 'downvote' ? "text-destructive fill-destructive/20" : "text-muted-foreground")}
+                />
+              </Button>
+            </View>
+          </View>
+        )}
+      </CardContent>
     </Card>
   );
 }
 
 Post.whyDidYouRender = true;
 export default React.memo(Post);
-
-const obj = {
-  index: 0,
-  item: {
-    alias: 'Anonymous',
-    assets: [[Object]],
-    attachments: [],
-    authored_by_user: false,
-    comment_count: 0,
-    comments_disabled: false,
-    created_at: '2024-03-05T21:14:58.575Z',
-    destination: 'group',
-    dms_disabled: false,
-    follow_status: 'not_following',
-    group: {
-      analytics_name: 'mc',
-      asset_library_visibility: 'show',
-      color: '#0DD5B2',
-      group_join_type: 'email_domain',
-      group_visibility: 'private',
-      id: 'e953e1cc-7e17-46b9-b11a-98441e4135fe',
-      membership_type: 'member',
-      name: 'MC',
-      roles: [Array],
-    },
-    group_id: 'e953e1cc-7e17-46b9-b11a-98441e4135fe',
-    id: '900a353f-52bc-4595-a58b-84f4c13b560c',
-    identity: {
-      conversation_icon: [Object],
-      name: 'Anonymous',
-      posted_with_username: false,
-    },
-    is_saved: false,
-    pinned: false,
-    tags: [],
-    text: 'Me after my day of doing nothing all day',
-    type: 'post',
-    vote_status: 'none',
-    vote_total: 31,
-  },
-  separators: {
-    highlight: [Function],
-    unhighlight: [Function],
-    updateProps: [Function],
-  },
-};

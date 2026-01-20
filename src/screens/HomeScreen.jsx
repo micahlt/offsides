@@ -6,16 +6,18 @@ import React from 'react';
 import {
   View,
   StyleSheet,
-  FlatList,
   StatusBar,
   InteractionManager,
   useColorScheme,
   TouchableOpacity,
   Dimensions,
+  ScrollView,
+  Pressable,
+  Alert,
 } from 'react-native';
 import {
   Appbar,
-  Text,
+  Text as TextPaper,
   useTheme,
   Menu,
   Card,
@@ -24,7 +26,7 @@ import {
   FAB,
   ThemeProvider,
   Icon,
-  Badge,
+  Badge as BadgePaper,
 } from 'react-native-paper';
 import crashlytics from '@react-native-firebase/crashlytics';
 import AppContext from '../utils/AppContext';
@@ -41,6 +43,9 @@ import { FlashList } from '@shopify/flash-list';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import Onboarding from '../components/Onboarding';
+import { Badge } from '@/reusables/ui/badge';
+import { Text } from '@/reusables/ui/text';
+import { cn } from '@/lib/utils';
 
 const BORDER_RADIUS = 12;
 
@@ -121,6 +126,12 @@ function HomeScreen({ navigation }) {
         setSortIcon('filter-variant');
     }
   };
+
+  const selectGroup = group => {
+    crashlytics().log('Group selected');
+    setCurrentGroup(group);
+  };
+
   const fetchPosts = (refresh, override) => {
     if (loadingPosts || !currentGroup?.id || !postSortMethod) return false;
     crashlytics().log(`Fetching posts sorted by ${postSortMethod}`);
@@ -213,18 +224,18 @@ function HomeScreen({ navigation }) {
                   />
                   {currentGroup.name.length > 2 ? (
                     <TouchableOpacity onPress={() => sheetRef?.current?.open()}>
-                      <Text
+                      <TextPaper
                         variant="headlineSmall"
                         numberOfLines={1}
                         style={{ marginRight: 50 }}>
                         {currentGroup.name}
-                      </Text>
+                      </TextPaper>
                     </TouchableOpacity>
                   ) : (
-                    <Text variant="headlineSmall">
+                    <TextPaper variant="headlineSmall">
                       {postSortMethod[0].toUpperCase() + postSortMethod.slice(1)}{' '}
                       Posts
-                    </Text>
+                    </TextPaper>
                   )}
                 </Animated.View>
               </GestureDetector>
@@ -287,7 +298,7 @@ function HomeScreen({ navigation }) {
             />
           </Menu>
           <View>
-            <Badge
+            <BadgePaper
               style={{ position: 'absolute', bottom: 12, right: 12, zIndex: 1 }}
               size={8}
               visible={updateBadge}
@@ -302,12 +313,7 @@ function HomeScreen({ navigation }) {
         <Onboarding />
       )}
       <View
-        style={{
-          ...style.container,
-          backgroundColor: customTheme
-            ? customTheme.background
-            : colors.background,
-        }}>
+        className="bg-background flex-1">
         <ProgressBar indeterminate={true} visible={loadingPosts} />
         {currentGroup?.name == 'Home' && postSortMethod == 'top' ? (
           <View
@@ -326,8 +332,8 @@ function HomeScreen({ navigation }) {
                   : colors.primaryContainer
               }
             />
-            <Text variant="titleLarge">Can't sort by top</Text>
-            <Text
+            <TextPaper variant="titleLarge">Can't sort by top</TextPaper>
+            <TextPaper
               variant="bodySmall"
               style={{
                 textAlign: 'center',
@@ -336,7 +342,7 @@ function HomeScreen({ navigation }) {
               }}>
               This feature isn't supported in your Home group - try switching to
               another group or sort by Recent or Hot.
-            </Text>
+            </TextPaper>
           </View>
         ) : (
           <FlashList
@@ -368,10 +374,18 @@ function HomeScreen({ navigation }) {
             windowSize={10}
           />
         )}
+        <ScrollView horizontal={true} className="absolute bg-secondary bottom-safe left-5 right-5 p-2 rounded-full flex-row shadow-lg border-ring border-solid border-hairline" elevation={5} showsHorizontalScrollIndicator={false}>
+          {userGroups?.length ? userGroups.map((group, i) =>
+            <Badge key={group.id} asChild={true} variant="secondary" className={cn("py-1 px-3 transition-colors", group.name == currentGroup.name ? "bg-emerald-400" : "", i + 1 == userGroups.length ? "mr-3" : "")}>
+              <Pressable android_ripple={{ color: "#ffffff44", foreground: true }} onPress={() => setCurrentGroup(group)} >
+                <Text className="text-md">{group.name}</Text>
+              </Pressable>
+            </Badge>) : <></>}
+        </ScrollView>
         {currentGroup?.name && <FAB
           icon="plus"
           label="Post"
-          style={{ position: 'absolute', bottom: 20, right: 20 }}
+          style={{ position: 'absolute', bottom: 80, right: 20 }}
           onPress={() =>
             navigation.push('Writer', {
               mode: 'post',

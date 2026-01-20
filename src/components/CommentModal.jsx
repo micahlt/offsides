@@ -53,13 +53,13 @@ function CommentModal({ navigation, route }) {
   const uniqueComments = useUniqueList(comments);
 
   return (
-    <View style={{ backgroundColor: colors.background, flex: 1 }}>
+    <View className="flex-1 bg-background">
       <StatusBar animated={true} backgroundColor={colors.elevation.level2} />
       <Appbar.Header elevated={true}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Comments" />
       </Appbar.Header>
-      <View style={{ ...style.container, backgroundColor: colors.background }}>
+      <View className="flex-1 bg-background">
         <FlatList
           contentContainerStyle={{ gap: 10, padding: 10, paddingBottom: 90 }}
           data={uniqueComments}
