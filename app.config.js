@@ -6,9 +6,6 @@ module.exports = {
     githubUrl: "https://github.com/micahlt/offsides",
     icon: "./src/assets/icon.png",
     newArchEnabled: true,
-    ios: {
-        bundleIdentifier: "com.micahlindley.offsides"
-    },
     android: {
         package: "com.micahlindley.offsides",
         versionCode: 59,
@@ -24,10 +21,11 @@ module.exports = {
         },
         predictiveBackGestureEnabled: true
     },
-    "plugins": [
+    plugins: [
         "expo-font",
         "expo-asset",
         "@react-native-firebase/app",
         "@react-native-firebase/crashlytics"
-    ]
+    ],
+    assetBundlePatterns: ["**/*", "./node_modules/@expo/vector-icons/build/vendor/react-native-vector-icons/Fonts/*.ttf"],
 }

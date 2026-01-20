@@ -1,10 +1,9 @@
 import "./src/utils/wdyr";
 import * as React from 'react';
-import { AppRegistry, useColorScheme } from 'react-native';
+import { useColorScheme } from 'react-native';
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from 'react-native-paper';
 import { useMaterial3Theme } from '@pchmn/expo-material3-theme';
 
-import { name as appName } from './app.config.js';
 import App from './src/App.jsx';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { registerRootComponent } from "expo";
