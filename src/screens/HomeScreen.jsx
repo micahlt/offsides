@@ -387,9 +387,9 @@ function HomeScreen({ navigation }) {
           ref={sheetRef}
           backdropMaskColor={colors.backdrop}
           dragHandleStyle={{ backgroundColor: colors.outline, marginBottom: 0 }}
-          openDuration={550}
-          closeDuration={250}
           height={deviceHeight - 225}
+          openDuration={650}
+          closeDuration={400}
           style={{
             backgroundColor: colors.surface,
             zIndex: 10000

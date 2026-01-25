@@ -48,7 +48,7 @@ function SettingsScreen({ navigation }) {
           size={80}
           style={{ marginBottom: 15 }}></Avatar.Image>
         <Text variant="bodyLarge" style={{ textAlign: 'center' }}>
-          <Text variant="headlineSmall" style={{ color: colors.primary }}>
+          <Text variant="headlineSmall" style={{ color: colors.primary, fontWeight: "bold" }}>
             Offsides{' '}
           </Text>
           <Text variant="headlineSmall">version {version}</Text>

@@ -160,19 +160,7 @@ function MyProfileScreen({ navigation }) {
               </Text>
             </View>
           </View>
-          <ScrollView horizontal={true} style={{ maxHeight: 100, flexDirection: 'row', marginVertical: 10 }} contentContainerStyle={{ gap: 10, paddingBottom: 10, paddingHorizontal: 10 }} showsHorizontalScrollIndicator={false}>
-            <Card>
-              <Card.Title
-                title="Followers"
-                titleVariant="labelLarge"
-                titleStyle={{ minHeight: 10 }}
-              />
-              <Card.Content>
-                <Text variant="titleLarge" style={s.stat}>
-                  {updates?.user?.follower_count || '--'}
-                </Text>
-              </Card.Content>
-            </Card>
+          <ScrollView horizontal={true} style={{ maxHeight: 100, flexDirection: 'row', marginTop: 10 }} contentContainerStyle={{ gap: 10, paddingBottom: 10, paddingHorizontal: 10 }} showsHorizontalScrollIndicator={false}>
             {karmaInfo.map((item) =>
               <Card key={item.header}>
                 <Card.Title
@@ -189,7 +177,6 @@ function MyProfileScreen({ navigation }) {
               </Card>
             )}
           </ScrollView>
-          <Divider />
           <UserContent updates={updates} />
         </View>
       )}

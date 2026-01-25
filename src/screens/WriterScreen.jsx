@@ -167,7 +167,6 @@ function WriterScreen({ navigation, route }) {
           icon="send"
           onPress={createPostOrComment}
           disabled={textContent.length < 1 || !isPollValid}
-          isLeading={true}
         />
       </Appbar.Header>
       <ProgressBar

@@ -189,7 +189,7 @@ function EditProfileScreen({ navigation }) {
               height: 5,
               width: 50,
             }}
-            openDuration={900}
+            openDuration={500}
             closeDuration={500}
             height={240}
             style={{
