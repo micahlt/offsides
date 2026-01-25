@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StatusBar, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, StatusBar, StyleSheet, ScrollView } from 'react-native';
 import {
   Appbar,
   useTheme,
@@ -26,15 +26,43 @@ function MyProfileScreen({ navigation }) {
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const [updates, setUpdates] = React.useState(false);
+  const [karmaInfo, setKarmaInfo] = React.useState([])
   const [loading, setLoading] = React.useState(true);
   const [updateBadge, setUpdateBadge] = React.useState(false);
   const [currentGroup, setCurrentGroup] = useMMKVObject('currentGroup');
   const { colors } = useTheme();
-  useFocusEffect(() => {
+
+  useFocusEffect(React.useCallback(() => {
     crashlytics().log('Loading MyProfileScreen');
     loadProfile();
     needsUpdate().then(setUpdateBadge);
-  });
+  }, []));
+
+  const getKarmaInfo = (karmaObj, groupList) => {
+    let karmaObjects = [];
+    karmaObjects.push({
+      header: "Post Karma",
+      value: karmaObj?.post || 0
+    });
+    karmaObjects.push({
+      header: "Comment Karma",
+      value: karmaObj?.comment || 0
+    });
+    karmaObj?.groups.forEach(group => {
+      const g = groupList.find((item => item.id == group.group_id));
+      karmaObjects.push({
+        header: g.name,
+        value: group.post + group.comment
+      })
+    });
+    return karmaObjects;
+  };
+
+  useEffect(() => {
+    const info = getKarmaInfo(updates?.karma, updates?.groups);
+    setKarmaInfo(info);
+  }, [updates])
+
   const loadProfile = async () => {
     crashlytics().log('Fetching profile');
     const u = await API.getUpdates(currentGroup?.id);
@@ -42,9 +70,11 @@ function MyProfileScreen({ navigation }) {
     setUpdates(u);
     setLoading(false);
   };
+
   const s = StyleSheet.create({
-    stat: { fontWeight: 900, color: colors.primary },
+    stat: { fontWeight: 900, color: colors.primary, marginTop: -5 },
   });
+
   return (
     <View
       style={{
@@ -85,15 +115,8 @@ function MyProfileScreen({ navigation }) {
       </Appbar.Header>
       {loading && <ProgressBar indeterminate={true} visible={true} />}
       {updates?.user && (
-        <View
-          style={{
-            rowGap: 10,
-            padding: 10,
-            flex: 1,
-            justifyContent: 'flex-start',
-            flexDirection: 'column',
-          }}>
-          <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
+        <View style={{ flexDirection: "column", flex: 1 }}>
+          <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', padding: 10 }}>
             <TouchableRipple
               borderless={true}
               style={{ borderRadius: BORDER_RADIUS }}
@@ -124,14 +147,21 @@ function MyProfileScreen({ navigation }) {
               onPress={() => navigation.push('EditProfile')}>
               Edit
             </Button>
-            <Text
-              variant="titleMedium"
-              style={{ textAlign: 'right', flexGrow: 1, marginRight: 10 }}>
-              joined {timesago(updates.user.created_at)}
-            </Text>
+            <View style={{ flexGrow: 1, marginRight: 10 }}>
+              <Text
+                variant="titleSmall"
+                style={{ textAlign: 'right' }}>
+                joined {timesago(updates.user.created_at)}
+              </Text>
+              <Text
+                variant="titleSmall"
+                style={{ textAlign: 'right' }}>
+                {updates?.user?.follower_count || 'No'} followers
+              </Text>
+            </View>
           </View>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <Card style={{ flexGrow: 1 }}>
+          <ScrollView horizontal={true} style={{ maxHeight: 100, flexDirection: 'row', marginVertical: 10 }} contentContainerStyle={{ gap: 10, paddingBottom: 10, paddingHorizontal: 10 }} showsHorizontalScrollIndicator={false}>
+            <Card>
               <Card.Title
                 title="Followers"
                 titleVariant="labelLarge"
@@ -143,45 +173,22 @@ function MyProfileScreen({ navigation }) {
                 </Text>
               </Card.Content>
             </Card>
-            <Card style={{ flexGrow: 1 }}>
-              <Card.Title
-                title="Post Karma"
-                titleVariant="labelLarge"
-                titleStyle={{ minHeight: 10 }}
-              />
-              <Card.Content>
-                <Text variant="titleLarge" style={s.stat}>
-                  {updates?.karma?.post || '--'}
-                </Text>
-              </Card.Content>
-            </Card>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <Card style={{ flexGrow: 1 }}>
-              <Card.Title
-                title="Groups"
-                titleVariant="labelLarge"
-                titleStyle={{ minHeight: 10 }}
-              />
-              <Card.Content>
-                <Text variant="titleLarge" style={s.stat}>
-                  {updates?.groups?.length || '--'}
-                </Text>
-              </Card.Content>
-            </Card>
-            <Card style={{ flexGrow: 1 }}>
-              <Card.Title
-                title="Comment Karma"
-                titleVariant="labelLarge"
-                titleStyle={{ minHeight: 10 }}
-              />
-              <Card.Content>
-                <Text variant="titleLarge" style={s.stat}>
-                  {updates?.karma?.comment || '--'}
-                </Text>
-              </Card.Content>
-            </Card>
-          </View>
+            {karmaInfo.map((item) =>
+              <Card key={item.header}>
+                <Card.Title
+                  title={item.header}
+                  titleVariant="labelLarge"
+                  titleStyle={{ minHeight: 10, margin: 0, padding: 0 }}
+                  style={{ height: "max-content", margin: 0, padding: 0 }}
+                />
+                <Card.Content>
+                  <Text variant="titleLarge" style={s.stat}>
+                    {item.value || '--'}
+                  </Text>
+                </Card.Content>
+              </Card>
+            )}
+          </ScrollView>
           <Divider />
           <UserContent updates={updates} />
         </View>

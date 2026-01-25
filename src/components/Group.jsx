@@ -25,8 +25,7 @@ function Group({
     <TouchableRipple
       borderless={true}
       style={{ borderRadius: 10, ...style }}
-      onPress={onPress}
-      onLongPress={() => console.log(group.id)}>
+      onPress={onPress}>
       <Card mode={cardMode}>
         <Card.Content>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>

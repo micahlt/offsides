@@ -339,7 +339,7 @@ function HomeScreen({ navigation }) {
           </View>
         ) : (
           <FlashList
-            contentContainerStyle={{ rowGap: 10, marginHorizontal: 10 }}
+            contentContainerStyle={{ rowGap: 10, marginHorizontal: 10, marginTop: -10 }}
             ItemSeparatorComponent={() => <View style={{ marginBottom: 10 }}></View>}
             data={uniquePosts}
             renderItem={renderItem}

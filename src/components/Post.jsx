@@ -125,7 +125,7 @@ function Post({
           </View>
           {post.authored_by_user && (
             <IconButton
-              icon="house"
+              icon="delete"
               size={20}
               style={{ marginRight: 0 }}
               onPress={deletePost}

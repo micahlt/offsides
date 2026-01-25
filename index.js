@@ -1,8 +1,9 @@
-import "./src/utils/wdyr";
+// import "./src/utils/wdyr";
 import * as React from 'react';
 import { useColorScheme } from 'react-native';
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from 'react-native-paper';
 import { useMaterial3Theme } from '@pchmn/expo-material3-theme';
+globalThis.RNFB_SILENCE_MODULAR_DEPRECATION_WARNINGS = true;
 
 import App from './src/App.jsx';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';

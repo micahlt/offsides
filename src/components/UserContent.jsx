@@ -21,7 +21,7 @@ function UserContent({ updates }) {
   const [view, setView] = React.useState('activity');
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, flexGrow: 2, margin: 10 }}>
       <SegmentedButtons
         buttons={[
           {
