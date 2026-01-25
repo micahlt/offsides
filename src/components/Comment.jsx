@@ -1,7 +1,7 @@
 import '../types/OffsidesTypes.js';
 import React from 'react';
 import { View, Alert, Linking } from 'react-native';
-import { Button, Card, IconButton, Text, useTheme } from 'react-native-paper';
+import { Badge, Button, Card, Chip, IconButton, Text, useTheme } from 'react-native-paper';
 import { setStringAsync as copyToClipboard } from 'expo-clipboard';
 import timesago from 'timesago';
 import { AppContext } from '../App.jsx';
@@ -68,18 +68,23 @@ function Comment({ comment, nav, isolated = false }) {
       mode="contained">
       <Card.Content>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <UserAvatar
-            group={comment.group}
-            conversationIcon={comment?.identity?.conversation_icon}
-            numberAlias={
-              !comment?.identity?.posted_with_username
-                ? comment.identity.name
-                : false
-            }
-            size={46}
-            hideGroup={true}
-            borderRadius={BORDER_RADIUS}
-          />
+          <View style={{ position: 'relative' }}>
+            <UserAvatar
+              group={comment.group}
+              conversationIcon={comment?.identity?.conversation_icon}
+              numberAlias={
+                !comment?.identity?.posted_with_username
+                  ? comment.identity.name
+                  : false
+              }
+              size={46}
+              hideGroup={true}
+              borderRadius={BORDER_RADIUS}
+            />
+            {comment.authored_by_user && (
+              <Badge mode="outlined" compact={true} style={{ position: 'absolute', bottom: -8, right: -8, color: colors.onPrimary, backgroundColor: colors.primary }}>YOU</Badge>
+            )}
+          </View>
           <View
             style={{
               justifyContent: 'center',
