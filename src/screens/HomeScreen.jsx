@@ -152,6 +152,7 @@ function HomeScreen({ navigation }) {
         });
       }
     } catch (e) {
+      console.log(e);
       crashlytics().log('Error fetching posts');
       crashlytics().recordError(e);
     }
@@ -346,7 +347,7 @@ function HomeScreen({ navigation }) {
             onRefresh={() => fetchPosts(true)}
             refreshing={loadingPosts}
             onEndReachedThreshold={0.5}
-            keyExtractor={item => item._id}
+            keyExtractor={item => item.id}
             onEndReached={() => fetchPosts(false)}
             ListHeaderComponent={updateBadge ? <Card style={{ width: '100%' }} mode="contained">
               <Card.Title
