@@ -10,8 +10,8 @@ module.exports = {
     package: 'com.micahlindley.offsides',
     versionCode: 59,
     adaptiveIcon: {
-      foregroundImage: './src/assets/Offsides.png',
-      monochromeImage: './src/assets/Offsides.png',
+      foregroundImage: './src/assets/adaptive-icon.png',
+      monochromeImage: './src/assets/adaptive-icon-mono.png',
       backgroundColor: '#3DDC84',
     },
     googleServicesFile: './google-services.json',
