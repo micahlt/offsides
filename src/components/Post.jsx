@@ -1,6 +1,6 @@
 import { SidechatPostOrComment } from 'sidechat.js/src/types/SidechatTypes.js';
 import React, { useState } from 'react';
-import { Alert, Linking, View } from 'react-native';
+import { Alert, Linking, Pressable, View } from 'react-native';
 import { Card, Chip, IconButton, Text, useTheme } from 'react-native-paper';
 import { setStringAsync as copyToClipboard } from 'expo-clipboard';
 import timesago from 'timesago';
@@ -26,6 +26,7 @@ function Post({
   cardMode = repost ? 'outlined' : 'elevated',
   apiInstance = null,
   themeColors = {},
+  profileLink = true,
 }) {
   const colors = themeColors;
   const API = apiInstance;
@@ -38,6 +39,21 @@ function Post({
   const [group, setGroup] = useRecyclingState(post.group, [post]);
   const [identity, setIdentity] = useRecyclingState(post?.identity, [post]);
   const postID = post.id;
+
+  // Posts made with a username can be tapped through to that user's public profile.
+  const hasUsername =
+    !!identity?.name &&
+    identity.name != 'Anonymous' &&
+    identity.posted_with_username !== false;
+  const canOpenProfile = profileLink && hasUsername && !!nav;
+  const openProfile = React.useCallback(() => {
+    if (!canOpenProfile) return;
+    if (post.authored_by_user) {
+      nav.push('MyProfile');
+    } else {
+      nav.push('UserProfile', { username: identity.name });
+    }
+  }, [canOpenProfile, post.authored_by_user, identity?.name, nav]);
 
   const upvote = React.useCallback(() => {
     const action = vote == 'upvote' ? 'none' : 'upvote';
@@ -100,12 +116,14 @@ function Post({
       style={repost ? { marginBottom: 10 } : {}}>
       <Card.Content>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <UserAvatar
-            group={group}
-            conversationIcon={identity?.conversation_icon}
-            size={46}
-            borderRadius={BORDER_RADIUS}
-          />
+          <Pressable onPress={openProfile} disabled={!canOpenProfile} hitSlop={4}>
+            <UserAvatar
+              group={group}
+              conversationIcon={identity?.conversation_icon}
+              size={46}
+              borderRadius={BORDER_RADIUS}
+            />
+          </Pressable>
           <View
             style={{
               justifyContent: 'center',
@@ -118,7 +136,12 @@ function Post({
             {post.identity.name != 'Anonymous' && (
               <Text
                 variant="labelMedium"
-                style={{ marginLeft: 10, opacity: 0.75 }}>
+                onPress={canOpenProfile ? openProfile : undefined}
+                style={{
+                  marginLeft: 10,
+                  opacity: 0.75,
+                  color: canOpenProfile ? colors.primary : undefined,
+                }}>
                 @{post.identity.name}
               </Text>
             )}

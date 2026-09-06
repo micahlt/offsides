@@ -1,6 +1,6 @@
 import '../types/OffsidesTypes.js';
 import React from 'react';
-import { View, Alert, Linking } from 'react-native';
+import { View, Alert, Linking, Pressable } from 'react-native';
 import { Badge, Button, Card, Chip, IconButton, Text, useTheme } from 'react-native-paper';
 import { setStringAsync as copyToClipboard } from 'expo-clipboard';
 import timesago from 'timesago';
@@ -38,6 +38,20 @@ function Comment({ comment, nav, isolated = false }) {
     });
   };
 
+  const canOpenProfile =
+    !!nav &&
+    !!comment?.identity?.posted_with_username &&
+    !!comment?.identity?.name &&
+    comment.identity.name != 'Anonymous';
+  const openProfile = () => {
+    if (!canOpenProfile) return;
+    if (comment.authored_by_user) {
+      nav.push('MyProfile');
+    } else {
+      nav.push('UserProfile', { username: comment.identity.name });
+    }
+  };
+
   const deleteComment = () => {
     Alert.alert('Are you sure?', 'This will permanently delete this comment.', [
       {
@@ -68,7 +82,11 @@ function Comment({ comment, nav, isolated = false }) {
       mode="contained">
       <Card.Content>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <View style={{ position: 'relative' }}>
+          <Pressable
+            style={{ position: 'relative' }}
+            onPress={openProfile}
+            disabled={!canOpenProfile}
+            hitSlop={4}>
             <UserAvatar
               group={comment.group}
               conversationIcon={comment?.identity?.conversation_icon}
@@ -84,7 +102,7 @@ function Comment({ comment, nav, isolated = false }) {
             {comment.authored_by_user && (
               <Badge mode="outlined" compact={true} style={{ position: 'absolute', bottom: -8, right: -8, color: colors.onPrimary, backgroundColor: colors.primary }}>YOU</Badge>
             )}
-          </View>
+          </Pressable>
           <View
             style={{
               justifyContent: 'center',
@@ -95,7 +113,12 @@ function Comment({ comment, nav, isolated = false }) {
               comment?.identity?.posted_with_username && (
                 <Text
                   variant="labelMedium"
-                  style={{ marginLeft: 10, opacity: 0.75 }}>
+                  onPress={canOpenProfile ? openProfile : undefined}
+                  style={{
+                    marginLeft: 10,
+                    opacity: 0.75,
+                    color: canOpenProfile ? colors.primary : undefined,
+                  }}>
                   @{comment.identity.name}
                 </Text>
               )}

@@ -16,6 +16,7 @@ import EditProfileScreen from './screens/EditProfileScreen';
 import WriterScreen from './screens/WriterScreen';
 import MessageScreen from './screens/MessagesScreen';
 import ThreadScreen from './screens/ThreadScreen';
+import UserProfileScreen from './screens/UserProfileScreen';
 import { storage, hasMigratedFromAsyncStorage, migrateFromAsyncStorage } from './utils/mmkv';
 import { useMMKVBoolean, useMMKVString } from 'react-native-mmkv';
 
@@ -101,6 +102,7 @@ export default function App() {
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="MyProfile" component={MyProfileScreen} />
+            <Stack.Screen name="UserProfile" component={UserProfileScreen} />
             <Stack.Screen name="EditProfile" component={EditProfileScreen} />
             <Stack.Screen name="Messages" component={MessageScreen} />
             <Stack.Screen name="Thread" component={ThreadScreen} />
