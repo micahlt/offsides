@@ -8,7 +8,7 @@ import { AppContext } from '../App.jsx';
 import AutoImage from './AutoImage';
 import UserAvatar from './UserAvatar.jsx';
 import Poll from './Poll.jsx';
-import { useSharedVote } from '../utils/voteStore';
+import { useSharedVote, castVote } from '../utils/voteStore';
 const BORDER_RADIUS = 10;
 
 /**
@@ -19,17 +19,10 @@ function Comment({ comment, nav, isolated = false }) {
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const { colors } = useTheme();
-  const [vote, voteCount, publishVote] = useSharedVote(comment.id, comment.vote_status, comment.vote_total);
+  const [vote, voteCount] = useSharedVote(comment.id, comment.vote_status, comment.vote_total);
   const [width, setWidth] = React.useState();
 
-  const applyVote = action => {
-    API.setVote(comment.id, action).then(res => {
-      publishVote(
-        res?.post?.vote_status || action,
-        res?.post?.vote_total ?? voteCount,
-      );
-    });
-  };
+  const applyVote = action => castVote(API, comment.id, vote, voteCount, action);
   const upvote = () => applyVote(vote == 'upvote' ? 'none' : 'upvote');
   const downvote = () => applyVote(vote == 'downvote' ? 'none' : 'downvote');
 

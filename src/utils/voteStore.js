@@ -25,6 +25,32 @@ export function clearVotes() {
   votes.clear();
 }
 
+const weight = s => (s === 'upvote' ? 1 : s === 'downvote' ? -1 : 0);
+
+/**
+ * Cast a vote with an optimistic count update, then reconcile with the
+ * server. The server's total is only trusted when it agrees with the action:
+ * removing a comment vote can come back with the old total, which would
+ * otherwise leave the count stuck.
+ */
+export async function castVote(API, id, prevStatus, prevTotal, action) {
+  const delta = weight(action) - weight(prevStatus);
+  const optimistic = (prevTotal ?? 0) + delta;
+  publishVote(id, action, optimistic);
+  try {
+    const res = await API.setVote(id, action);
+    const st = res?.post?.vote_status;
+    const tot = res?.post?.vote_total;
+    const serverAgrees = st === action || st == null;
+    const totalMoved = tot !== prevTotal;
+    if (typeof tot === 'number' && serverAgrees && (delta === 0 || totalMoved)) {
+      publishVote(id, action, tot);
+    }
+  } catch (e) {
+    publishVote(id, prevStatus, prevTotal);
+  }
+}
+
 function subscribe(id, cb) {
   if (!listeners.has(id)) listeners.set(id, new Set());
   listeners.get(id).add(cb);

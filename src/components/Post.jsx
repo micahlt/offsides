@@ -9,7 +9,7 @@ import AutoVideo from './AutoVideo';
 import UserAvatar from './UserAvatar';
 import Poll from './Poll';
 import { useRecyclingState } from '@shopify/flash-list';
-import { useSharedVote } from '../utils/voteStore';
+import { useSharedVote, castVote } from '../utils/voteStore';
 
 const BORDER_RADIUS = 12;
 
@@ -34,22 +34,15 @@ function Post({
     return <></>;
   }
   // Shared across every card showing this post (feed, comments, profile, thread).
-  const [vote, voteCount, publishVote] = useSharedVote(post.id, post.vote_status, post.vote_total);
+  const [vote, voteCount] = useSharedVote(post.id, post.vote_status, post.vote_total);
   const [width, setWidth] = useState();
   const [group, setGroup] = useRecyclingState(post.group, [post]);
   const [identity, setIdentity] = useRecyclingState(post?.identity, [post]);
   const postID = post.id;
 
   const applyVote = React.useCallback(
-    action => {
-      API.setVote(postID, action).then(res => {
-        publishVote(
-          res?.post?.vote_status || action,
-          res?.post?.vote_total ?? voteCount,
-        );
-      });
-    },
-    [postID, API, publishVote, voteCount],
+    action => castVote(API, postID, vote, voteCount, action),
+    [postID, API, vote, voteCount],
   );
   const upvote = React.useCallback(() => {
     applyVote(vote == 'upvote' ? 'none' : 'upvote');
