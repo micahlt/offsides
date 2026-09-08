@@ -8,6 +8,7 @@ import { AppContext } from '../App.jsx';
 import AutoImage from './AutoImage';
 import UserAvatar from './UserAvatar.jsx';
 import Poll from './Poll.jsx';
+import { useSharedVote, castVote } from '../utils/voteStore';
 const BORDER_RADIUS = 10;
 
 /**
@@ -18,25 +19,12 @@ function Comment({ comment, nav, isolated = false }) {
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const { colors } = useTheme();
-  const [vote, setVote] = React.useState(comment.vote_status);
-  const [voteCount, setVoteCount] = React.useState(comment.vote_total);
+  const [vote, voteCount] = useSharedVote(comment.id, comment.vote_status, comment.vote_total);
   const [width, setWidth] = React.useState();
 
-  const upvote = () => {
-    const action = vote == 'upvote' ? 'none' : 'upvote';
-    API.setVote(comment.id, action).then(res => {
-      setVote(action);
-      setVoteCount(res.post.vote_total);
-    });
-  };
-
-  const downvote = () => {
-    const action = vote == 'downvote' ? 'none' : 'downvote';
-    API.setVote(comment.id, action).then(res => {
-      setVote(action);
-      setVoteCount(res.post.vote_total);
-    });
-  };
+  const applyVote = action => castVote(API, comment.id, vote, voteCount, action);
+  const upvote = () => applyVote(vote == 'upvote' ? 'none' : 'upvote');
+  const downvote = () => applyVote(vote == 'downvote' ? 'none' : 'downvote');
 
   const deleteComment = () => {
     Alert.alert('Are you sure?', 'This will permanently delete this comment.', [

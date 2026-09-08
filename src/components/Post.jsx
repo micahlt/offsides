@@ -9,6 +9,7 @@ import AutoVideo from './AutoVideo';
 import UserAvatar from './UserAvatar';
 import Poll from './Poll';
 import { useRecyclingState } from '@shopify/flash-list';
+import { useSharedVote, castVote } from '../utils/voteStore';
 
 const BORDER_RADIUS = 12;
 
@@ -32,28 +33,24 @@ function Post({
   if (!post || !API) {
     return <></>;
   }
-  const [vote, setVote] = useRecyclingState(post.vote_status, [post]);
-  const [voteCount, setVoteCount] = useRecyclingState(post.vote_total, [post]);
+  // Shared across every card showing this post (feed, comments, profile, thread).
+  const [vote, voteCount] = useSharedVote(post.id, post.vote_status, post.vote_total);
   const [width, setWidth] = useState();
   const [group, setGroup] = useRecyclingState(post.group, [post]);
   const [identity, setIdentity] = useRecyclingState(post?.identity, [post]);
   const postID = post.id;
 
+  const applyVote = React.useCallback(
+    action => castVote(API, postID, vote, voteCount, action),
+    [postID, API, vote, voteCount],
+  );
   const upvote = React.useCallback(() => {
-    const action = vote == 'upvote' ? 'none' : 'upvote';
-    API.setVote(postID, action).then(res => {
-      setVote(action);
-      setVoteCount(res.post.vote_total);
-    });
-  }, [vote, postID, API]);
+    applyVote(vote == 'upvote' ? 'none' : 'upvote');
+  }, [vote, applyVote]);
 
   const downvote = React.useCallback(() => {
-    const action = vote == 'downvote' ? 'none' : 'downvote';
-    API.setVote(postID, action).then(res => {
-      setVote(action);
-      setVoteCount(res.post.vote_total);
-    });
-  }, [vote, postID, API]);
+    applyVote(vote == 'downvote' ? 'none' : 'downvote');
+  }, [vote, applyVote]);
 
   // if (post.attachments.length > 0) {
   //   post.attachments.forEach(a => {
