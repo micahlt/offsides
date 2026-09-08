@@ -48,11 +48,11 @@ function MyProfileScreen({ navigation }) {
       header: "Comment Karma",
       value: karmaObj?.comment || 0
     });
-    karmaObj?.groups.forEach(group => {
-      const g = groupList.find((item => item.id == group.group_id));
+    (karmaObj?.groups || []).forEach(group => {
+      const g = (groupList || []).find((item => item.id == group.group_id));
       karmaObjects.push({
-        header: g.name,
-        value: group.post + group.comment
+        header: g?.name || 'Group',
+        value: (group.post || 0) + (group.comment || 0)
       })
     });
     return karmaObjects;
@@ -67,6 +67,13 @@ function MyProfileScreen({ navigation }) {
     crashlytics().log('Fetching profile');
     const u = await API.getUpdates(currentGroup?.id);
     crashlytics().log('Profile fetched successfully');
+    // Pull the bio from the public profile if the user object doesn't carry one.
+    if (u?.user?.username && typeof u.user.bio !== 'string' && typeof u.user.description !== 'string') {
+      try {
+        const p = await API.getUserProfile(u.user.username);
+        if (typeof p?.description === 'string') u.user.bio = p.description;
+      } catch (e) { /* no public profile */ }
+    }
     setUpdates(u);
     setLoading(false);
   };
@@ -160,6 +167,12 @@ function MyProfileScreen({ navigation }) {
               </Text>
             </View>
           </View>
+          {(() => {
+            const b = typeof updates.user?.bio === 'string' ? updates.user.bio : typeof updates.user?.description === 'string' ? updates.user.description : '';
+            return b.trim() ? (
+              <Text variant="bodyMedium" style={{ paddingHorizontal: 10 }}>{b.trim()}</Text>
+            ) : null;
+          })()}
           <ScrollView horizontal={true} style={{ maxHeight: 100, flexDirection: 'row', marginTop: 10 }} contentContainerStyle={{ gap: 10, paddingBottom: 10, paddingHorizontal: 10 }} showsHorizontalScrollIndicator={false}>
             {karmaInfo.map((item) =>
               <Card key={item.header}>

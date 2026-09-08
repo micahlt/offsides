@@ -32,6 +32,8 @@ function EditProfileScreen({ navigation }) {
     secondary: null,
   });
   const [username, setUsername] = React.useState('');
+  const [bio, setBio] = React.useState('');
+  const [initialBio, setInitialBio] = React.useState('');
   const [usernameError, setUsernameError] = React.useState(false);
   const [error, setError] = React.useState(false);
   const [emoji, setEmoji] = React.useState();
@@ -64,11 +66,33 @@ function EditProfileScreen({ navigation }) {
     if (u.user?.username) {
       setUsername(u.user.username);
     }
+    // The bio lives on the public profile object; fall back to any field on the user object.
+    let currentBio = '';
+    if (typeof u.user?.bio === 'string') currentBio = u.user.bio;
+    else if (typeof u.user?.description === 'string') currentBio = u.user.description;
+    else if (u.user?.username) {
+      try {
+        const p = await API.getUserProfile(u.user.username);
+        if (typeof p?.description === 'string') currentBio = p.description;
+      } catch (e) {
+        // no public profile yet; leave the bio empty
+      }
+    }
+    setBio(currentBio);
+    setInitialBio(currentBio);
     setLoading(false);
   };
   const saveIcon = async () => {
     const uname = await API.setUsername(appState.userID, username);
     await uname;
+    if (bio.trim() !== initialBio.trim()) {
+      const bioRes = await API.setUserBio(appState.userID, bio.trim());
+      if (bioRes?.message) {
+        setError(true);
+        loadCurrent();
+        return;
+      }
+    }
     const res = await API.setUserIcon(
       appState.userID,
       emoji,
@@ -112,6 +136,19 @@ function EditProfileScreen({ navigation }) {
             />
             <HelperText visible={usernameError} type="error">
               You can't set that as your username.
+            </HelperText>
+            <TextInput
+              label="bio"
+              mode="outlined"
+              multiline={true}
+              numberOfLines={3}
+              maxLength={200}
+              style={{ width: '100%', minWidth: 200, maxWidth: 320 }}
+              value={bio}
+              onChangeText={setBio}
+            />
+            <HelperText visible={true} type="info" style={{ alignSelf: 'flex-end' }}>
+              {bio.length}/200
             </HelperText>
             <TouchableRipple
               borderless={true}
@@ -227,7 +264,7 @@ function EditProfileScreen({ navigation }) {
         </View>
       )}
       <Snackbar visible={error} onDismiss={() => setError(false)}>
-        Sorry, you can't set that as your icon.
+        Sorry, that couldn't be saved.
       </Snackbar>
     </View>
   );
