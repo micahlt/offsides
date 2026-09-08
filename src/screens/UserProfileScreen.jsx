@@ -9,6 +9,7 @@ import {
   IconButton,
 } from 'react-native-paper';
 import crashlytics from '@react-native-firebase/crashlytics';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppContext } from '../App';
 import Post from '../components/Post';
 
@@ -23,6 +24,7 @@ function UserProfileScreen({ navigation, route }) {
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [profile, setProfile] = React.useState(null);
   const [posts, setPosts] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
@@ -133,7 +135,7 @@ function UserProfileScreen({ navigation, route }) {
         keyExtractor={item => item.id}
         ListHeaderComponent={Header}
         ListEmptyComponent={Empty}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{ paddingBottom: 20 + insets.bottom }}
         ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
         renderItem={({ item }) => (
           <View style={{ marginHorizontal: 10 }}>

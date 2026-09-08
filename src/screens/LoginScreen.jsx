@@ -13,9 +13,13 @@ import { AppContext } from '../App';
 import DeviceInfo from 'react-native-device-info';
 import { sha256 } from 'js-sha256';
 import PatternBG from '../assets/bgpattern.png';
-import { initPhoneNumberHint } from 'react-native-phone-hint';
+import {
+  isAvailableAsync,
+  showPhoneNumberHintAsync
+} from 'expo-phone-number-hint';
 import { useSmsUserConsent } from '@eabdullazyanov/react-native-sms-user-consent';
 import crashlytics from '@react-native-firebase/crashlytics';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { storage } from '../utils/mmkv';
 import { useMMKVObject } from 'react-native-mmkv';
 
@@ -23,6 +27,7 @@ function LoginScreen({ }) {
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [errorMessage, setErrorMessage] = React.useState();
   const [phase, setPhase] = React.useState('sendSMS');
   const [phoneNumber, setPhoneNumber] = React.useState();
@@ -54,10 +59,10 @@ function LoginScreen({ }) {
       crashlytics().log(`Initializing native AndroidPhoneNumberHint`);
       (async () => {
         try {
-          let num = await initPhoneNumberHint();
-          num = num.replace('+1', '').replace(/\D/g, '');
-          setPhoneNumber(num);
-          sendSMS(num);
+          let result = await showPhoneNumberHintAsync();
+          result = result.hint.number.replace('+1', '').replace(/\D/g, '');
+          setPhoneNumber(result);
+          sendSMS(result);
         } catch (e) {
           crashlytics().log(`Error with native AndroidPhoneNumberHint`);
           crashlytics().recordError(e);
@@ -284,7 +289,7 @@ function LoginScreen({ }) {
         <ImageBackground
           source={PatternBG}
           resizeMode="repeat"
-          style={{ flex: 1, ...s.container }}
+          style={{ flex: 1, ...s.container, paddingTop: 20 + insets.top, paddingBottom: 20 + insets.bottom }}
           imageStyle={{ opacity: 0.2 }}>
           {errorMessage && (
             <Card

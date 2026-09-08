@@ -27,6 +27,7 @@ import {
   Badge,
 } from 'react-native-paper';
 import crashlytics from '@react-native-firebase/crashlytics';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppContext } from '../App';
 import Post from '../components/Post';
 import GroupPicker from '../components/GroupPicker';
@@ -39,7 +40,8 @@ import { clearVotes } from '../utils/voteStore';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useMMKVObject, useMMKVString } from 'react-native-mmkv';
 import { FlashList } from '@shopify/flash-list';
-import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+import Animated, { useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 import Onboarding from '../components/Onboarding';
 
 const BORDER_RADIUS = 12;
@@ -54,6 +56,7 @@ function HomeScreen({ navigation }) {
     /** @type {SidechatCursorString} */(null),
   );
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const colors = theme.colors;
   const [filterOpen, setFilterOpen] = React.useState(false);
@@ -184,7 +187,7 @@ function HomeScreen({ navigation }) {
             nextIndex = userGroups.length - 1;
           }
         }
-        runOnJS(setCurrentGroup)(userGroups[nextIndex]);
+        scheduleOnRN(setCurrentGroup, userGroups[nextIndex]);
       }
     });
 
@@ -373,7 +376,7 @@ function HomeScreen({ navigation }) {
         {currentGroup?.name && <FAB
           icon="plus"
           label="Post"
-          style={{ position: 'absolute', bottom: 20, right: 20 }}
+          style={{ position: 'absolute', bottom: 20 + insets.bottom, right: 20 }}
           onPress={() =>
             navigation.push('Writer', {
               mode: 'post',

@@ -13,6 +13,7 @@ import RNRestart from 'react-native-restart';
 import { version } from '../../package.json';
 import { storage } from '../utils/mmkv';
 import { AppContext } from '../App';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import offsidesLogo from '../assets/Offsides.png';
 import { needsUpdate } from '../utils';
 import { useMMKVObject } from 'react-native-mmkv';
@@ -22,6 +23,7 @@ function SettingsScreen({ navigation }) {
   const [updateAvailable, setUpdateAvailable] = React.useState(false);
   const [currentGroup, setCurrentGroup] = useMMKVObject('currentGroup');
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   React.useEffect(() => {
     checkForUpdate();
   }, []);
@@ -42,7 +44,7 @@ function SettingsScreen({ navigation }) {
       </Appbar.Header>
       <ScrollView
         style={{ padding: 20 }}
-        contentContainerStyle={{ alignItems: 'center' }}>
+        contentContainerStyle={{ alignItems: 'center', paddingBottom: insets.bottom }}>
         <Avatar.Image
           source={offsidesLogo}
           size={80}

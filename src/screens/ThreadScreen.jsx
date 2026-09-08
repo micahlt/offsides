@@ -10,6 +10,7 @@ import {
   useTheme,
 } from 'react-native-paper';
 import { useIsFocused } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppContext } from '../App';
 import timesago from 'timesago';
 import DeviceInfo from 'react-native-device-info';
@@ -22,6 +23,7 @@ function ThreadScreen({ navigation, route }) {
     appState: { API },
   } = React.useContext(AppContext);
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
   const [meta, setMeta] = React.useState(null);
   const [messages, setMessages] = React.useState([]);
@@ -160,6 +162,7 @@ function ThreadScreen({ navigation, route }) {
         }}
         autoFocus={true}
         placeholder="Send a message"
+        style={{ paddingBottom: insets.bottom }}
         right={
           <TextInput.Icon
             icon="send"

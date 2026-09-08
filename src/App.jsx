@@ -4,6 +4,7 @@ import { OffsidesAppState } from './types/OffsidesTypes.js';
 import { InteractionManager, StatusBar, useColorScheme } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import crashlytics from '@react-native-firebase/crashlytics';
 import { SidechatAPIClient } from 'sidechat.js';
 import HomeScreen from './screens/HomeScreen';
@@ -82,54 +83,56 @@ export default function App() {
   }, [hasMigrated]);
 
   return (
-    <AppContext.Provider value={{ appState, setAppState }}>
-      <NavigationContainer>
-        <StatusBar
-          barStyle={colorScheme == 'dark' ? 'light-content' : 'dark-content'}
-        />
-        {needsLogin != null && appState != null && (
-          <Stack.Navigator
-            initialRouteName={needsLogin ? 'Login' : 'Home'}
-            screenOptions={{ headerShown: false }}>
-            <Stack.Screen
-              name="Home"
-              component={HomeScreen}
-              initialParams={{}}
-              options={({ route: { params } }) => ({
-                animation: params.animation ? params.animation : 'default',
-              })}
-            />
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Settings" component={SettingsScreen} />
-            <Stack.Screen name="MyProfile" component={MyProfileScreen} />
-            <Stack.Screen name="UserProfile" component={UserProfileScreen} />
-            <Stack.Screen name="EditProfile" component={EditProfileScreen} />
-            <Stack.Screen name="Messages" component={MessageScreen} />
-            <Stack.Screen name="Thread" component={ThreadScreen} />
-            <Stack.Screen
-              name="ExploreGroups"
-              component={ExploreGroupsScreen}
-            />
-            <Stack.Screen
-              name="Comments"
-              component={CommentModal}
-              options={{
-                presentation: 'fullScreenModal',
-                animation: 'fade_from_bottom',
-              }}
-            />
-            <Stack.Screen
-              name="Writer"
-              component={WriterScreen}
-              options={{
-                presentation: 'fullScreenModal',
-                animation: 'fade_from_bottom',
-              }}
-            />
-          </Stack.Navigator>
-        )}
-      </NavigationContainer>
-    </AppContext.Provider>
+    <SafeAreaProvider>
+      <AppContext.Provider value={{ appState, setAppState }}>
+        <NavigationContainer>
+          <StatusBar
+            barStyle={colorScheme == 'dark' ? 'light-content' : 'dark-content'}
+          />
+          {needsLogin != null && appState != null && (
+            <Stack.Navigator
+              initialRouteName={needsLogin ? 'Login' : 'Home'}
+              screenOptions={{ headerShown: false }}>
+              <Stack.Screen
+                name="Home"
+                component={HomeScreen}
+                initialParams={{}}
+                options={({ route: { params } }) => ({
+                  animation: params.animation ? params.animation : 'default',
+                })}
+              />
+              <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen name="Settings" component={SettingsScreen} />
+              <Stack.Screen name="MyProfile" component={MyProfileScreen} />
+              <Stack.Screen name="UserProfile" component={UserProfileScreen} />
+              <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+              <Stack.Screen name="Messages" component={MessageScreen} />
+              <Stack.Screen name="Thread" component={ThreadScreen} />
+              <Stack.Screen
+                name="ExploreGroups"
+                component={ExploreGroupsScreen}
+              />
+              <Stack.Screen
+                name="Comments"
+                component={CommentModal}
+                options={{
+                  presentation: 'fullScreenModal',
+                  animation: 'fade_from_bottom',
+                }}
+              />
+              <Stack.Screen
+                name="Writer"
+                component={WriterScreen}
+                options={{
+                  presentation: 'fullScreenModal',
+                  animation: 'fade_from_bottom',
+                }}
+              />
+            </Stack.Navigator>
+          )}
+        </NavigationContainer>
+      </AppContext.Provider>
+    </SafeAreaProvider>
   );
 }
 

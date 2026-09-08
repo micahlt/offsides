@@ -7,6 +7,7 @@ import {
   InteractionManager,
 } from 'react-native';
 import { Appbar, useTheme, Text, FAB, Divider } from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppContext } from '../App';
 import Comment from './Comment';
 import Post from './Post';
@@ -21,6 +22,7 @@ function CommentModal({ navigation, route }) {
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [comments, setComments] = React.useState(
     /** @type {SidechatPostOrComment[]} */([]),
   );
@@ -61,7 +63,7 @@ function CommentModal({ navigation, route }) {
       </Appbar.Header>
       <View style={{ ...style.container, backgroundColor: colors.background }}>
         <FlatList
-          contentContainerStyle={{ gap: 10, padding: 10, paddingBottom: 90 }}
+          contentContainerStyle={{ gap: 10, padding: 10, paddingBottom: 90 + insets.bottom }}
           data={uniqueComments}
           keyExtractor={item => item.id}
           renderItem={renderItem}
@@ -88,7 +90,7 @@ function CommentModal({ navigation, route }) {
         <FAB
           icon="comment-outline"
           label="Comment"
-          style={{ position: 'absolute', bottom: 20, right: 20 }}
+          style={{ position: 'absolute', bottom: 20 + insets.bottom, right: 20 }}
           onPress={() =>
             navigation.push('Writer', {
               mode: 'comment',

@@ -15,7 +15,8 @@ import { AppContext } from '../App';
 import UserAvatar from './UserAvatar';
 import Group from './Group';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 function ActivityItem({ activity }) {
   const {
@@ -74,7 +75,7 @@ function ActivityItem({ activity }) {
       if (isSwipedEnough || (isFling && directionsMatch)) {
         xPos.value = withTiming(e.translationX > 0 ? deviceWidth : -deviceWidth, { duration: 100 });
         heightModifier.value = withTiming(0, { duration: 200 });
-        runOnJS(readActivity)(() => null);
+        scheduleOnRN(readActivity);
       } else {
         xPos.value = withTiming(0, { duration: 50 });
       }

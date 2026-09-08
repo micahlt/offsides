@@ -17,6 +17,7 @@ import {
   Divider,
 } from 'react-native-paper';
 import { AppContext } from '../App';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { launchImageLibrary } from 'react-native-image-picker';
 import { useMMKVBoolean, useMMKVString } from 'react-native-mmkv';
 import Post from '../components/Post';
@@ -29,6 +30,7 @@ function WriterScreen({ navigation, route }) {
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [error, setError] = React.useState(false);
   const [textContent, setTextContent] = React.useState('');
   const [isUploading, setIsUploading] = React.useState(false);
@@ -260,6 +262,7 @@ function WriterScreen({ navigation, route }) {
             flexDirection: 'row',
             alignItems: 'center',
             paddingHorizontal: 15,
+            paddingBottom: insets.bottom,
           }}>
           {asset ? (
             <View style={{ position: 'relative' }}>
