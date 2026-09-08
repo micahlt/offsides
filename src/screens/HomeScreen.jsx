@@ -35,6 +35,7 @@ import GroupAvatar from '../components/GroupAvatar';
 import { createMaterial3Theme } from '@pchmn/expo-material3-theme';
 import BottomSheet from '@devvie/bottom-sheet';
 import { needsUpdate } from '../utils';
+import { clearVotes } from '../utils/voteStore';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useMMKVObject, useMMKVString } from 'react-native-mmkv';
 import { FlashList } from '@shopify/flash-list';
@@ -127,6 +128,7 @@ function HomeScreen({ navigation }) {
     try {
       if (refresh) {
         crashlytics().log('Fetch triggered by refresh/group change');
+        clearVotes();
         setPosts([]);
         API.getGroupPosts(override || currentGroup.id, postSortMethod).then(
           res => {
