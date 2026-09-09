@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, InteractionManager, View } from 'react-native';
+import { FlatList, InteractionManager, ToastAndroid, View } from 'react-native';
 import {
   Appbar,
   Surface,
@@ -30,16 +30,15 @@ function ThreadScreen({ navigation, route }) {
   const [isFetching, setIsFetching] = React.useState(false);
   const [manualRefreshing, setManualRefreshing] = React.useState(false);
   const [messageDraft, setMessageDraft] = React.useState('');
+  const [isSending, setIsSending] = React.useState(false);
 
   React.useEffect(() => {
-    if (isFocused) {
+    if (isFocused && chatID) {
       InteractionManager.runAfterInteractions(() => {
-        if (chatID) {
-          fetchMessages(true);
-        }
+        fetchMessages(true);
       });
     }
-  }, [isFocused]);
+  }, [isFocused, chatID]);
 
   useInterval(() => {
     if (chatID && isFocused) {
@@ -48,33 +47,54 @@ function ThreadScreen({ navigation, route }) {
   }, 5000);
 
   const fetchMessages = async manual => {
-    if (!isFetching) {
-      setIsFetching(true);
-      if (manual) {
-        setManualRefreshing(true);
-      }
+    if (isFetching) return;
+    setIsFetching(true);
+    if (manual) setManualRefreshing(true);
+    try {
       const d = await API.getDMThread(chatID);
-      setMessages(d.messages);
-      setMeta(d);
+      if (d && Array.isArray(d.messages)) {
+        // Newest first, because the list below is inverted so the latest
+        // message sits at the bottom next to the input.
+        const ordered = [...d.messages].sort(
+          (a, b) => new Date(b.created_at) - new Date(a.created_at),
+        );
+        setMessages(ordered);
+        setMeta(d);
+      }
+    } catch (e) {
+      if (manual) ToastAndroid.show("Couldn't load messages", ToastAndroid.SHORT);
+    } finally {
       setManualRefreshing(false);
       setIsFetching(false);
     }
   };
 
-  const sendMessage = async () => {
-    const id = await DeviceInfo.getAndroidId();
-    const deviceID = sha256(id);
-    setMessageDraft('');
-    await API.sendDM(chatID, messageDraft, deviceID);
-    await fetchMessages(false);
-  };
-
-  const startThread = async () => {
-    const id = await DeviceInfo.getAndroidId();
-    const deviceID = sha256(id);
-    setMessageDraft('');
-    const newDM = await API.startDM(messageDraft, deviceID, postID);
-    navigation.setParams({ chatID: newDM.chat.id });
+  // Keep the draft until the server accepts it, so a failed send isn't lost.
+  const submit = async () => {
+    const text = messageDraft.trim();
+    if (!text || isSending) return;
+    setIsSending(true);
+    try {
+      const id = await DeviceInfo.getAndroidId();
+      const deviceID = sha256(id);
+      if (chatID) {
+        const res = await API.sendDM(chatID, text, deviceID);
+        if (res?.message) throw new Error(res.message);
+        setMessageDraft('');
+        await fetchMessages(false);
+      } else {
+        const newDM = await API.startDM(text, deviceID, postID);
+        if (!newDM?.chat?.id) throw new Error(newDM?.message || 'Could not start chat');
+        setMessageDraft('');
+        // Changing the param triggers the fetch effect above.
+        navigation.setParams({ chatID: newDM.chat.id });
+      }
+    } catch (e) {
+      const msg = typeof e?.message === 'string' && e.message.length < 80 ? e.message : '';
+      ToastAndroid.show(msg ? `Couldn't send: ${msg}` : "Couldn't send message", ToastAndroid.SHORT);
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const leaveChat = async () => {
@@ -114,9 +134,9 @@ function ThreadScreen({ navigation, route }) {
         contentContainerStyle={{
           padding: 10,
           gap: 10,
-          flexDirection: 'column-reverse',
         }}
         data={messages}
+        keyExtractor={item => item.id}
         onRefresh={() => fetchMessages(true)}
         refreshing={manualRefreshing}
         renderItem={({ item }) => (
@@ -153,26 +173,17 @@ function ThreadScreen({ navigation, route }) {
       <TextInput
         value={messageDraft}
         onChangeText={setMessageDraft}
-        onSubmitEditing={() => {
-          if (chatID) {
-            sendMessage();
-          } else {
-            startThread();
-          }
-        }}
+        onSubmitEditing={submit}
+        blurOnSubmit={false}
+        editable={!isSending}
         autoFocus={true}
         placeholder="Send a message"
         style={{ paddingBottom: insets.bottom }}
         right={
           <TextInput.Icon
             icon="send"
-            onPress={() => {
-              if (chatID) {
-                sendMessage();
-              } else {
-                startThread();
-              }
-            }}
+            disabled={isSending || !messageDraft.trim()}
+            onPress={submit}
           />
         }
       />
