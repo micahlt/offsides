@@ -32,6 +32,7 @@ function WriterScreen({ navigation, route }) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const [error, setError] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState('');
   const [textContent, setTextContent] = React.useState('');
   const [isUploading, setIsUploading] = React.useState(false);
   const [postSortMethod, setPostSortMethod] = useMMKVString('postSortMethod');
@@ -75,52 +76,57 @@ function WriterScreen({ navigation, route }) {
 
   const isPollValid = !isPoll || pollOptions.every(opt => opt.trim().length > 0);
 
-  const createPostOrComment = async () => {
-    if (mode == 'post') {
-      const validPollOptions = isPoll ? pollOptions : undefined;
+  // Sidechat rejects anything longer than 255 characters.
+  const MAX_CHARS = 255;
+  const overLimit = textContent.length > MAX_CHARS;
+  const [isSending, setIsSending] = React.useState(false);
 
-      const p = await API.createPost(
-        textContent,
-        groupID,
-        asset ? [asset] : [],
-        null,
-        null,
-        anonMode,
-        repostID,
-        validPollOptions,
-      );
-      if (!p?.message) {
+  const createPostOrComment = async () => {
+    if (isSending) return;
+    setIsSending(true);
+    setError(false);
+    try {
+      let result;
+      if (mode == 'post') {
+        const validPollOptions = isPoll ? pollOptions : undefined;
+        result = await API.createPost(
+          textContent,
+          groupID,
+          asset ? [asset] : [],
+          null,
+          null,
+          anonMode,
+          repostID,
+          validPollOptions,
+        );
+      } else {
+        result = await API.createComment(
+          postID,
+          textContent,
+          groupID,
+          replyID,
+          parentID || null,
+          asset ? [asset] : [],
+          null,
+          anonMode,
+        );
+      }
+      // The library resolves with the server's error body instead of throwing
+      // when the request is rejected, so a missing ID means it failed.
+      if (!result?.id) {
+        throw new Error(result?.message || 'No content returned');
+      }
+      if (mode == 'post') {
         setPostSortMethod('recent');
         navigation.replace('Home');
-      }
-    } else if (mode == 'comment') {
-      if (parentID) {
-        const c = await API.createComment(
-          postID,
-          textContent,
-          groupID,
-          replyID,
-          parentID,
-          asset ? [asset] : [],
-          null,
-          anonMode);
-        if (!c?.message) {
-          navigation.pop();
-        }
       } else {
-        const c = await API.createComment(
-          postID,
-          textContent,
-          groupID,
-          replyID,
-          null,
-          asset ? [asset] : [],
-          null,
-          anonMode);
-        if (!c?.message) {
-          navigation.pop();
-        }
+        navigation.pop();
       }
+    } catch (e) {
+      setErrorMessage(typeof e?.message === 'string' && e.message.length < 120 ? e.message : '');
+      setError(true);
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -134,21 +140,27 @@ function WriterScreen({ navigation, route }) {
     if (result.didCancel || result.errorMessage) return;
     setIsUploading(true);
     const photo = result.assets[0];
-    photo.height;
-    const assetURL = await API.uploadAsset(
-      photo.uri,
-      photo.type,
-      photo.fileName,
-    );
-    setIsUploading(false);
-    setAsset({
-      url: assetURL,
-      type: photo.type.split('/')[0],
-      height: photo.height,
-      width: photo.width,
-      content_type: photo.type.split('/')[1],
-      id: assetURL.split('/v1/assets/library/')[1],
-    });
+    try {
+      const assetURL = await API.uploadAsset(
+        photo.uri,
+        photo.type,
+        photo.fileName,
+      );
+      if (typeof assetURL !== 'string') throw new Error('Upload failed');
+      setAsset({
+        url: assetURL,
+        type: photo.type.split('/')[0],
+        height: photo.height,
+        width: photo.width,
+        content_type: photo.type.split('/')[1],
+        id: assetURL.split('/v1/assets/library/')[1],
+      });
+    } catch (e) {
+      setErrorMessage('image upload failed');
+      setError(true);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -168,12 +180,12 @@ function WriterScreen({ navigation, route }) {
         <Appbar.Action
           icon="send"
           onPress={createPostOrComment}
-          disabled={textContent.length < 1 || !isPollValid}
+          disabled={textContent.length < 1 || overLimit || !isPollValid || isSending}
         />
       </Appbar.Header>
       <ProgressBar
         indeterminate={true}
-        visible={false}
+        visible={isSending}
         style={{ position: 'absolute', top: 0, left: 0 }}
       />
       <View style={{ flexDirection: 'column', flex: 1 }}>
@@ -201,9 +213,9 @@ function WriterScreen({ navigation, route }) {
             value={textContent}
             onChangeText={val => setTextContent(val)}
           />
-          <ProgressBar style={{ marginHorizontal: 11, marginBottom: 5, borderRadius: 10 }} animatedValue={textContent.length / 256} color={textContent.length > 256 ? colors.error : undefined} />
-          <Text style={{ marginHorizontal: 10, marginBottom: 10, color: textContent.length <= 256 ? colors.onSurface : colors.error }} variant="labelLarge">
-            {textContent.length} / 256 chars
+          <ProgressBar style={{ marginHorizontal: 11, marginBottom: 5, borderRadius: 10 }} animatedValue={Math.min(textContent.length / MAX_CHARS, 1)} color={overLimit ? colors.error : undefined} />
+          <Text style={{ marginHorizontal: 10, marginBottom: 10, color: overLimit ? colors.error : colors.onSurface }} variant="labelLarge">
+            {textContent.length} / {MAX_CHARS} chars
           </Text>
           {mode === 'post' && isPoll && (
             <View style={{ marginHorizontal: 10, marginBottom: 10 }}>
@@ -374,8 +386,13 @@ function WriterScreen({ navigation, route }) {
           )}
         </View>
       </View>
-      <Snackbar visible={error} onDismiss={() => setError(false)}>
-        Sorry, there was an error creating this {mode}.
+      <Snackbar
+        visible={error}
+        onDismiss={() => setError(false)}
+        action={{ label: 'Retry', onPress: createPostOrComment }}>
+        {errorMessage
+          ? `Couldn't send this ${mode}: ${errorMessage}`
+          : `Couldn't send this ${mode}. Check your connection and try again.`}
       </Snackbar>
     </View>
   );

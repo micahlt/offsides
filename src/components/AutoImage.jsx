@@ -9,10 +9,8 @@ const AutoImage = ({
   token,
   style = {},
 }) => {
-  const aspect = React.useMemo(() => {
-    return srcHeight / srcWidth;
-  }, []);
-  return React.useCallback(
+  const aspect = srcHeight / srcWidth;
+  return (
     <ImageModal
       modalImageResizeMode="contain"
       source={{
@@ -28,8 +26,7 @@ const AutoImage = ({
         ...style,
       }}
       resizeMode="cover"
-    />,
-    [],
+    />
   );
 };
 
