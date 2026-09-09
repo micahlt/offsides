@@ -49,7 +49,7 @@ function GroupAvatar({
         />
       );
     }
-  }, [groupName]);
+  }, [groupName, groupImage, groupColor, size, borderRadius]);
   return (
     <TouchableRipple
       onPress={clickableByDefault ? onPress : null}

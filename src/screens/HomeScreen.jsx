@@ -12,6 +12,7 @@ import {
   useColorScheme,
   TouchableOpacity,
   Dimensions,
+  ToastAndroid,
 } from 'react-native';
 import {
   Appbar,
@@ -89,18 +90,16 @@ function HomeScreen({ navigation }) {
   React.useEffect(() => {
     crashlytics().log('Detected group change or sort method change');
     updateSortIcon();
-    if (!loadingPosts) {
-      InteractionManager.runAfterInteractions(() => {
-        if (appState.userToken && currentGroup?.id) {
-          fetchPosts(true, currentGroup.id);
-          setOnboard(false);
-        } else if (appState.userToken && !currentGroup) {
-          setOnboard(true);
-        } else {
-          console.log('App state is undefined, will load in a second');
-        }
-      });
-    }
+    InteractionManager.runAfterInteractions(() => {
+      if (appState.userToken && currentGroup?.id) {
+        fetchPosts(true, currentGroup.id);
+        setOnboard(false);
+      } else if (appState.userToken && !currentGroup) {
+        setOnboard(true);
+      } else {
+        console.log('App state is undefined, will load in a second');
+      }
+    });
   }, [postSortMethod, currentGroup]);
 
   const uniquePosts = useUniqueList(posts);
@@ -124,43 +123,50 @@ function HomeScreen({ navigation }) {
         setSortIcon('filter-variant');
     }
   };
+  // Bumped on every fetch so a response for an older group or sort is ignored.
+  const fetchSeq = React.useRef(0);
   const fetchPosts = (refresh, override) => {
-    if (loadingPosts || !currentGroup?.id || !postSortMethod) return false;
+    if (!currentGroup?.id || !postSortMethod) return false;
+    // Pagination waits for the current request; a refresh always wins.
+    if (!refresh && loadingPosts) return false;
     crashlytics().log(`Fetching posts sorted by ${postSortMethod}`);
     setLoadingPosts(true);
-    try {
-      if (refresh) {
-        crashlytics().log('Fetch triggered by refresh/group change');
-        clearVotes();
-        setPosts([]);
-        API.getGroupPosts(override || currentGroup.id, postSortMethod).then(
-          res => {
-            if (res.posts) {
-              setPosts(res.posts.filter(i => i.id));
-              setCursor(res.cursor);
-            }
-            setLoadingPosts(false);
-          },
-        );
-      } else {
-        crashlytics().log('Fetch triggered by scroll at end of list');
-        API.getGroupPosts(
-          override || currentGroup.id,
-          postSortMethod,
-          cursor,
-        ).then(res => {
-          if (res.posts) {
-            setPosts(posts.concat(res.posts.filter(i => i.id)));
-            setCursor(res.cursor);
-          }
-          setLoadingPosts(false);
-        });
-      }
-    } catch (e) {
-      console.log(e);
-      crashlytics().log('Error fetching posts');
-      crashlytics().recordError(e);
+    const seq = ++fetchSeq.current;
+    const isCurrent = () => seq === fetchSeq.current;
+    const groupID = override || currentGroup.id;
+    let request;
+    if (refresh) {
+      crashlytics().log('Fetch triggered by refresh/group change');
+      clearVotes();
+      setPosts([]);
+      request = API.getGroupPosts(groupID, postSortMethod).then(res => {
+        if (isCurrent() && res?.posts) {
+          setPosts(res.posts.filter(i => i.id));
+          setCursor(res.cursor);
+        }
+      });
+    } else {
+      crashlytics().log('Fetch triggered by scroll at end of list');
+      request = API.getGroupPosts(groupID, postSortMethod, cursor).then(res => {
+        if (isCurrent() && res?.posts) {
+          setPosts(prev => prev.concat(res.posts.filter(i => i.id)));
+          setCursor(res.cursor);
+        }
+      });
     }
+    // Always clear the loading flag, or one failed request would block every
+    // later fetch and leave the progress bar running until the app restarts.
+    request
+      .catch(e => {
+        crashlytics().log('Error fetching posts');
+        crashlytics().recordError(e);
+        if (isCurrent()) {
+          ToastAndroid.show("Couldn't load posts. Pull down to retry.", ToastAndroid.SHORT);
+        }
+      })
+      .finally(() => {
+        if (isCurrent()) setLoadingPosts(false);
+      });
   };
 
   const position = useSharedValue(0);

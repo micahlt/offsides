@@ -21,7 +21,9 @@ function UserAvatar({
       groupName: group.name,
     });
   }, [group]);
-  return React.useCallback(
+  // No memoization here: FlashList recycles cards, so this component must
+  // re-render with whatever author the recycled card now shows.
+  return (
     <>
       {conversationIcon?.emoji || numberAlias ? (
         <>
@@ -59,8 +61,7 @@ function UserAvatar({
           onPress={switchToGroup}
         />
       )}
-    </>,
-    [],
+    </>
   );
 }
 
