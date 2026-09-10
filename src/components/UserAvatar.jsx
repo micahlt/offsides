@@ -53,10 +53,12 @@ function UserAvatar({
         </>
       ) : (
         <GroupAvatar
-          groupColor={group.color}
-          groupImage={group.icon_url}
-          groupName={group.name}
+          groupColor={group?.color}
+          groupImage={group?.icon_url}
+          groupName={group?.name || ''}
           onPress={switchToGroup}
+          size={size}
+          borderRadius={borderRadius}
         />
       )}
     </>,
