@@ -77,9 +77,18 @@ function Comment({ comment, nav, isolated = false }) {
             hitSlop={4}>
             <UserAvatar
               group={comment.group}
-              conversationIcon={comment?.identity?.conversation_icon}
+              // Same as Post: only show the icon when the comment carries a username.
+              conversationIcon={
+                comment?.identity?.posted_with_username
+                  ? comment?.identity?.conversation_icon
+                  : undefined
+              }
+              // Thread aliases like "#1" or "OP" go in the circle. Outside a
+              // thread the alias is just "Anonymous", which doesn't fit, so
+              // fall back to the group icon like posts do.
               numberAlias={
-                !comment?.identity?.posted_with_username
+                !comment?.identity?.posted_with_username &&
+                comment.identity.name != 'Anonymous'
                   ? comment.identity.name
                   : false
               }
