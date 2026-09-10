@@ -41,7 +41,9 @@ function Post({
   const [identity, setIdentity] = useRecyclingState(post?.identity, [post]);
   const postID = post.id;
 
-  // Posts made with a username can be tapped through to that user's public profile.
+  // The server fills identity.name on your own anonymous posts too (your
+  // username, or "OP" in a thread) with posted_with_username false, so the
+  // flag decides whether a name or icon is shown, not the name itself.
   const hasUsername =
     !!identity?.name &&
     identity.name != 'Anonymous' &&
@@ -116,7 +118,7 @@ function Post({
           <Pressable onPress={openProfile} disabled={!canOpenProfile} hitSlop={4}>
             <UserAvatar
               group={group}
-              conversationIcon={identity?.conversation_icon}
+              conversationIcon={hasUsername ? identity?.conversation_icon : undefined}
               size={46}
               borderRadius={BORDER_RADIUS}
             />
@@ -130,7 +132,7 @@ function Post({
             <Text variant="labelLarge" style={{ marginLeft: 10 }}>
               {timesago(post.created_at)}
             </Text>
-            {post.identity.name != 'Anonymous' && (
+            {hasUsername ? (
               <Text
                 variant="labelMedium"
                 onPress={canOpenProfile ? openProfile : undefined}
@@ -139,9 +141,13 @@ function Post({
                   opacity: 0.75,
                   color: canOpenProfile ? colors.primary : undefined,
                 }}>
-                @{post.identity.name}
+                @{identity.name}
               </Text>
-            )}
+            ) : post.authored_by_user ? (
+              <Text variant="labelMedium" style={{ marginLeft: 10, opacity: 0.75 }}>
+                Anonymous (you)
+              </Text>
+            ) : null}
           </View>
           {post.authored_by_user && (
             <IconButton
