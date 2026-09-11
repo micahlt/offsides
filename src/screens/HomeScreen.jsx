@@ -62,6 +62,9 @@ function HomeScreen({ navigation }) {
   const colors = theme.colors;
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [loadingPosts, setLoadingPosts] = React.useState(false);
+  // Only a pull-to-refresh or group change drives the refresh indicator;
+  // loading the next page should not show a spinner at the top of the list.
+  const [refreshing, setRefreshing] = React.useState(false);
   const [sheetIsOpen, setSheetIsOpen] = React.useState(false);
   const [currentGroup, setCurrentGroup] = useMMKVObject('currentGroup');
   const [userGroups, setUserGroups] = useMMKVObject('userGroups');
@@ -129,8 +132,11 @@ function HomeScreen({ navigation }) {
     if (!currentGroup?.id || !postSortMethod) return false;
     // Pagination waits for the current request; a refresh always wins.
     if (!refresh && loadingPosts) return false;
+    // A null cursor means the server has no more pages.
+    if (!refresh && !cursor) return false;
     crashlytics().log(`Fetching posts sorted by ${postSortMethod}`);
     setLoadingPosts(true);
+    if (refresh) setRefreshing(true);
     const seq = ++fetchSeq.current;
     const isCurrent = () => seq === fetchSeq.current;
     const groupID = override || currentGroup.id;
@@ -165,7 +171,10 @@ function HomeScreen({ navigation }) {
         }
       })
       .finally(() => {
-        if (isCurrent()) setLoadingPosts(false);
+        if (isCurrent()) {
+          setLoadingPosts(false);
+          setRefreshing(false);
+        }
       });
   };
 
@@ -177,6 +186,8 @@ function HomeScreen({ navigation }) {
 
   const flingGesture = Gesture.Pan()
     .onStart((e) => {
+      // Groups come from the updates call; a swipe before that lands (or after it failed) would crash.
+      if (!userGroups?.length || !currentGroup?.id) return;
       if (Math.abs(e.velocityX) > 300) {
         const currentIndex = userGroups.findIndex((g) => g.id == currentGroup.id);
         let nextIndex;
@@ -356,7 +367,7 @@ function HomeScreen({ navigation }) {
             data={uniquePosts}
             renderItem={renderItem}
             onRefresh={() => fetchPosts(true)}
-            refreshing={loadingPosts}
+            refreshing={refreshing}
             onEndReachedThreshold={0.5}
             keyExtractor={item => item.id}
             onEndReached={() => fetchPosts(false)}

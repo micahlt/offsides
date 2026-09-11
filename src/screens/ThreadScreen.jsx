@@ -178,7 +178,6 @@ function ThreadScreen({ navigation, route }) {
           onChangeText={setMessageDraft}
           onSubmitEditing={submit}
           blurOnSubmit={false}
-          editable={!isSending}
           autoFocus={true}
           placeholder="Send a message"
           style={{ paddingBottom: insets.bottom }}
