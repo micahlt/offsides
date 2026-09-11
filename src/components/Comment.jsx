@@ -6,6 +6,7 @@ import { setStringAsync as copyToClipboard } from 'expo-clipboard';
 import timesago from 'timesago';
 import { AppContext } from '../App.jsx';
 import AutoImage from './AutoImage';
+import AutoVideo from './AutoVideo';
 import UserAvatar from './UserAvatar.jsx';
 import Poll from './Poll.jsx';
 import { useSharedVote, castVote } from '../utils/voteStore';
@@ -88,8 +89,8 @@ function Comment({ comment, nav, isolated = false }) {
               // fall back to the group icon like posts do.
               numberAlias={
                 !comment?.identity?.posted_with_username &&
-                comment.identity.name != 'Anonymous'
-                  ? comment.identity.name
+                comment?.identity?.name != 'Anonymous'
+                  ? comment?.identity?.name
                   : false
               }
               size={46}
@@ -106,7 +107,7 @@ function Comment({ comment, nav, isolated = false }) {
               flexDirection: 'column',
               flex: 1,
             }}>
-            {comment.identity.name != 'Anonymous' &&
+            {!!comment?.identity?.name && comment.identity.name != 'Anonymous' &&
               comment?.identity?.posted_with_username && (
                 <Text
                   variant="labelMedium"
