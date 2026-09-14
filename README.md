@@ -9,7 +9,7 @@ A third-party Android app for [Sidechat](https://sidechat.lol).  Many thanks to 
 
 As a reverse-engineered app, Offsides will not be coming to the Google Play Store.  You can install it manually by downloading the [latest release APK](https://github.com/micahlt/offsides/releases/latest) or clicking the button below to install it with [Obtainium](https://obtainium.imranr.dev) (which gives you nice features like auto-update).
 
-[<img src="docs/badge_obtainium.png" height="64">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add?url=https://github.com/micahlt/offsides)
+[<img src="docs/badge_obtainium.png" height="64">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add/https://github.com/micahlt/offsides)
 
 ## Developing Offsides
 
