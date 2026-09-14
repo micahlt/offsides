@@ -1,4 +1,4 @@
 {
-  "latestVersion": "0.9.4",
-  "changelog": "This update allows you to add your own polls to your posts (thanks to Gabor Szita!)"
+  "latestVersion": "1.0.0",
+  "changelog": "Fixes several stability issues and crashes, improves performance, and adds public profiles (thanks @FrankBStack)."
 }

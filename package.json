@@ -1,6 +1,6 @@
 {
   "name": "offsides",
-  "version": "0.9.4",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "android": "expo run:android",
