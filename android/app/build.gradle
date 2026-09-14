@@ -105,7 +105,7 @@ android {
             keyPassword 'android'
         }
         release {
-            if (project.hasProperty('MYAPP_RELEASE_STORE_FILE')) {
+            if (project.hasProperty('OFFSIDES_RELEASE_STORE_FILE')) {
                 storeFile file(OFFSIDES_RELEASE_STORE_FILE)
                 storePassword OFFSIDES_RELEASE_STORE_PASSWORD
                 keyAlias OFFSIDES_RELEASE_KEY_ALIAS
@@ -120,7 +120,7 @@ android {
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
-            if (project.hasProperty('MYAPP_RELEASE_STORE_FILE')) {
+            if (project.hasProperty('OFFSIDES_RELEASE_STORE_FILE')) {
                 signingConfig signingConfigs.release
             } else {
                 signingConfig signingConfigs.debug
