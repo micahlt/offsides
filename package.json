@@ -1,6 +1,6 @@
 {
   "name": "offsides",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "scripts": {
     "android": "expo run:android",
@@ -39,6 +39,7 @@
     "react-native-gesture-handler": "~2.28.0",
     "react-native-image-modal": "^3.0.13",
     "react-native-image-picker": "^7.2.3",
+    "react-native-keyboard-controller": "1.18.5",
     "react-native-mmkv": "^3.2.0",
     "react-native-paper": "^5.14.5",
     "react-native-reanimated": "~4.1.1",

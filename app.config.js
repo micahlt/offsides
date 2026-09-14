@@ -1,14 +1,14 @@
 module.exports = {
   name: 'Offsides',
   slug: 'offsides',
-  version: '1.0.0',
+  version: '1.0.1',
   platforms: ['android'],
   githubUrl: 'https://github.com/micahlt/offsides',
   icon: './src/assets/icon.png',
   newArchEnabled: true,
   android: {
     package: 'com.micahlindley.offsides',
-    versionCode: 60,
+    versionCode: 61,
     adaptiveIcon: {
       foregroundImage: './src/assets/adaptive-icon.png',
       monochromeImage: './src/assets/adaptive-icon-mono.png',

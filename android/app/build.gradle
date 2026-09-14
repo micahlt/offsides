@@ -92,8 +92,8 @@ android {
         applicationId 'com.micahlindley.offsides'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 60
-        versionName "1.0.0"
+        versionCode 61
+        versionName "1.0.1"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }

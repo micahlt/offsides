@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { FlatList, InteractionManager, View } from 'react-native';
 import {
   Appbar,
@@ -16,6 +16,7 @@ import timesago from 'timesago';
 import DeviceInfo from 'react-native-device-info';
 import { sha256 } from 'js-sha256';
 import useInterval from '../hooks/useInterval';
+import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 
 function ThreadScreen({ navigation, route }) {
   const { postID, chatID } = route.params;
@@ -119,6 +120,7 @@ function ThreadScreen({ navigation, route }) {
         data={messages}
         onRefresh={() => fetchMessages(true)}
         refreshing={manualRefreshing}
+        renderScrollComponent={(props) => <KeyboardAwareScrollView {...props} />}
         renderItem={({ item }) => (
           <TouchableRipple
             borderless={true}
@@ -150,32 +152,34 @@ function ThreadScreen({ navigation, route }) {
           </TouchableRipple>
         )}
       />
-      <TextInput
-        value={messageDraft}
-        onChangeText={setMessageDraft}
-        onSubmitEditing={() => {
-          if (chatID) {
-            sendMessage();
-          } else {
-            startThread();
+      <KeyboardStickyView>
+        <TextInput
+          value={messageDraft}
+          onChangeText={setMessageDraft}
+          onSubmitEditing={() => {
+            if (chatID) {
+              sendMessage();
+            } else {
+              startThread();
+            }
+          }}
+          autoFocus={true}
+          placeholder="Send a message"
+          style={{ paddingBottom: insets.bottom }}
+          right={
+            <TextInput.Icon
+              icon="send"
+              onPress={() => {
+                if (chatID) {
+                  sendMessage();
+                } else {
+                  startThread();
+                }
+              }}
+            />
           }
-        }}
-        autoFocus={true}
-        placeholder="Send a message"
-        style={{ paddingBottom: insets.bottom }}
-        right={
-          <TextInput.Icon
-            icon="send"
-            onPress={() => {
-              if (chatID) {
-                sendMessage();
-              } else {
-                startThread();
-              }
-            }}
-          />
-        }
-      />
+        />
+      </KeyboardStickyView>
     </View>
   );
 }

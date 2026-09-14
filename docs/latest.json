@@ -1,4 +1,4 @@
 {
-  "latestVersion": "1.0.0",
+  "latestVersion": "1.0.1",
   "changelog": "Fixes several stability issues and crashes, improves performance, and adds public profiles (thanks @FrankBStack)."
 }
