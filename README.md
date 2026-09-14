@@ -2,71 +2,26 @@
 
 A third-party Android app for [Sidechat](https://sidechat.lol).  Many thanks to [SidechatProxy](https://github.com/OrenKohavi/SidechatProxy) and its author [Oren Kohavi](https://github.com/OrenKohavi), both of whom have been instrumental in this app's development.
 
-![](docs/screenshot-raw.png)
+> [!IMPORTANT]
+> Offsides is being [depreciated](https://www.reddit.com/r/Offsides/comments/1unue0p/offsides_likely_shutting_down_soon) in favor of the upcoming official YikYak app for Android.  All code and downloads will remain available and open-source, but support is not guaranteed.
 
-## Development
+## Downloading Offsides
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+As a reverse-engineered app, Offsides will not be coming to the Google Play Store.  You can install it manually by downloading the [latest release APK](https://github.com/micahlt/offsides/releases/latest) or clicking the button below to install it with [Obtainium](https://obtainium.imranr.dev) (which gives you nice features like auto-update).
 
-### Step 1: Start the Metro Server
+[<img src="docs/badge_obtainium.png" height="64">](https://apps.obtainium.imranr.dev/redirect?r=obtainium://add?url=https://github.com/micahlt/offsides)
 
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
+## Developing Offsides
 
-To start Metro, run the following command from the _root_ of your React Native project:
+Offsides is a [React Native](https://reactnative.dev) app using the [Expo SDK](https://expo.dev).
 
-```bash
-# using npm
-npm start
+> [!NOTE]
+> Make sure you have completed the [Expo Environment Setup](https://docs.expo.dev/get-started/set-up-your-environment) instructions before proceeding.
 
-# OR using Yarn
-yarn start
-```
-
-### Step 2: Start your Application
-
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ app:
+You can develop Offsides using the `npm run` commands:
 
 ```bash
-# using npm
 npm run android
-
-# OR using Yarn
-yarn android
 ```
 
-
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
-
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
-
-## Step 3: Modifying your App
-
-Now that you have successfully run the app, let's modify it.
-
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
-
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+This will start the Expo dev server as well as open the app in the Android emulator or a physical device if you have ADB set up.  Logical changes to how the YikYak/Sidechat API is accessed must be changed in the upstream [sidechat.js](https://github.com/micahlt/sidechat.js) project.
