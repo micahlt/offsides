@@ -105,10 +105,12 @@ android {
             keyPassword 'android'
         }
         release {
-            storeFile file(OFFSIDES_RELEASE_STORE_FILE)
-            storePassword OFFSIDES_RELEASE_STORE_PASSWORD
-            keyAlias OFFSIDES_RELEASE_KEY_ALIAS
-            keyPassword OFFSIDES_RELEASE_KEY_PASSWORD
+            if (project.hasProperty('MYAPP_RELEASE_STORE_FILE')) {
+                storeFile file(OFFSIDES_RELEASE_STORE_FILE)
+                storePassword OFFSIDES_RELEASE_STORE_PASSWORD
+                keyAlias OFFSIDES_RELEASE_KEY_ALIAS
+                keyPassword OFFSIDES_RELEASE_KEY_PASSWORD
+            }
         }
     }
     buildTypes {
