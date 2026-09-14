@@ -32,7 +32,7 @@ jobs:
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Install app dependencies
         run: npm install
@@ -53,6 +53,9 @@ jobs:
         run: mv android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/release/offsides-nightly-${{ env.COMMIT_SHORT_SHA }}.apk
 
       - name: Create prerelease
+        # Pull requests from forks get a read-only token, so publishing a
+        # release would 403. Building the APK is enough of a check for a PR.
+        if: github.event_name == 'push'
         uses: ncipollo/release-action@v1.14.0
         with:
           name: ${{ env.COMMIT_SHORT_SHA }} [NIGHTLY]
