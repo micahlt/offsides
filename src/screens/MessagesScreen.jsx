@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, InteractionManager, View } from 'react-native';
+import { FlatList, InteractionManager, ToastAndroid, View } from 'react-native';
 import {
   Appbar,
   Icon,
@@ -12,6 +12,16 @@ import { useIsFocused } from '@react-navigation/native';
 import { AppContext } from '../App';
 import timesago from 'timesago';
 import useInterval from '../hooks/useInterval';
+
+// Message order from the server isn't guaranteed, so pick the newest by date.
+function latestText(thread) {
+  const msgs = Array.isArray(thread?.messages) ? thread.messages : [];
+  if (msgs.length === 0) return 'No messages in this chat';
+  const latest = msgs.reduce((best, m) =>
+    !best || new Date(m.created_at) > new Date(best.created_at) ? m : best,
+  null);
+  return latest?.text || '';
+}
 
 function MessageScreen({ navigation }) {
   const {
@@ -40,9 +50,14 @@ function MessageScreen({ navigation }) {
     if (manual) {
       setManualRefreshing(true);
     }
-    const d = await API.getDMs();
-    setDMs(d);
-    setManualRefreshing(false);
+    try {
+      const d = await API.getDMs();
+      if (Array.isArray(d)) setDMs(d);
+    } catch (e) {
+      if (manual) ToastAndroid.show("Couldn't load DMs", ToastAndroid.SHORT);
+    } finally {
+      setManualRefreshing(false);
+    }
   };
 
   return (
@@ -84,9 +99,7 @@ function MessageScreen({ navigation }) {
               />
               <View>
                 <Text style={{ color: colors.onSurface }} variant="bodyLarge">
-                  {item.messages.length > 0
-                    ? item.messages[item.messages.length - 1]?.text || ''
-                    : 'No messages in this chat'}
+                  {latestText(item)}
                 </Text>
                 <Text
                   style={{ color: colors.onSurfaceVariant }}

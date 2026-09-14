@@ -12,6 +12,7 @@ import {
   useColorScheme,
   TouchableOpacity,
   Dimensions,
+  ToastAndroid,
 } from 'react-native';
 import {
   Appbar,
@@ -61,6 +62,9 @@ function HomeScreen({ navigation }) {
   const colors = theme.colors;
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [loadingPosts, setLoadingPosts] = React.useState(false);
+  // Only a pull-to-refresh or group change drives the refresh indicator;
+  // loading the next page should not show a spinner at the top of the list.
+  const [refreshing, setRefreshing] = React.useState(false);
   const [sheetIsOpen, setSheetIsOpen] = React.useState(false);
   const [currentGroup, setCurrentGroup] = useMMKVObject('currentGroup');
   const [userGroups, setUserGroups] = useMMKVObject('userGroups');
@@ -89,18 +93,16 @@ function HomeScreen({ navigation }) {
   React.useEffect(() => {
     crashlytics().log('Detected group change or sort method change');
     updateSortIcon();
-    if (!loadingPosts) {
-      InteractionManager.runAfterInteractions(() => {
-        if (appState.userToken && currentGroup?.id) {
-          fetchPosts(true, currentGroup.id);
-          setOnboard(false);
-        } else if (appState.userToken && !currentGroup) {
-          setOnboard(true);
-        } else {
-          console.log('App state is undefined, will load in a second');
-        }
-      });
-    }
+    InteractionManager.runAfterInteractions(() => {
+      if (appState.userToken && currentGroup?.id) {
+        fetchPosts(true, currentGroup.id);
+        setOnboard(false);
+      } else if (appState.userToken && !currentGroup) {
+        setOnboard(true);
+      } else {
+        console.log('App state is undefined, will load in a second');
+      }
+    });
   }, [postSortMethod, currentGroup]);
 
   const uniquePosts = useUniqueList(posts);
@@ -124,43 +126,56 @@ function HomeScreen({ navigation }) {
         setSortIcon('filter-variant');
     }
   };
+  // Bumped on every fetch so a response for an older group or sort is ignored.
+  const fetchSeq = React.useRef(0);
   const fetchPosts = (refresh, override) => {
-    if (loadingPosts || !currentGroup?.id || !postSortMethod) return false;
+    if (!currentGroup?.id || !postSortMethod) return false;
+    // Pagination waits for the current request; a refresh always wins.
+    if (!refresh && loadingPosts) return false;
+    // A null cursor means the server has no more pages.
+    if (!refresh && !cursor) return false;
     crashlytics().log(`Fetching posts sorted by ${postSortMethod}`);
     setLoadingPosts(true);
-    try {
-      if (refresh) {
-        crashlytics().log('Fetch triggered by refresh/group change');
-        clearVotes();
-        setPosts([]);
-        API.getGroupPosts(override || currentGroup.id, postSortMethod).then(
-          res => {
-            if (res.posts) {
-              setPosts(res.posts.filter(i => i.id));
-              setCursor(res.cursor);
-            }
-            setLoadingPosts(false);
-          },
-        );
-      } else {
-        crashlytics().log('Fetch triggered by scroll at end of list');
-        API.getGroupPosts(
-          override || currentGroup.id,
-          postSortMethod,
-          cursor,
-        ).then(res => {
-          if (res.posts) {
-            setPosts(posts.concat(res.posts.filter(i => i.id)));
-            setCursor(res.cursor);
-          }
-          setLoadingPosts(false);
-        });
-      }
-    } catch (e) {
-      console.log(e);
-      crashlytics().log('Error fetching posts');
-      crashlytics().recordError(e);
+    if (refresh) setRefreshing(true);
+    const seq = ++fetchSeq.current;
+    const isCurrent = () => seq === fetchSeq.current;
+    const groupID = override || currentGroup.id;
+    let request;
+    if (refresh) {
+      crashlytics().log('Fetch triggered by refresh/group change');
+      clearVotes();
+      setPosts([]);
+      request = API.getGroupPosts(groupID, postSortMethod).then(res => {
+        if (isCurrent() && res?.posts) {
+          setPosts(res.posts.filter(i => i.id));
+          setCursor(res.cursor);
+        }
+      });
+    } else {
+      crashlytics().log('Fetch triggered by scroll at end of list');
+      request = API.getGroupPosts(groupID, postSortMethod, cursor).then(res => {
+        if (isCurrent() && res?.posts) {
+          setPosts(prev => prev.concat(res.posts.filter(i => i.id)));
+          setCursor(res.cursor);
+        }
+      });
     }
+    // Always clear the loading flag, or one failed request would block every
+    // later fetch and leave the progress bar running until the app restarts.
+    request
+      .catch(e => {
+        crashlytics().log('Error fetching posts');
+        crashlytics().recordError(e);
+        if (isCurrent()) {
+          ToastAndroid.show("Couldn't load posts. Pull down to retry.", ToastAndroid.SHORT);
+        }
+      })
+      .finally(() => {
+        if (isCurrent()) {
+          setLoadingPosts(false);
+          setRefreshing(false);
+        }
+      });
   };
 
   const position = useSharedValue(0);
@@ -171,6 +186,8 @@ function HomeScreen({ navigation }) {
 
   const flingGesture = Gesture.Pan()
     .onStart((e) => {
+      // Groups come from the updates call; a swipe before that lands (or after it failed) would crash.
+      if (!userGroups?.length || !currentGroup?.id) return;
       if (Math.abs(e.velocityX) > 300) {
         const currentIndex = userGroups.findIndex((g) => g.id == currentGroup.id);
         let nextIndex;
@@ -350,7 +367,7 @@ function HomeScreen({ navigation }) {
             data={uniquePosts}
             renderItem={renderItem}
             onRefresh={() => fetchPosts(true)}
-            refreshing={loadingPosts}
+            refreshing={refreshing}
             onEndReachedThreshold={0.5}
             keyExtractor={item => item.id}
             onEndReached={() => fetchPosts(false)}
