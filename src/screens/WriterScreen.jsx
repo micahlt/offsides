@@ -1,6 +1,6 @@
 import { SidechatSimpleAsset } from 'sidechat.js/src/types/SidechatTypes.js';
 import React, { useEffect } from 'react';
-import { View, StatusBar, Image } from 'react-native';
+import { View, StatusBar, Image, StyleSheet } from 'react-native';
 import {
   Appbar,
   useTheme,
@@ -154,7 +154,7 @@ function WriterScreen({ navigation, route }) {
   return (
     <View style={{ backgroundColor: colors.background, flex: 1 }}>
       <StatusBar animated={true} backgroundColor={colors.elevation.level2} />
-      <Appbar.Header elevated={true}>
+      <Appbar.Header elevated={true} style={{ backgroundColor: colors.background }}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title={`New ${mode}`} />
         <Tooltip title="Anonymous mode">
@@ -179,20 +179,14 @@ function WriterScreen({ navigation, route }) {
       <View style={{ flexDirection: 'column', flex: 1 }}>
         <View style={{ flex: 1 }}>
           <TextInput
-            style={{
-              flex: 1,
-              borderRadius: BORDER_RADIUS,
-              borderBottomWidth: 0,
-              backgroundColor: colors.elevation.level3,
-              fontSize: 20,
-              marginHorizontal: 10,
-              marginVertical: 15,
-              flexDirection: 'column',
-            }}
+            style={[
+              styles.composeInput,
+              { backgroundColor: colors.elevation.level2 },
+            ]}
             contentStyle={{
               height: '100%',
-              paddingTop: 10,
-              paddingBottom: 10,
+              paddingBottom: 12,
+              paddingTop: 12,
             }}
             outlineStyle={{ borderRadius: BORDER_RADIUS }}
             mode="outlined"
@@ -201,8 +195,17 @@ function WriterScreen({ navigation, route }) {
             value={textContent}
             onChangeText={val => setTextContent(val)}
           />
-          <ProgressBar style={{ marginHorizontal: 11, marginBottom: 5, borderRadius: 10 }} animatedValue={textContent.length / 256} color={textContent.length > 256 ? colors.error : undefined} />
-          <Text style={{ marginHorizontal: 10, marginBottom: 10, color: textContent.length <= 256 ? colors.onSurface : colors.error }} variant="labelLarge">
+          <ProgressBar
+            style={styles.characterProgress}
+            animatedValue={textContent.length / 256}
+            color={textContent.length > 256 ? colors.error : undefined}
+          />
+          <Text
+            style={[
+              styles.characterCount,
+              { color: textContent.length <= 256 ? colors.onSurfaceVariant : colors.error },
+            ]}
+            variant="labelLarge">
             {textContent.length} / 256 chars
           </Text>
           {mode === 'post' && isPoll && (
@@ -256,14 +259,13 @@ function WriterScreen({ navigation, route }) {
           </View>}
         </View>
         <View
-          style={{
-            backgroundColor: colors.elevation.level5,
-            flex: 0.15,
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: 15,
-            paddingBottom: insets.bottom,
-          }}>
+          style={[
+            styles.attachmentBar,
+            {
+              backgroundColor: colors.elevation.level2,
+              paddingBottom: insets.bottom + 10,
+            },
+          ]}>
           {asset ? (
             <View style={{ position: 'relative' }}>
               <IconButton
@@ -382,3 +384,32 @@ function WriterScreen({ navigation, route }) {
 }
 
 export default WriterScreen;
+
+const styles = StyleSheet.create({
+  composeInput: {
+    borderBottomWidth: 0,
+    borderRadius: BORDER_RADIUS,
+    flex: 1,
+    flexDirection: 'column',
+    fontSize: 20,
+    marginHorizontal: 10,
+    marginTop: 12,
+    marginBottom: 10,
+  },
+  characterProgress: {
+    borderRadius: 10,
+    marginBottom: 6,
+    marginHorizontal: 11,
+  },
+  characterCount: {
+    marginBottom: 12,
+    marginHorizontal: 10,
+  },
+  attachmentBar: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    minHeight: 118,
+    paddingHorizontal: 15,
+    paddingTop: 10,
+  },
+});
