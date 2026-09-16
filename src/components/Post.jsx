@@ -1,7 +1,7 @@
 import { SidechatPostOrComment } from 'sidechat.js/src/types/SidechatTypes.js';
 import React, { useState } from 'react';
-import { Alert, Linking, Pressable, View } from 'react-native';
-import { Card, Chip, IconButton, Text, useTheme } from 'react-native-paper';
+import { Alert, Linking, Pressable, StyleSheet, View } from 'react-native';
+import { Button, Card, Chip, IconButton, Text, useTheme } from 'react-native-paper';
 import { setStringAsync as copyToClipboard } from 'expo-clipboard';
 import timesago from 'timesago';
 import AutoImage from './AutoImage';
@@ -11,7 +11,7 @@ import Poll from './Poll';
 import { useRecyclingState } from '@shopify/flash-list';
 import { useSharedVote, castVote } from '../utils/voteStore';
 
-const BORDER_RADIUS = 12;
+const BORDER_RADIUS = 14;
 
 /**
  * @param {object} props
@@ -31,30 +31,32 @@ function Post({
 }) {
   const colors = themeColors;
   const API = apiInstance;
-  if (!post || !API) {
-    return <></>;
-  }
   // Shared across every card showing this post (feed, comments, profile, thread).
-  const [vote, voteCount] = useSharedVote(post.id, post.vote_status, post.vote_total);
+  const [vote, voteCount] = useSharedVote(post?.id, post?.vote_status, post?.vote_total);
   const [width, setWidth] = useState();
-  const [group, setGroup] = useRecyclingState(post.group, [post]);
+  const [group, setGroup] = useRecyclingState(post?.group, [post]);
   const [identity, setIdentity] = useRecyclingState(post?.identity, [post]);
-  const postID = post.id;
+  const postID = post?.id;
+  const [hidden, setHidden] = useState(false);
 
   // Posts made with a username can be tapped through to that user's public profile.
   const hasUsername =
     !!identity?.name &&
-    identity.name != 'Anonymous' &&
+    identity.name !== 'Anonymous' &&
     identity.posted_with_username !== false;
-  const canOpenProfile = profileLink && hasUsername && !!nav;
+  const canOpenProfile = !!post && profileLink && hasUsername && !!nav;
+  const canMessageAuthor = !!post && !post.dms_disabled && !post.authored_by_user && !!nav;
+  const canHideAuthor = !!post && !post.authored_by_user && !repost;
   const openProfile = React.useCallback(() => {
-    if (!canOpenProfile) return;
-    if (post.authored_by_user) {
+    if (!canOpenProfile) {
+      return;
+    }
+    if (post?.authored_by_user) {
       nav.push('MyProfile');
     } else {
       nav.push('UserProfile', { username: identity.name });
     }
-  }, [canOpenProfile, post.authored_by_user, identity?.name, nav]);
+  }, [canOpenProfile, post?.authored_by_user, identity?.name, nav]);
 
   const applyVote = React.useCallback(
     action => castVote(API, postID, vote, voteCount, action),
@@ -91,17 +93,58 @@ function Post({
         },
       ],
     );
-  }, [postID, API]);
+  }, [postID, API, nav]);
 
   const createRepost = React.useCallback(() => {
     nav.push('Writer', {
       repostID: postID,
-      mode: "post",
-      groupID: post.group_id,
-    })
-  }, [postID]);
+      mode: 'post',
+      groupID: post?.group_id,
+    });
+  }, [nav, post?.group_id, postID]);
+
+  const messageAuthor = React.useCallback(() => {
+    if (!canMessageAuthor) {
+      return;
+    }
+    nav.push('Thread', {
+      postID,
+      groupID: post?.group_id,
+      type: 'post',
+      title: hasUsername ? `Message @${identity.name}` : 'Message author',
+    });
+  }, [canMessageAuthor, hasUsername, identity?.name, nav, post?.group_id, postID]);
+
+  const hideAuthorPosts = React.useCallback(() => {
+    if (!canHideAuthor) {
+      return;
+    }
+    Alert.alert(
+      'Hide this author?',
+      'Posts from this author will be hidden from your feed. You can undo this from Settings.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Hide',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await API.hidePostsFromUser(postID);
+              setHidden(true);
+            } catch (e) {
+              Alert.alert('Could not hide author', 'Try again in a moment.');
+            }
+          },
+        },
+      ],
+    );
+  }, [API, canHideAuthor, postID]);
 
   const MemoizedPost = React.memo(Post);
+
+  if (!post || !API || hidden) {
+    return <></>;
+  }
 
   return (
     <Card
@@ -110,9 +153,13 @@ function Post({
         if (newWidth !== width) setWidth(newWidth);
       }}
       mode={cardMode}
-      style={repost ? { marginBottom: 10 } : {}}>
-      <Card.Content>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      style={[
+        styles.card,
+        repost && styles.repostCard,
+        minimal && styles.minimalCard,
+      ]}>
+      <Card.Content style={styles.cardContent}>
+        <View style={styles.headerRow}>
           <Pressable onPress={openProfile} disabled={!canOpenProfile} hitSlop={4}>
             <UserAvatar
               group={group}
@@ -126,6 +173,7 @@ function Post({
               justifyContent: 'center',
               flexDirection: 'column',
               flex: 1,
+              minWidth: 0,
             }}>
             <Text variant="labelLarge" style={{ marginLeft: 10 }}>
               {timesago(post.created_at)}
@@ -154,7 +202,7 @@ function Post({
         </View>
 
         {post.text.trim().length > 0 && (
-          <Text variant="bodyLarge" style={{ marginTop: 10, marginBottom: minimal ? 0 : 10 }}>
+          <Text variant="bodyLarge" style={[styles.postText, minimal && styles.minimalText]}>
             {post.text}
           </Text>
         )}
@@ -238,92 +286,95 @@ function Post({
           <MemoizedPost themeColors={colors} apiInstance={apiInstance} post={post.quote_post.post} nav={nav} repost={true} />
         )}
 
-        {!minimal && <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            marginLeft: -8,
-            marginBottom: -2,
-          }}>
-          {!commentView && (
-            <>
-              <IconButton
-                icon="message-outline"
-                onPress={() =>
-                  nav.push('Comments', {
-                    postID: post.id,
-                    postObj: post,
-                  })
-                }
-                style={{ margin: 0 }}
-                size={20}
-                iconColor={colors.onSurfaceDisabled}
-              />
-              <Text variant="titleMedium" style={{ marginRight: 10 }}>
-                {post.comment_count}
-              </Text>
-            </>
-          )}
-          {!post.dms_disabled && (
+        {!minimal && <View style={styles.actionRow}>
+          <View style={styles.actionCluster}>
+            {!commentView && (
+              <>
+                <IconButton
+                  icon="message-outline"
+                  onPress={() =>
+                    nav.push('Comments', {
+                      postID: post.id,
+                      postObj: post,
+                    })
+                  }
+                  style={styles.actionButton}
+                  size={20}
+                  iconColor={colors.onSurfaceDisabled}
+                />
+                <Text variant="titleMedium" style={styles.commentCount}>
+                  {post.comment_count}
+                </Text>
+              </>
+            )}
+            {canMessageAuthor && (
+              <Button
+                compact={true}
+                icon="chat-outline"
+                mode="text"
+                onPress={messageAuthor}
+                style={styles.actionButton}
+                textColor={colors.onSurfaceVariant}>
+                DM author
+              </Button>
+            )}
             <IconButton
-              icon="chat-outline"
-              onPress={() =>
-                nav.push('Thread', {
-                  postID: post.id,
-                  groupID: post.group_id,
-                  type: 'post',
-                })
-              }
-              style={{ margin: 0 }}
+              icon="repeat-variant"
+              onPress={createRepost}
+              style={styles.actionButton}
               size={24}
               iconColor={colors.onSurfaceDisabled}
             />
-          )}
-          <IconButton
-            icon="repeat-variant"
-            onPress={createRepost}
-            style={{ margin: 0 }}
-            size={24}
-            iconColor={colors.onSurfaceDisabled}
-          />
-          <View style={{ flexGrow: 1 }}></View>
-          <IconButton
-            icon="arrow-up-thick"
-            onPress={upvote}
-            style={{
-              margin: 0,
-              borderRadius: BORDER_RADIUS,
-              borderColor: colors.onSurfaceDisabled,
-              borderWidth: 2,
-            }}
-            size={20}
-            iconColor={
-              vote == 'upvote' ? colors.onPrimaryContainer : colors.onSurface
-            }
-            containerColor={vote == 'upvote' ? colors.inversePrimary : null}
-          />
-          <Text
-            variant="titleMedium"
-            style={{
-              marginRight: 10,
-              marginLeft: 10,
-              color: voteCount <= 0 ? colors.error : colors.primary,
-            }}>
-            {voteCount}
-          </Text>
-          <IconButton
-            icon="arrow-down-thick"
-            onPress={downvote}
-            style={{
-              margin: 0,
-              borderRadius: BORDER_RADIUS,
-              borderColor: colors.onSurfaceDisabled,
-              borderWidth: 2,
-            }}
-            size={20}
-            iconColor={vote == 'downvote' ? colors.onError : colors.onSurface}
-            containerColor={vote == 'downvote' ? colors.error : null}
-          />
+            {canHideAuthor && (
+              <IconButton
+                icon="eye-off-outline"
+                onPress={hideAuthorPosts}
+                style={styles.actionButton}
+                size={20}
+                iconColor={colors.onSurfaceDisabled}
+              />
+            )}
+          </View>
+          <View style={styles.voteCluster}>
+            <IconButton
+              icon="arrow-up-thick"
+              onPress={upvote}
+              style={[
+                styles.voteButton,
+                {
+                  borderColor: colors.onSurfaceDisabled,
+                },
+              ]}
+              size={20}
+              iconColor={
+                vote == 'upvote' ? colors.onPrimaryContainer : colors.onSurface
+              }
+              containerColor={vote == 'upvote' ? colors.inversePrimary : null}
+            />
+            <Text
+              variant="titleMedium"
+              style={[
+                styles.voteCount,
+                {
+                  color: voteCount <= 0 ? colors.error : colors.primary,
+                },
+              ]}>
+              {voteCount}
+            </Text>
+            <IconButton
+              icon="arrow-down-thick"
+              onPress={downvote}
+              style={[
+                styles.voteButton,
+                {
+                  borderColor: colors.onSurfaceDisabled,
+                },
+              ]}
+              size={20}
+              iconColor={vote == 'downvote' ? colors.onError : colors.onSurface}
+              containerColor={vote == 'downvote' ? colors.error : null}
+            />
+          </View>
         </View>}
       </Card.Content>
     </Card>
@@ -332,6 +383,68 @@ function Post({
 
 Post.whyDidYouRender = true;
 export default React.memo(Post);
+
+const styles = StyleSheet.create({
+  card: {
+    borderRadius: 22,
+  },
+  repostCard: {
+    marginBottom: 10,
+  },
+  minimalCard: {
+    borderRadius: 16,
+  },
+  cardContent: {
+    paddingHorizontal: 14,
+    paddingTop: 14,
+    paddingBottom: 10,
+  },
+  headerRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  postText: {
+    marginBottom: 12,
+    marginTop: 12,
+  },
+  minimalText: {
+    marginBottom: 0,
+  },
+  actionRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: -2,
+    marginLeft: -8,
+    marginTop: 2,
+  },
+  actionCluster: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    flexShrink: 1,
+  },
+  actionButton: {
+    margin: 0,
+  },
+  commentCount: {
+    marginRight: 8,
+  },
+  voteCluster: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    marginLeft: 8,
+  },
+  voteButton: {
+    borderRadius: BORDER_RADIUS,
+    borderWidth: 2,
+    margin: 0,
+  },
+  voteCount: {
+    marginHorizontal: 10,
+    minWidth: 20,
+    textAlign: 'center',
+  },
+});
 
 const obj = {
   index: 0,
