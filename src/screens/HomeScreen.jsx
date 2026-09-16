@@ -6,7 +6,6 @@ import React from 'react';
 import {
   View,
   StyleSheet,
-  FlatList,
   StatusBar,
   InteractionManager,
   useColorScheme,
@@ -26,7 +25,7 @@ import {
   Icon,
   Badge,
 } from 'react-native-paper';
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from '../utils/crashlytics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppContext } from '../App';
 import Post from '../components/Post';
@@ -203,25 +202,35 @@ function HomeScreen({ navigation }) {
         }
       />
       {!!currentGroup && !!postSortMethod && (
-        <Appbar.Header style={{ zIndex: 1 }}>
+        <Appbar.Header
+          style={[
+            style.header,
+            {
+              backgroundColor: customTheme
+                ? customTheme.background
+                : colors.background,
+            },
+          ]}>
           <Appbar.Content
             title={
               <GestureDetector gesture={flingGesture}>
-                <Animated.View style={[{ flexDirection: 'row', alignItems: 'center' }, animatedStyle]}>
+                <Animated.View style={[style.titleRow, animatedStyle]}>
                   <GroupAvatar
                     groupColor={currentGroup.color}
                     groupImage={currentGroup?.icon_url || ''}
                     groupName={currentGroup.name}
                     onPress={() => sheetRef.current?.open()}
                     borderRadius={BORDER_RADIUS}
-                    style={{ marginRight: 15 }}
+                    style={style.groupAvatar}
                   />
                   {currentGroup.name.length > 2 ? (
-                    <TouchableOpacity onPress={() => sheetRef?.current?.open()}>
+                    <TouchableOpacity
+                      onPress={() => sheetRef?.current?.open()}
+                      style={style.groupTitleButton}>
                       <Text
                         variant="headlineSmall"
                         numberOfLines={1}
-                        style={{ marginRight: 50 }}>
+                        style={style.groupTitle}>
                         {currentGroup.name}
                       </Text>
                     </TouchableOpacity>
@@ -345,8 +354,11 @@ function HomeScreen({ navigation }) {
           </View>
         ) : (
           <FlashList
-            contentContainerStyle={{ rowGap: 10, marginHorizontal: 10, marginTop: -10 }}
-            ItemSeparatorComponent={() => <View style={{ marginBottom: 10 }}></View>}
+            contentContainerStyle={{
+              ...style.feedContent,
+              paddingBottom: 96 + insets.bottom,
+            }}
+            ItemSeparatorComponent={() => <View style={style.feedSeparator} />}
             data={uniquePosts}
             renderItem={renderItem}
             onRefresh={() => fetchPosts(true)}
@@ -376,7 +388,10 @@ function HomeScreen({ navigation }) {
         {currentGroup?.name && <FAB
           icon="plus"
           label="Post"
-          style={{ position: 'absolute', bottom: 20 + insets.bottom, right: 20 }}
+          style={[
+            style.composeFab,
+            { bottom: 20 + insets.bottom },
+          ]}
           onPress={() =>
             navigation.push('Writer', {
               mode: 'post',
@@ -412,8 +427,39 @@ function HomeScreen({ navigation }) {
 }
 
 const style = StyleSheet.create({
+  header: {
+    zIndex: 1,
+  },
   container: {
     flex: 1,
+  },
+  titleRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    minWidth: 0,
+  },
+  groupAvatar: {
+    marginRight: 14,
+  },
+  groupTitleButton: {
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  groupTitle: {
+    flexShrink: 1,
+  },
+  feedContent: {
+    paddingHorizontal: 10,
+    paddingTop: 2,
+    rowGap: 10,
+  },
+  feedSeparator: {
+    marginBottom: 10,
+  },
+  composeFab: {
+    borderRadius: 18,
+    position: 'absolute',
+    right: 20,
   },
 });
 

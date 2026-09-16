@@ -9,7 +9,7 @@ import {
   TouchableRipple,
   useTheme,
 } from 'react-native-paper';
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from '../utils/crashlytics';
 import timesago from 'timesago';
 import { AppContext } from '../App';
 import UserAvatar from './UserAvatar';
