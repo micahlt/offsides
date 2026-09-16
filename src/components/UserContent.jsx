@@ -8,7 +8,7 @@ import {
   SegmentedButtons,
 } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from '../utils/crashlytics';
 import ActivityItem from '../components/ActivityItem';
 import Post from './Post';
 import Comment from './Comment';
