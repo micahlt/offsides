@@ -18,6 +18,14 @@ import { sha256 } from 'js-sha256';
 import useInterval from '../hooks/useInterval';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 
+// The API dedupes messages by client_id, so it must be unique per message.
+// Reusing one device-derived ID makes every send after the first in a thread
+// return 200 with the earlier message and silently drop the new one.
+const newClientID = async () => {
+  const id = await DeviceInfo.getAndroidId();
+  return sha256(`${id}-${Date.now()}-${Math.random()}`);
+};
+
 function ThreadScreen({ navigation, route }) {
   const { postID, chatID } = route.params;
   const {
@@ -63,18 +71,16 @@ function ThreadScreen({ navigation, route }) {
   };
 
   const sendMessage = async () => {
-    const id = await DeviceInfo.getAndroidId();
-    const deviceID = sha256(id);
+    const clientID = await newClientID();
     setMessageDraft('');
-    await API.sendDM(chatID, messageDraft, deviceID);
+    await API.sendDM(chatID, messageDraft, clientID);
     await fetchMessages(false);
   };
 
   const startThread = async () => {
-    const id = await DeviceInfo.getAndroidId();
-    const deviceID = sha256(id);
+    const clientID = await newClientID();
     setMessageDraft('');
-    const newDM = await API.startDM(messageDraft, deviceID, postID);
+    const newDM = await API.startDM(messageDraft, clientID, postID);
     navigation.setParams({ chatID: newDM.chat.id });
   };
 
