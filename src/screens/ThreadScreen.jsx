@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { FlatList, InteractionManager, View } from 'react-native';
+import { FlatList, InteractionManager, ToastAndroid, View } from 'react-native';
 import {
   Appbar,
   Surface,
@@ -54,29 +54,86 @@ function ThreadScreen({ navigation, route }) {
       if (manual) {
         setManualRefreshing(true);
       }
-      const d = await API.getDMThread(chatID);
-      setMessages(d.messages);
-      setMeta(d);
-      setManualRefreshing(false);
-      setIsFetching(false);
+      try {
+        const d = await API.getDMThread(chatID);
+        if (d?.messages) {
+          setMessages(d.messages);
+          setMeta(d);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setManualRefreshing(false);
+        setIsFetching(false);
+      }
     }
   };
 
-  const sendMessage = async () => {
+  // The server uses client_id to de-duplicate messages. Sending the same
+  // device-wide ID with every message made the server treat every message
+  // after the first as a duplicate and silently drop it. Each message now
+  // gets its own unique ID instead.
+  const newClientID = async () => {
     const id = await DeviceInfo.getAndroidId();
-    const deviceID = sha256(id);
+    const seed = `${id}-${Date.now()}-${Math.random()}-${Math.random()}`;
+    const h = sha256(seed);
+    // Format as a UUID (version 4 layout)
+    return [
+      h.slice(0, 8),
+      h.slice(8, 12),
+      '4' + h.slice(13, 16),
+      ((parseInt(h[16], 16) & 0x3) | 0x8).toString(16) + h.slice(17, 20),
+      h.slice(20, 32),
+    ].join('-');
+  };
+
+  const isSending = React.useRef(false);
+
+  const sendMessage = async () => {
+    const text = messageDraft.trim();
+    if (!text || isSending.current) return;
+    isSending.current = true;
     setMessageDraft('');
-    await API.sendDM(chatID, messageDraft, deviceID);
-    await fetchMessages(false);
+    try {
+      const clientID = await newClientID();
+      await API.sendDM(chatID, text, clientID);
+      await fetchMessages(false);
+    } catch (err) {
+      console.error(err);
+      setMessageDraft(text); // give the text back so it isn't lost
+      ToastAndroid.show('Message failed to send', ToastAndroid.SHORT);
+    } finally {
+      isSending.current = false;
+    }
   };
 
   const startThread = async () => {
-    const id = await DeviceInfo.getAndroidId();
-    const deviceID = sha256(id);
+    const text = messageDraft.trim();
+    if (!text || isSending.current) return;
+    isSending.current = true;
     setMessageDraft('');
-    const newDM = await API.startDM(messageDraft, deviceID, postID);
-    navigation.setParams({ chatID: newDM.chat.id });
+    try {
+      const clientID = await newClientID();
+      const newDM = await API.startDM(text, clientID, postID);
+      if (!newDM?.chat?.id) {
+        throw new Error('No chat returned: ' + JSON.stringify(newDM));
+      }
+      navigation.setParams({ chatID: newDM.chat.id });
+    } catch (err) {
+      console.error(err);
+      setMessageDraft(text);
+      ToastAndroid.show('Could not start chat', ToastAndroid.SHORT);
+    } finally {
+      isSending.current = false;
+    }
   };
+
+  // Load the conversation as soon as a new chat is created
+  React.useEffect(() => {
+    if (chatID) {
+      fetchMessages(false);
+    }
+  }, [chatID]);
 
   const leaveChat = async () => {
     return; // Waiting for sidechat.js implementation
