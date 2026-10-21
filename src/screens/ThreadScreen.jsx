@@ -16,10 +16,11 @@ import timesago from 'timesago';
 import DeviceInfo from 'react-native-device-info';
 import { sha256 } from 'js-sha256';
 import useInterval from '../hooks/useInterval';
+import { groupChatName, isGroupChat } from '../utils/groupChats';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 
 function ThreadScreen({ navigation, route }) {
-  const { postID, chatID } = route.params;
+  const { postID, chatID, title } = route.params;
   const {
     appState: { API },
   } = React.useContext(AppContext);
@@ -135,6 +136,20 @@ function ThreadScreen({ navigation, route }) {
     }
   }, [chatID]);
 
+  const isGroup = !!route.params.isGroup || isGroupChat(meta);
+
+  // Name of whoever sent a message in a group chat, if the API includes it
+  const senderName = item =>
+    item?.identity?.display_name ||
+    item?.identity?.name ||
+    item?.sender?.display_name ||
+    item?.sender?.name ||
+    item?.author?.display_name ||
+    item?.author?.name ||
+    item?.display_name ||
+    item?.alias ||
+    null;
+
   const leaveChat = async () => {
     return; // Waiting for sidechat.js implementation
   };
@@ -158,13 +173,17 @@ function ThreadScreen({ navigation, route }) {
     <View style={{ backgroundColor: colors.background, flex: 1 }}>
       <Appbar.Header elevated={true}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
-        <Appbar.Content title="Thread" />
-        <Tooltip title="Show context">
-          <Appbar.Action
-            icon="note-text-outline"
-            onPress={() => goToSource()}
-          />
-        </Tooltip>
+        <Appbar.Content
+          title={isGroup ? title || groupChatName(meta) : 'Thread'}
+        />
+        {!isGroup && (
+          <Tooltip title="Show context">
+            <Appbar.Action
+              icon="note-text-outline"
+              onPress={() => goToSource()}
+            />
+          </Tooltip>
+        )}
       </Appbar.Header>
       <FlatList
         inverted={true}
@@ -197,6 +216,13 @@ function ThreadScreen({ navigation, route }) {
                   : colors.elevation.level1,
               }}
               mode="flat">
+              {isGroup && !item.authored_by_user && senderName(item) && (
+                <Text
+                  style={{ color: colors.primary, fontWeight: 'bold' }}
+                  variant="labelLarge">
+                  {senderName(item)}
+                </Text>
+              )}
               <Text style={{ color: colors.onSurface }} variant="bodyLarge">
                 {item.text}
               </Text>
