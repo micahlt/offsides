@@ -16,11 +16,26 @@ import timesago from 'timesago';
 import DeviceInfo from 'react-native-device-info';
 import { sha256 } from 'js-sha256';
 import useInterval from '../hooks/useInterval';
-import { groupChatName, identityName, isGroupChat } from '../utils/groupChats';
+import {
+  groupChatName,
+  identityName,
+  isGroupChat,
+  leaveGroupChat,
+  startGroupDM,
+} from '../utils/groupChats';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 
 function ThreadScreen({ navigation, route }) {
-  const { postID, chatID, title, postContext, recipientName } = route.params;
+  const {
+    postID,
+    chatID,
+    title,
+    postContext,
+    recipientName,
+    groupChatID,
+    sourceMessageID,
+    myIdentity,
+  } = route.params;
   const {
     appState: { API },
   } = React.useContext(AppContext);
@@ -115,6 +130,28 @@ function ThreadScreen({ navigation, route }) {
     setMessageDraft('');
     try {
       const clientID = await newClientID();
+      // Private chat started from a group chat message
+      if (groupChatID && sourceMessageID) {
+        try {
+          const { chatID: newID, via } = await startGroupDM(API, {
+            groupChatID,
+            messageID: sourceMessageID,
+            text,
+            clientID,
+            identity: myIdentity,
+          });
+          ToastAndroid.show(`Chat started (format: ${via})`, ToastAndroid.LONG);
+          navigation.setParams({ chatID: newID, isGroup: true });
+        } catch (err) {
+          setMessageDraft(text);
+          Alert.alert(
+            "Couldn't start private chat",
+            'Yik Yak rejected every request format the app tried. Screenshot this and send it to Claude:\n\n' +
+              (err.details || [err.message]).join('\n'),
+          );
+        }
+        return;
+      }
       const newDM = await API.startDM(
         text,
         clientID,
@@ -178,8 +215,9 @@ function ThreadScreen({ navigation, route }) {
         text: 'Message privately',
         onPress: () =>
           navigation.push('Thread', {
-            postID: item.id,
-            postContext: 'group_chat',
+            groupChatID: item.chat_id || chatID,
+            sourceMessageID: item.id,
+            myIdentity: meta?.user?.identity,
             recipientName: name,
           }),
       },
@@ -213,8 +251,31 @@ function ThreadScreen({ navigation, route }) {
     Alert.alert('Chat info', lines.join('\n'));
   };
 
-  const leaveChat = async () => {
-    return; // Waiting for sidechat.js implementation
+  const leaveChat = () => {
+    Alert.alert(
+      'Leave this chat?',
+      "You'll stop getting its messages. You can rejoin open group chats later.",
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Leave',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const via = await leaveGroupChat(API, chatID);
+              ToastAndroid.show(`Left the chat (format: ${via})`, ToastAndroid.LONG);
+              navigation.goBack();
+            } catch (err) {
+              Alert.alert(
+                "Couldn't leave the chat",
+                'Screenshot this and send it to Claude:\n\n' +
+                  (err.details || [err.message]).join('\n'),
+              );
+            }
+          },
+        },
+      ],
+    );
   };
 
   const goToSource = async () => {
@@ -259,6 +320,9 @@ function ThreadScreen({ navigation, route }) {
             icon="information-outline"
             onPress={() => showChatInfo()}
           />
+        )}
+        {chatID && isGroup && (
+          <Appbar.Action icon="exit-run" onPress={() => leaveChat()} />
         )}
         {!isGroup && (
           <Tooltip title="Show context">

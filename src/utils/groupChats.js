@@ -111,3 +111,96 @@ export const joinGroupChat = async (API, chat, chosenName) => {
   rememberJoined(chat.id);
   return res;
 };
+
+// ---------------------------------------------------------------------------
+// Experimental: starting a private "group DM" from a group chat message, and
+// leaving a group chat. Neither request is documented, so each tries a short
+// list of likely formats once (only when the user taps the button) and stops
+// at the first the server accepts. The result says which format worked so
+// the others can be removed later.
+
+const postJSON = async (API, path, body) => {
+  const res = await fetch(`${API.apiRoot}${path}`, {
+    method: 'POST',
+    headers: {
+      ...API.defaultHeaders,
+      Authorization: `Bearer ${API.userToken}`,
+    },
+    body: JSON.stringify(body),
+  });
+  let json = null;
+  try {
+    json = await res.json();
+  } catch (e) {
+    // empty or non-JSON body
+  }
+  return { status: res.status, ok: res.ok, json };
+};
+
+const looksLikeError = r =>
+  !r.ok || !!r.json?.error_code || r.json?.success === false;
+
+const shortReason = r =>
+  `${r.status}${r.json?.message ? ' ' + String(r.json.message).slice(0, 40) : ''}`;
+
+/**
+ * Starts a private chat with the author of a group chat message.
+ * @returns {Promise<{chatID: String, via: String}>}
+ */
+export const startGroupDM = async (
+  API,
+  { groupChatID, messageID, text, clientID, identity },
+) => {
+  const base = { text, client_id: clientID };
+  const attempts = [
+    ['groups/dm', '/v1/chats/groups/dm', { ...base, chat_id: groupChatID, message_id: messageID, identity }],
+    ['groups/start_dm', '/v1/chats/groups/start_dm', { ...base, chat_id: groupChatID, message_id: messageID, identity }],
+    ['start+source_message_id', '/v1/chats/start', { ...base, source_message_id: messageID, source_chat_id: groupChatID, identity }],
+    ['start+message_id', '/v1/chats/start', { ...base, message_id: messageID, chat_id: groupChatID, identity }],
+    ['groups/start', '/v1/chats/groups/start', { ...base, chat_id: groupChatID, message_id: messageID, identity }],
+  ];
+  const failures = [];
+  for (const [label, path, body] of attempts) {
+    try {
+      const r = await postJSON(API, path, body);
+      const chat = r.json?.chat || r.json;
+      if (!looksLikeError(r) && chat?.id && chat.id !== groupChatID) {
+        return { chatID: chat.id, via: label };
+      }
+      failures.push(`${label}: ${shortReason(r)}`);
+    } catch (e) {
+      failures.push(`${label}: ${e.message}`);
+    }
+  }
+  const err = new Error('None of the request formats worked');
+  err.details = failures;
+  throw err;
+};
+
+/**
+ * Leaves a group chat (or group DM).
+ * @returns {Promise<String>} which request format worked
+ */
+export const leaveGroupChat = async (API, chatID) => {
+  const attempts = [
+    ['groups/leave', '/v1/chats/groups/leave', { chat_id: chatID }],
+    ['chats/leave', '/v1/chats/leave', { chat_id: chatID }],
+  ];
+  const failures = [];
+  for (const [label, path, body] of attempts) {
+    try {
+      const r = await postJSON(API, path, body);
+      if (!looksLikeError(r)) {
+        const ids = getJoinedIDs().filter(id => id !== chatID);
+        storage.set(JOINED_KEY, JSON.stringify(ids));
+        return label;
+      }
+      failures.push(`${label}: ${shortReason(r)}`);
+    } catch (e) {
+      failures.push(`${label}: ${e.message}`);
+    }
+  }
+  const err = new Error('None of the request formats worked');
+  err.details = failures;
+  throw err;
+};
