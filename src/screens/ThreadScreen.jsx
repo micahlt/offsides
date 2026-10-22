@@ -133,20 +133,27 @@ function ThreadScreen({ navigation, route }) {
       // Private chat started from a group chat message
       if (groupChatID && sourceMessageID) {
         try {
-          const { chatID: newID, via } = await startGroupDM(API, {
+          const { chatID: newID } = await startGroupDM(API, {
             groupChatID,
             messageID: sourceMessageID,
             text,
             clientID,
+            firstMessageClientID: await newClientID(),
             identity: myIdentity,
           });
-          ToastAndroid.show(`Chat started (format: ${via})`, ToastAndroid.LONG);
           navigation.setParams({ chatID: newID, isGroup: true });
         } catch (err) {
+          if (err.chatID) {
+            // Chat exists; only the first message failed. Open it and keep the text.
+            navigation.setParams({ chatID: err.chatID, isGroup: true });
+          }
           setMessageDraft(text);
           Alert.alert(
-            "Couldn't start private chat",
-            'Yik Yak rejected every request format the app tried. Screenshot this and send it to Claude:\n\n' +
+            err.chatID ? 'Message not sent' : "Couldn't start private chat",
+            (err.chatID
+              ? 'The chat was created, but your message failed. Tap send to try again.'
+              : 'Yik Yak rejected the request.') +
+              '\n\n' +
               (err.details || [err.message]).join('\n'),
           );
         }
