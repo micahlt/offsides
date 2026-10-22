@@ -1,5 +1,15 @@
 import React, { useCallback } from 'react';
-import { Alert, FlatList, InteractionManager, ToastAndroid, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  InteractionManager,
+  ToastAndroid,
+  useWindowDimensions,
+  View,
+} from 'react-native';
+import { launchImageLibrary } from 'react-native-image-picker';
+import AutoImage from '../components/AutoImage';
 import {
   Appbar,
   Surface,
@@ -47,6 +57,8 @@ function ThreadScreen({ navigation, route }) {
   const [isFetching, setIsFetching] = React.useState(false);
   const [manualRefreshing, setManualRefreshing] = React.useState(false);
   const [messageDraft, setMessageDraft] = React.useState('');
+  const [isUploading, setIsUploading] = React.useState(false);
+  const { width: screenWidth } = useWindowDimensions();
 
   React.useEffect(() => {
     if (isFocused) {
@@ -120,6 +132,43 @@ function ThreadScreen({ navigation, route }) {
       ToastAndroid.show('Message failed to send', ToastAndroid.SHORT);
     } finally {
       isSending.current = false;
+    }
+  };
+
+  // Pick a photo, upload it, and send it to this chat
+  const sendPhoto = async () => {
+    if (!chatID || isUploading) return;
+    try {
+      const result = await launchImageLibrary({
+        mediaType: 'photo',
+        quality: 0.9,
+        maxHeight: 1800,
+        maxWidth: 1800,
+      });
+      if (result.didCancel || result.errorMessage || !result.assets?.[0]) return;
+      setIsUploading(true);
+      const photo = result.assets[0];
+      const assetURL = await API.uploadAsset(photo.uri, photo.type, photo.fileName);
+      const asset = {
+        url: assetURL,
+        type: 'image',
+        height: photo.height,
+        width: photo.width,
+        content_type: photo.type.split('/')[1],
+        id: assetURL.split('/v1/assets/library/')[1],
+      };
+      const text = messageDraft.trim();
+      const res = await API.sendDM(chatID, text, await newClientID(), [asset]);
+      if (res?.error_code || (res?.message && !res?.chat && !res?.id)) {
+        throw new Error(res.message || res.error_code);
+      }
+      if (text) setMessageDraft('');
+      await fetchMessages(false);
+    } catch (err) {
+      console.error(err);
+      ToastAndroid.show(`Photo failed to send: ${err.message}`, ToastAndroid.LONG);
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -206,14 +255,22 @@ function ThreadScreen({ navigation, route }) {
     if (!isGroup || !item) return false;
     const kind = String(item.type || item.message_type || item.kind || '').toLowerCase();
     if (/system|event|join|leave|left|member/.test(kind)) return true;
-    if (item.authored_by_user || senderName(item)) return false;
     const text = String(item.text || '').trim();
-    return (
-      // "X joined the chat", "X left the chat", ...
-      /^.{1,60} (joined|rejoined|left|was removed from|was added to|created|renamed) the (chat|group)\.?$/i.test(text) ||
-      // Name changes: "X is now Y", "X changed their name to Y"
-      /^.{1,60} is now .{1,60}$/i.test(text) ||
-      /^.{1,60} changed (their|his|her) name to .{1,60}$/i.test(text)
+    // Name changes ("X is now Y") are sent with that person's identity
+    // attached, so they count when the sender is either the old or new name.
+    const rename =
+      text.match(/^(.{1,60}) is now (.{1,60}?)\.?$/i) ||
+      text.match(/^(.{1,60}) changed (?:their|his|her) name to (.{1,60}?)\.?$/i);
+    if (rename) {
+      const who = (senderName(item) || '').toLowerCase();
+      if (!who || [rename[1], rename[2]].some(n => n.trim().toLowerCase() === who)) {
+        return true;
+      }
+    }
+    if (item.authored_by_user || senderName(item)) return false;
+    // "X joined the chat", "X left the chat", ...
+    return /^.{1,60} (joined|rejoined|left|was removed from|was added to|created|renamed) the (chat|group)\.?$/i.test(
+      text,
     );
   };
 
@@ -397,9 +454,24 @@ function ThreadScreen({ navigation, route }) {
                   {senderName(item)}
                 </Text>
               )}
-              <Text style={{ color: colors.onSurface }} variant="bodyLarge">
-                {item.text}
-              </Text>
+              {item.assets
+                ?.filter(a => a?.url && (a.type === 'image' || !a.type))
+                .map(asset => (
+                  <AutoImage
+                    key={asset.id || asset.url}
+                    src={asset.url}
+                    fitWidth={screenWidth - 110}
+                    srcWidth={asset.width || 1}
+                    srcHeight={asset.height || 1}
+                    token={API.userToken}
+                    style={{ marginTop: 5, marginBottom: item.text ? 8 : 5 }}
+                  />
+                ))}
+              {!!item.text && (
+                <Text style={{ color: colors.onSurface }} variant="bodyLarge">
+                  {item.text}
+                </Text>
+              )}
               <Text
                 style={{ color: colors.onSurfaceDisabled }}
                 variant="labelMedium">
@@ -442,6 +514,15 @@ function ThreadScreen({ navigation, route }) {
           autoFocus={true}
           placeholder="Send a message"
           style={{ paddingBottom: insets.bottom }}
+          left={
+            chatID ? (
+              isUploading ? (
+                <TextInput.Icon icon={() => <ActivityIndicator size="small" />} />
+              ) : (
+                <TextInput.Icon icon="image-outline" onPress={() => sendPhoto()} />
+              )
+            ) : undefined
+          }
           right={
             <TextInput.Icon
               icon="send"
