@@ -72,8 +72,22 @@ export const fetchExploreGroupChats = async API => {
   return list.map(unwrapChat).filter(c => c && c.id);
 };
 
-/** Joins a group chat using the user's own name and icon, like the official app */
-export const joinGroupChat = async (API, chat) => {
+/** Readable name from an identity object (shape varies) */
+export const identityName = identity =>
+  identity?.display_name || identity?.name || identity?.username || null;
+
+/** The current user's username, used as the default join name */
+export const getMyUsername = async API => {
+  try {
+    const u = await API.getUpdates();
+    return u?.user?.username || null;
+  } catch (e) {
+    return null;
+  }
+};
+
+/** Joins a group chat using the chosen name (or the user's username) and icon */
+export const joinGroupChat = async (API, chat, chosenName) => {
   let name = 'Anonymous';
   let icon = { emoji: '💬', color: '#6750A4', secondary_color: '#EADDFF' };
   try {
@@ -83,6 +97,7 @@ export const joinGroupChat = async (API, chat) => {
   } catch (e) {
     // fall back to defaults
   }
+  if (chosenName && chosenName.trim()) name = chosenName.trim();
   const res = await API.joinGroupChat(
     chat.id,
     name,

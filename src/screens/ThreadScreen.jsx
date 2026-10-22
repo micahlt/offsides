@@ -16,7 +16,7 @@ import timesago from 'timesago';
 import DeviceInfo from 'react-native-device-info';
 import { sha256 } from 'js-sha256';
 import useInterval from '../hooks/useInterval';
-import { groupChatName, isGroupChat } from '../utils/groupChats';
+import { groupChatName, identityName, isGroupChat } from '../utils/groupChats';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 
 function ThreadScreen({ navigation, route }) {
@@ -335,6 +335,24 @@ function ThreadScreen({ navigation, route }) {
         }
       />
       <KeyboardStickyView>
+        {isGroup && identityName(meta?.user?.identity) && (
+          <Text
+            variant="labelMedium"
+            style={{
+              color: colors.onSurfaceVariant,
+              paddingHorizontal: 15,
+              paddingVertical: 5,
+              backgroundColor: colors.background,
+            }}>
+            {/anonymous/i.test(identityName(meta.user.identity))
+              ? '🕶️ '
+              : '👤 '}
+            You appear as{' '}
+            <Text style={{ fontWeight: 'bold', color: colors.onSurface }}>
+              {identityName(meta.user.identity)}
+            </Text>
+          </Text>
+        )}
         <TextInput
           value={messageDraft}
           onChangeText={setMessageDraft}

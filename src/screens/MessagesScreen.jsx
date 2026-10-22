@@ -8,10 +8,13 @@ import {
 import {
   Appbar,
   Button,
+  Dialog,
   Icon,
+  Portal,
   SegmentedButtons,
   Surface,
   Text,
+  TextInput,
   TouchableRipple,
   useTheme,
 } from 'react-native-paper';
@@ -21,6 +24,7 @@ import timesago from 'timesago';
 import useInterval from '../hooks/useInterval';
 import {
   fetchExploreGroupChats,
+  getMyUsername,
   groupChatMemberCount,
   groupChatName,
   isGroupChat,
@@ -43,6 +47,13 @@ function MessageScreen({ navigation }) {
   const [explore, setExplore] = React.useState([]);
   const [exploreError, setExploreError] = React.useState(null);
   const [joiningID, setJoiningID] = React.useState(null);
+  const [joinTarget, setJoinTarget] = React.useState(null);
+  const [joinName, setJoinName] = React.useState('');
+  const [myUsername, setMyUsername] = React.useState(null);
+
+  React.useEffect(() => {
+    getMyUsername(API).then(setMyUsername);
+  }, []);
   const [manualRefreshing, setManualRefreshing] = React.useState(false);
 
   React.useEffect(() => {
@@ -97,10 +108,17 @@ function MessageScreen({ navigation }) {
       title: isGroup ? groupChatName(item) : undefined,
     });
 
-  const join = async item => {
+  // Ask what name to use before joining
+  const askToJoin = item => {
+    setJoinName(myUsername || '');
+    setJoinTarget(item);
+  };
+
+  const join = async (item, chosenName) => {
+    setJoinTarget(null);
     setJoiningID(item.id);
     try {
-      await joinGroupChat(API, item);
+      await joinGroupChat(API, item, chosenName);
       await fetchChats();
       openChat(item, true);
     } catch (err) {
@@ -190,7 +208,7 @@ function MessageScreen({ navigation }) {
           mode="contained-tonal"
           loading={joiningID === item.id}
           disabled={joiningID !== null}
-          onPress={() => join(item)}>
+          onPress={() => askToJoin(item)}>
           Join
         </Button>
       </Surface>
@@ -275,6 +293,35 @@ function MessageScreen({ navigation }) {
           }}
         />
       )}
+      <Portal>
+        <Dialog visible={!!joinTarget} onDismiss={() => setJoinTarget(null)}>
+          <Dialog.Title>Join {joinTarget ? groupChatName(joinTarget) : ''}</Dialog.Title>
+          <Dialog.Content style={{ gap: 10 }}>
+            <Text variant="bodyMedium">
+              Choose the name people in this chat will see.
+            </Text>
+            <TextInput
+              mode="outlined"
+              label="Your name in this chat"
+              value={joinName}
+              onChangeText={setJoinName}
+              maxLength={30}
+            />
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setJoinTarget(null)}>Cancel</Button>
+            <Button onPress={() => join(joinTarget, 'Anonymous')}>
+              Join anonymously
+            </Button>
+            <Button
+              mode="contained"
+              disabled={!joinName.trim()}
+              onPress={() => join(joinTarget, joinName)}>
+              Join
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 }
