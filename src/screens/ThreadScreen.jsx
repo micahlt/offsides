@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { FlatList, InteractionManager, ToastAndroid, View } from 'react-native';
+import { Alert, FlatList, InteractionManager, ToastAndroid, View } from 'react-native';
 import {
   Appbar,
   Surface,
@@ -20,7 +20,7 @@ import { groupChatName, isGroupChat } from '../utils/groupChats';
 import { KeyboardAwareScrollView, KeyboardStickyView } from 'react-native-keyboard-controller';
 
 function ThreadScreen({ navigation, route }) {
-  const { postID, chatID, title } = route.params;
+  const { postID, chatID, title, postContext, recipientName } = route.params;
   const {
     appState: { API },
   } = React.useContext(AppContext);
@@ -115,15 +115,22 @@ function ThreadScreen({ navigation, route }) {
     setMessageDraft('');
     try {
       const clientID = await newClientID();
-      const newDM = await API.startDM(text, clientID, postID);
+      const newDM = await API.startDM(
+        text,
+        clientID,
+        postID,
+        false,
+        postContext || 'feed',
+      );
       if (!newDM?.chat?.id) {
-        throw new Error('No chat returned: ' + JSON.stringify(newDM));
+        const reason = newDM?.message || newDM?.error_code || 'no chat returned';
+        throw new Error(String(reason));
       }
       navigation.setParams({ chatID: newDM.chat.id });
     } catch (err) {
       console.error(err);
       setMessageDraft(text);
-      ToastAndroid.show('Could not start chat', ToastAndroid.SHORT);
+      ToastAndroid.show(`Could not start chat: ${err.message}`, ToastAndroid.LONG);
     } finally {
       isSending.current = false;
     }
@@ -161,12 +168,39 @@ function ThreadScreen({ navigation, route }) {
     );
   };
 
+  // Long-press a group chat message to DM the person who sent it
+  const offerPrivateMessage = item => {
+    if (!isGroup || item.authored_by_user || isSystemMessage(item)) return;
+    const name = senderName(item) || 'this person';
+    Alert.alert(name, undefined, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Message privately',
+        onPress: () =>
+          navigation.push('Thread', {
+            postID: item.id,
+            postContext: 'group_chat',
+            recipientName: name,
+          }),
+      },
+    ]);
+  };
+
   const leaveChat = async () => {
     return; // Waiting for sidechat.js implementation
   };
 
   const goToSource = async () => {
     if (!meta) return;
+    // DMs started from somewhere other than the feed (e.g. a group chat)
+    // can't be opened as a post, so show where they came from instead.
+    if (meta.post_context && meta.post_context !== 'feed') {
+      ToastAndroid.show(
+        `Started from: ${meta.post_context} (${meta.type || 'unknown'})`,
+        ToastAndroid.LONG,
+      );
+      return;
+    }
     const p = await API.getPost(meta.post_id, false);
     if ((await p.type) == 'post') {
       navigation.push('Comments', {
@@ -185,7 +219,13 @@ function ThreadScreen({ navigation, route }) {
       <Appbar.Header elevated={true}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content
-          title={isGroup ? title || groupChatName(meta) : 'Thread'}
+          title={
+            isGroup
+              ? title || groupChatName(meta)
+              : recipientName && !chatID
+                ? `Message ${recipientName}`
+                : 'Thread'
+          }
         />
         {!isGroup && (
           <Tooltip title="Show context">
@@ -225,6 +265,7 @@ function ThreadScreen({ navigation, route }) {
           <TouchableRipple
             borderless={true}
             onPress={() => { }}
+            onLongPress={() => offerPrivateMessage(item)}
             style={{
               borderRadius: 10,
               marginLeft: item.authored_by_user ? 50 : 0,
