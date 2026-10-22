@@ -186,6 +186,33 @@ function ThreadScreen({ navigation, route }) {
     ]);
   };
 
+  // Shows how the server labels this chat (no private data), to help
+  // work out how DMs from group chats are started.
+  const showChatInfo = () => {
+    if (!meta) {
+      ToastAndroid.show('Chat info not loaded yet', ToastAndroid.SHORT);
+      return;
+    }
+    const skip = new Set(['messages', 'participants', 'members']);
+    const lines = Object.keys(meta)
+      .filter(k => !skip.has(k))
+      .map(k => {
+        const v = meta[k];
+        if (v === null || v === undefined) return `${k}: none`;
+        if (typeof v === 'object') return `${k}: {${Object.keys(v).join(', ')}}`;
+        const str = String(v);
+        return `${k}: ${str.length > 40 ? str.slice(0, 40) + '…' : str}`;
+      });
+    const first = meta.messages?.[0];
+    if (first) {
+      lines.push('', 'message fields: ' + Object.keys(first).join(', '));
+    }
+    if (Array.isArray(meta.participants)) {
+      lines.push(`participants: ${meta.participants.length}`);
+    }
+    Alert.alert('Chat info', lines.join('\n'));
+  };
+
   const leaveChat = async () => {
     return; // Waiting for sidechat.js implementation
   };
@@ -227,6 +254,12 @@ function ThreadScreen({ navigation, route }) {
                 : 'Thread'
           }
         />
+        {chatID && (
+          <Appbar.Action
+            icon="information-outline"
+            onPress={() => showChatInfo()}
+          />
+        )}
         {!isGroup && (
           <Tooltip title="Show context">
             <Appbar.Action
