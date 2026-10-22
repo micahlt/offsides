@@ -207,8 +207,13 @@ function ThreadScreen({ navigation, route }) {
     const kind = String(item.type || item.message_type || item.kind || '').toLowerCase();
     if (/system|event|join|leave|left|member/.test(kind)) return true;
     if (item.authored_by_user || senderName(item)) return false;
-    return /^.{1,60} (joined|rejoined|left|was removed from|was added to|created|renamed) the (chat|group)\.?$/i.test(
-      String(item.text || '').trim(),
+    const text = String(item.text || '').trim();
+    return (
+      // "X joined the chat", "X left the chat", ...
+      /^.{1,60} (joined|rejoined|left|was removed from|was added to|created|renamed) the (chat|group)\.?$/i.test(text) ||
+      // Name changes: "X is now Y", "X changed their name to Y"
+      /^.{1,60} is now .{1,60}$/i.test(text) ||
+      /^.{1,60} changed (their|his|her) name to .{1,60}$/i.test(text)
     );
   };
 
