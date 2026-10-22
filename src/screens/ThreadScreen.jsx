@@ -150,6 +150,17 @@ function ThreadScreen({ navigation, route }) {
     item?.alias ||
     null;
 
+  // Join/leave notices in group chats ("X joined the chat", etc.)
+  const isSystemMessage = item => {
+    if (!isGroup || !item) return false;
+    const kind = String(item.type || item.message_type || item.kind || '').toLowerCase();
+    if (/system|event|join|leave|left|member/.test(kind)) return true;
+    if (item.authored_by_user || senderName(item)) return false;
+    return /^.{1,60} (joined|rejoined|left|was removed from|was added to|created|renamed) the (chat|group)\.?$/i.test(
+      String(item.text || '').trim(),
+    );
+  };
+
   const leaveChat = async () => {
     return; // Waiting for sidechat.js implementation
   };
@@ -197,7 +208,20 @@ function ThreadScreen({ navigation, route }) {
         onRefresh={() => fetchMessages(true)}
         refreshing={manualRefreshing}
         renderScrollComponent={(props) => <KeyboardAwareScrollView {...props} />}
-        renderItem={({ item }) => (
+        renderItem={({ item }) =>
+          isSystemMessage(item) ? (
+            <Text
+              key={item.id}
+              style={{
+                color: colors.onSurfaceVariant,
+                textAlign: 'center',
+                paddingHorizontal: 20,
+              }}
+              variant="labelMedium">
+              {item.text}
+              {item.created_at ? ` · ${timesago(item.created_at)}` : ''}
+            </Text>
+          ) : (
           <TouchableRipple
             borderless={true}
             onPress={() => { }}
@@ -233,7 +257,8 @@ function ThreadScreen({ navigation, route }) {
               </Text>
             </Surface>
           </TouchableRipple>
-        )}
+          )
+        }
       />
       <KeyboardStickyView>
         <TextInput
