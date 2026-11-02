@@ -5,6 +5,7 @@ import {
   StyleSheet,
   FlatList,
   InteractionManager,
+  ToastAndroid,
 } from 'react-native';
 import { Appbar, useTheme, Text, FAB, Divider } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -42,14 +43,20 @@ function CommentModal({ navigation, route }) {
   const fetchComments = () => {
     setLoadingComments(true);
     if (!localPost && postID) {
-      API.getPost(postID).then(post => {
-        setLocalPost(post);
-      });
+      API.getPost(postID)
+        .then(post => {
+          if (post?.id) setLocalPost(post);
+        })
+        .catch(() => {});
     }
-    API.getPostComments(postID).then(res => {
-      setComments(res);
-      setLoadingComments(false);
-    });
+    API.getPostComments(postID)
+      .then(res => {
+        if (Array.isArray(res)) setComments(res);
+      })
+      .catch(() => {
+        ToastAndroid.show("Couldn't load comments. Pull down to retry.", ToastAndroid.SHORT);
+      })
+      .finally(() => setLoadingComments(false));
   };
 
   const uniqueComments = useUniqueList(comments);
@@ -87,18 +94,24 @@ function CommentModal({ navigation, route }) {
             </Text>
           }
         />
-        <FAB
-          icon="comment-outline"
-          label="Comment"
-          style={{ position: 'absolute', bottom: 20 + insets.bottom, right: 20 }}
-          onPress={() =>
-            navigation.push('Writer', {
-              mode: 'comment',
-              postID: postID,
-              groupID: localPost.group.id,
-            })
-          }
-        />
+        {/* The post can still be loading when this screen was opened from an
+            activity item with only an ID, so wait for its group before
+            allowing a comment. */}
+        {!localPost?.comments_disabled && (
+          <FAB
+            icon="comment-outline"
+            label="Comment"
+            style={{ position: 'absolute', bottom: 20 + insets.bottom, right: 20 }}
+            disabled={!localPost?.group?.id && !localPost?.group_id}
+            onPress={() =>
+              navigation.push('Writer', {
+                mode: 'comment',
+                postID: postID,
+                groupID: localPost.group?.id || localPost.group_id,
+              })
+            }
+          />
+        )}
       </View>
     </View>
   );
