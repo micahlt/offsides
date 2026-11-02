@@ -159,7 +159,7 @@ function SettingsScreen({ navigation }) {
           variant="bodySmall">
           Offsides is an open-source project. Its source code is publicly
           available and may be modified and distributed under the terms of the
-          MIT License. This project is not affiliated with Sidechat or its
+          GNU GPLv3 License. This project is not affiliated with Sidechat or its
           developers.
         </Text>
       </ScrollView>
