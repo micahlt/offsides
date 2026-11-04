@@ -3,6 +3,7 @@ import { FlatList, InteractionManager, View } from 'react-native';
 import {
   Appbar,
   Icon,
+  Snackbar,
   Surface,
   Text,
   TouchableRipple,
@@ -12,6 +13,7 @@ import { useIsFocused } from '@react-navigation/native';
 import { AppContext } from '../App';
 import timesago from 'timesago';
 import useInterval from '../hooks/useInterval';
+import getChats, { isGroupChat, mergeChats } from '../utils/getChats';
 
 function MessageScreen({ navigation }) {
   const {
@@ -21,6 +23,7 @@ function MessageScreen({ navigation }) {
   const isFocused = useIsFocused();
   const [dms, setDMs] = React.useState([]);
   const [manualRefreshing, setManualRefreshing] = React.useState(false);
+  const [error, setError] = React.useState(false);
 
   React.useEffect(() => {
     if (isFocused) {
@@ -36,13 +39,29 @@ function MessageScreen({ navigation }) {
     }
   }, 15000);
 
+  // Group chats come back from the same endpoint; they have their own screen.
   const fetchDMs = async manual => {
     if (manual) {
       setManualRefreshing(true);
     }
-    const d = await API.getDMs();
-    setDMs(d);
-    setManualRefreshing(false);
+    try {
+      if (manual) {
+        const d = await getChats(API);
+        setDMs(d.filter(c => !isGroupChat(c)));
+      } else {
+        // Polls only need the newest page - new activity always lands there.
+        const latest = await getChats(API, 1);
+        setDMs(current =>
+          mergeChats(current, latest.filter(c => !isGroupChat(c))),
+        );
+      }
+    } catch (e) {
+      if (manual) {
+        setError(true);
+      }
+    } finally {
+      setManualRefreshing(false);
+    }
   };
 
   return (
@@ -106,6 +125,9 @@ function MessageScreen({ navigation }) {
           />
         )}
       />
+      <Snackbar visible={error} onDismiss={() => setError(false)}>
+        Sorry, your DMs couldn't be loaded.
+      </Snackbar>
     </View>
   );
 }

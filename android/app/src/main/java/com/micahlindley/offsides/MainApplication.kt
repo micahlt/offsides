@@ -1,7 +1,10 @@
 package com.micahlindley.offsides
 
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.res.Configuration
+import android.os.Build
 
 import com.facebook.react.PackageList
 import com.facebook.react.ReactApplication
@@ -46,6 +49,13 @@ class MainApplication : Application(), ReactApplication {
       ReleaseLevel.STABLE
     }
     loadReactNative(this)
+    // DM pushes from the notifier are posted to this channel (see firebase.json),
+    // which also gives them their own switch in Android's notification settings.
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      getSystemService(NotificationManager::class.java).createNotificationChannel(
+        NotificationChannel("dms", "Direct messages", NotificationManager.IMPORTANCE_HIGH)
+      )
+    }
     ApplicationLifecycleDispatcher.onApplicationCreate(this)
   }
 

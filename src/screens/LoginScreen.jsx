@@ -198,10 +198,18 @@ function LoginScreen({ }) {
             crashlytics().log(
               'Age successfully verified, proceeding to email registration',
             );
-            storage.set('userToken', res.token);
-            const id = await DeviceInfo.getAndroidId();
-            const deviceID = sha256(id);
-            await API.setDeviceID(deviceID);
+            // API.setAge keeps the token in memory for the email steps. It's
+            // saved only once verifyEmail has the user ID, so a restart in
+            // between goes back to login instead of into the app half set up.
+            try {
+              const id = await DeviceInfo.getAndroidId();
+              const deviceID = sha256(id);
+              await API.setDeviceID(deviceID);
+            } catch (e) {
+              // Not needed to finish signing up, and retrying setAge would
+              // reuse a registration ID that's already been used.
+              crashlytics().recordError(e);
+            }
             setPhase('registerEmail');
           } else {
             throw new Error('Failed to set age.');
@@ -249,7 +257,7 @@ function LoginScreen({ }) {
           throw new Error(res.message);
         } else {
           if (res.user) {
-            storage.set('userToken', res.token);
+            storage.set('userToken', res.token || API.userToken);
             storage.set('userID', res.user.id);
             if (res.group) {
               setCurrentGroup(res.group);

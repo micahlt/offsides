@@ -11,6 +11,7 @@ import {
   Divider,
   Button,
   Badge,
+  Snackbar,
 } from 'react-native-paper';
 import { AppContext } from '../App';
 import timesago from 'timesago';
@@ -29,6 +30,7 @@ function MyProfileScreen({ navigation }) {
   const [karmaInfo, setKarmaInfo] = React.useState([])
   const [loading, setLoading] = React.useState(true);
   const [updateBadge, setUpdateBadge] = React.useState(false);
+  const [error, setError] = React.useState(false);
   const [currentGroup, setCurrentGroup] = useMMKVObject('currentGroup');
   const { colors } = useTheme();
 
@@ -65,17 +67,29 @@ function MyProfileScreen({ navigation }) {
 
   const loadProfile = async () => {
     crashlytics().log('Fetching profile');
-    const u = await API.getUpdates(currentGroup?.id);
-    crashlytics().log('Profile fetched successfully');
-    // Pull the bio from the public profile if the user object doesn't carry one.
-    if (u?.user?.username && typeof u.user.bio !== 'string' && typeof u.user.description !== 'string') {
-      try {
-        const p = await API.getUserProfile(u.user.username);
-        if (typeof p?.description === 'string') u.user.bio = p.description;
-      } catch (e) { /* no public profile */ }
+    try {
+      const u = await API.getUpdates(currentGroup?.id);
+      // An API error comes back as a JSON body rather than a throw.
+      if (!u?.user) {
+        crashlytics().log('Failed to fetch profile');
+        setError(true);
+        return;
+      }
+      crashlytics().log('Profile fetched successfully');
+      // Pull the bio from the public profile if the user object doesn't carry one.
+      if (u?.user?.username && typeof u.user.bio !== 'string' && typeof u.user.description !== 'string') {
+        try {
+          const p = await API.getUserProfile(u.user.username);
+          if (typeof p?.description === 'string') u.user.bio = p.description;
+        } catch (e) { /* no public profile */ }
+      }
+      setUpdates(u);
+    } catch (e) {
+      crashlytics().log('Failed to fetch profile');
+      setError(true);
+    } finally {
+      setLoading(false);
     }
-    setUpdates(u);
-    setLoading(false);
   };
 
   const s = StyleSheet.create({
@@ -97,6 +111,10 @@ function MyProfileScreen({ navigation }) {
               ? `@${updates.user.username}`
               : 'Your Profile'
           }
+        />
+        <Appbar.Action
+          onPress={() => navigation.push('GroupChats')}
+          icon="account-group"
         />
         <Appbar.Action
           onPress={() => navigation.push('Messages')}
@@ -193,6 +211,9 @@ function MyProfileScreen({ navigation }) {
           <UserContent updates={updates} />
         </View>
       )}
+      <Snackbar visible={error} onDismiss={() => setError(false)}>
+        Sorry, your profile couldn't be loaded.
+      </Snackbar>
     </View>
   );
 }

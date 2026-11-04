@@ -1,0 +1,8 @@
+{
+  "yikyakToken": "paste your YikYak login token here",
+  "notificationKey": "paste from Offsides > Settings > Copy Notification Key",
+  "serviceAccountFile": "service-account.json",
+  "intervalSeconds": 30,
+  "includeText": true,
+  "groupChats": false
+}

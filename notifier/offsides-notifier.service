@@ -1,0 +1,19 @@
+# systemd unit: starts the notifier at boot and restarts it if it crashes.
+# Install (from this folder, replacing USER and the path if yours differ):
+#   sudo cp offsides-notifier.service /etc/systemd/system/
+#   sudo systemctl enable --now offsides-notifier
+# Logs: journalctl -u offsides-notifier -f
+[Unit]
+Description=Offsides DM notifier
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=USER
+WorkingDirectory=/home/USER/offsides-notifier
+ExecStart=/usr/bin/node index.mjs
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

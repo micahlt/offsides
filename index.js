@@ -8,6 +8,11 @@ globalThis.RNFB_SILENCE_MODULAR_DEPRECATION_WARNINGS = true;
 import App from './src/App.jsx';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { registerRootComponent } from "expo";
+import messaging from '@react-native-firebase/messaging';
+
+// Android shows DM pushes itself while the app is in the background; this
+// only stops Firebase warning that no background handler is registered.
+messaging().setBackgroundMessageHandler(async () => {});
 
 export default function Main() {
   const colorScheme = useColorScheme();

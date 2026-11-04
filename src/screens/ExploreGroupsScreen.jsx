@@ -6,6 +6,7 @@ import {
   Card,
   ProgressBar,
   Searchbar,
+  Snackbar,
 } from 'react-native-paper';
 import { AppContext } from '../App';
 import Group from '../components/Group';
@@ -20,14 +21,25 @@ function ExploreGroupsScreen({ navigation }) {
   const [currentGroup, setCurrentGroup] = useMMKVObject("currentGroup");
   const [loading, setLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState('');
+  const [error, setError] = React.useState('');
   const { colors } = useTheme();
   React.useEffect(() => {
     loadGroups();
   }, []);
   const loadGroups = async () => {
-    const g = await API.getAvailableGroups();
-    setGroups(g.filter(g => g.name));
-    setLoading(false);
+    setLoading(true);
+    setError('');
+    try {
+      const g = await API.getAvailableGroups();
+      // An error body resolves to undefined rather than throwing.
+      if (!Array.isArray(g)) throw new Error();
+      setGroups(g.filter(g => g.name));
+    } catch (e) {
+      console.log(e);
+      setError("Couldn't load groups.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const renderGroup = item => {
@@ -44,7 +56,9 @@ function ExploreGroupsScreen({ navigation }) {
 
   const selectGroup = group => {
     setCurrentGroup(group);
-    navigation.push('Home');
+    // Go back to the existing Home - pushing another one leaves a second
+    // feed mounted underneath that refetches on every group change.
+    navigation.popTo('Home');
   };
 
   const groupsSearched = React.useMemo(() => {
@@ -110,6 +124,12 @@ function ExploreGroupsScreen({ navigation }) {
           />
         </View>
       )}
+      <Snackbar
+        visible={!!error}
+        onDismiss={() => setError('')}
+        action={{ label: 'Retry', onPress: loadGroups }}>
+        {error}
+      </Snackbar>
     </View>
   );
 }

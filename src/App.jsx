@@ -2,10 +2,15 @@ import 'react-native-gesture-handler';
 import React, { Context } from 'react';
 import { OffsidesAppState } from './types/OffsidesTypes.js';
 import { InteractionManager, StatusBar, useColorScheme } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  NavigationContainer,
+  StackActions,
+  createNavigationContainerRef,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import crashlytics from '@react-native-firebase/crashlytics';
+import messaging from '@react-native-firebase/messaging';
 import { SidechatAPIClient } from 'sidechat.js';
 import HomeScreen from './screens/HomeScreen';
 import SettingsScreen from './screens/SettingsScreen';
@@ -17,13 +22,18 @@ import EditProfileScreen from './screens/EditProfileScreen';
 import WriterScreen from './screens/WriterScreen';
 import MessageScreen from './screens/MessagesScreen';
 import ThreadScreen from './screens/ThreadScreen';
+import GroupChatsScreen from './screens/GroupChatsScreen';
+import ExploreChatsScreen from './screens/ExploreChatsScreen';
 import UserProfileScreen from './screens/UserProfileScreen';
 import { storage, hasMigratedFromAsyncStorage, migrateFromAsyncStorage } from './utils/mmkv';
 import { useMMKVString } from 'react-native-mmkv';
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import { enableNotifications } from './utils/notifications';
+import IncomingMessageBanner from './components/IncomingMessageBanner';
 
 
 const Stack = createNativeStackNavigator();
+const navigationRef = createNavigationContainerRef();
 
 /**
  * Global app context for Offsides.  Contains API as well as current app state.
@@ -37,6 +47,11 @@ export default function App() {
   const [appState, setAppState] = React.useState(null);
   const [hasMigrated, setHasMigrated] = React.useState(hasMigratedFromAsyncStorage);
   const [postSortMethod, setPostSortMethod] = useMMKVString('postSortMethod');
+  const [navReady, setNavReady] = React.useState(false);
+  // Chat to open once navigation is up, from a tapped notification.
+  const [openChatID, setOpenChatID] = React.useState(null);
+  // A DM push that arrived while the app was open (Android doesn't show those).
+  const [incoming, setIncoming] = React.useState(null);
   React.useEffect(() => {
     crashlytics().log('Loading App');
     crashlytics().log('Fetching initial app variables');
@@ -46,8 +61,11 @@ export default function App() {
           await migrateFromAsyncStorage()
           setHasMigrated(true)
         } catch (e) {
-          // TODO: fall back to AsyncStorage? Wipe storage clean and use MMKV? Crash app?
+          // A key that can't be read fails the same way on every launch, so
+          // carry on with whatever did migrate rather than staying blank.
           crashlytics().recordError(e);
+          storage.set('hasMigratedFromAsyncStorage', true);
+          setHasMigrated(true);
         }
       });
     } else {
@@ -83,11 +101,44 @@ export default function App() {
     }
   }, [hasMigrated]);
 
+  React.useEffect(() => {
+    if (needsLogin !== false) {
+      return;
+    }
+    enableNotifications().catch(e => crashlytics().recordError(e));
+    const openFrom = m => m?.data?.chatID && setOpenChatID(m.data.chatID);
+    messaging().getInitialNotification().then(openFrom);
+    const unsubscribeOpened = messaging().onNotificationOpenedApp(openFrom);
+    const unsubscribeMessage = messaging().onMessage(m => {
+      const route = navigationRef.getCurrentRoute();
+      // Already looking at that thread - it'll show up there on its own.
+      if (route?.name == 'Thread' && route.params?.chatID == m.data?.chatID) {
+        return;
+      }
+      setIncoming(m);
+    });
+    return () => {
+      unsubscribeOpened();
+      unsubscribeMessage();
+    };
+  }, [needsLogin]);
+
+  React.useEffect(() => {
+    if (navReady && openChatID) {
+      navigationRef.dispatch(
+        StackActions.push('Thread', { mode: 'existing', chatID: openChatID }),
+      );
+      setOpenChatID(null);
+    }
+  }, [navReady, openChatID]);
+
   return (
     <SafeAreaProvider>
       <KeyboardProvider>
         <AppContext.Provider value={{ appState, setAppState }}>
-          <NavigationContainer>
+          <NavigationContainer
+            ref={navigationRef}
+            onReady={() => setNavReady(true)}>
             <StatusBar
               barStyle={colorScheme == 'dark' ? 'light-content' : 'dark-content'}
             />
@@ -110,6 +161,8 @@ export default function App() {
                 <Stack.Screen name="EditProfile" component={EditProfileScreen} />
                 <Stack.Screen name="Messages" component={MessageScreen} />
                 <Stack.Screen name="Thread" component={ThreadScreen} />
+                <Stack.Screen name="GroupChats" component={GroupChatsScreen} />
+                <Stack.Screen name="ExploreChats" component={ExploreChatsScreen} />
                 <Stack.Screen
                   name="ExploreGroups"
                   component={ExploreGroupsScreen}
@@ -132,6 +185,10 @@ export default function App() {
                 />
               </Stack.Navigator>
             )}
+            <IncomingMessageBanner
+              message={incoming}
+              onOpen={() => setOpenChatID(incoming?.data?.chatID)}
+            />
           </NavigationContainer>
         </AppContext.Provider>
       </KeyboardProvider>

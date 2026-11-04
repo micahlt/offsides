@@ -33,77 +33,131 @@ function EditProfileScreen({ navigation }) {
   });
   const [username, setUsername] = React.useState('');
   const [bio, setBio] = React.useState('');
-  const [initialBio, setInitialBio] = React.useState('');
   const [usernameError, setUsernameError] = React.useState(false);
   const [error, setError] = React.useState(false);
+  const [loadError, setLoadError] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
+  const savingRef = React.useRef(false);
   const [emoji, setEmoji] = React.useState();
   const [sheetIsOpen, setSheetIsOpen] = React.useState(false);
   const paletteSheetRef = React.useRef(null);
+  // What the server has, so Save only sends what changed.
+  const saved = React.useRef({});
   React.useEffect(() => {
     loadCurrent();
   }, []);
   React.useEffect(() => {
-    if (username) {
-      API.checkUsername(username).then(res => {
-        if (!res) {
-          setUsernameError(true);
-        } else {
-          setUsernameError(false);
-        }
-      });
-    }
+    if (!username) return;
+    let stale = false;
+    const t = setTimeout(() => {
+      API.checkUsername(username)
+        .then(ok => {
+          if (!stale) setUsernameError(!ok);
+        })
+        .catch(() => {});
+    }, 300);
+    return () => {
+      stale = true;
+      clearTimeout(t);
+    };
   }, [username]);
   const loadCurrent = async () => {
-    const u = await API.getUpdates();
-    setUpdates(u);
-    setEmoji(String(u.user?.conversation_icon?.emoji) || '‼️');
-    if (u.user?.conversation_icon) {
-      setUserColors({
-        primary: u.user.conversation_icon.color,
-        secondary: u.user.conversation_icon.secondary_color,
-      });
-    }
-    if (u.user?.username) {
-      setUsername(u.user.username);
-    }
-    // The bio lives on the public profile object; fall back to any field on the user object.
-    let currentBio = '';
-    if (typeof u.user?.bio === 'string') currentBio = u.user.bio;
-    else if (typeof u.user?.description === 'string') currentBio = u.user.description;
-    else if (u.user?.username) {
-      try {
-        const p = await API.getUserProfile(u.user.username);
-        if (typeof p?.description === 'string') currentBio = p.description;
-      } catch (e) {
-        // no public profile yet; leave the bio empty
-      }
-    }
-    setBio(currentBio);
-    setInitialBio(currentBio);
-    setLoading(false);
-  };
-  const saveIcon = async () => {
-    const uname = await API.setUsername(appState.userID, username);
-    await uname;
-    if (bio.trim() !== initialBio.trim()) {
-      const bioRes = await API.setUserBio(appState.userID, bio.trim());
-      if (bioRes?.message) {
-        setError(true);
-        loadCurrent();
+    setLoading(true);
+    setLoadError(false);
+    try {
+      const u = await API.getUpdates();
+      if (!u?.user) {
+        setLoadError(true);
         return;
       }
+      const icon = u.user.conversation_icon;
+      // The bio lives on the public profile object; fall back to any field on the user object.
+      let currentBio = '';
+      if (typeof u.user.bio === 'string') currentBio = u.user.bio;
+      else if (typeof u.user.description === 'string') currentBio = u.user.description;
+      else if (u.user.username) {
+        try {
+          const p = await API.getUserProfile(u.user.username);
+          if (typeof p?.description === 'string') currentBio = p.description;
+        } catch (e) {
+          // no public profile yet; leave the bio empty
+        }
+      }
+      saved.current = {
+        username: u.user.username || '',
+        bio: currentBio,
+        emoji: icon?.emoji ?? '‼️',
+        primary: icon?.color ?? null,
+        secondary: icon?.secondary_color ?? null,
+      };
+      setEmoji(saved.current.emoji);
+      setUserColors({
+        primary: saved.current.primary,
+        secondary: saved.current.secondary,
+      });
+      if (u.user.username) {
+        setUsername(u.user.username);
+      }
+      setBio(currentBio);
+      setUpdates(u);
+    } catch (e) {
+      setLoadError(true);
+    } finally {
+      setLoading(false);
     }
-    const res = await API.setUserIcon(
-      appState.userID,
-      emoji,
-      userColors.primary,
-      userColors.secondary,
-    );
-    if (res.message) {
+  };
+  const saveIcon = async () => {
+    if (savingRef.current || !updates?.user) return;
+    const userID = updates.user.id || appState.userID;
+    const last = saved.current;
+    const usernameChanged = username !== last.username;
+    if (usernameChanged && usernameError) {
       setError(true);
-      loadCurrent();
-    } else {
+      return;
+    }
+    savingRef.current = true;
+    setSaving(true);
+    // On failure the form keeps the user's edits, and whatever did save is
+    // remembered so a retry doesn't send it again.
+    try {
+      if (usernameChanged) {
+        // Resolves to the updated user, or undefined if the server refused it.
+        if (!(await API.setUsername(userID, username))) {
+          setError(true);
+          return;
+        }
+        last.username = username;
+      }
+      if (bio.trim() !== last.bio.trim()) {
+        const bioRes = await API.setUserBio(userID, bio.trim());
+        if (bioRes?.message) {
+          setError(true);
+          return;
+        }
+        last.bio = bio.trim();
+      }
+      if (
+        emoji !== last.emoji ||
+        userColors.primary !== last.primary ||
+        userColors.secondary !== last.secondary
+      ) {
+        const res = await API.setUserIcon(
+          userID,
+          emoji,
+          userColors.primary,
+          userColors.secondary,
+        );
+        if (res?.message) {
+          setError(true);
+          return;
+        }
+      }
       navigation.goBack();
+    } catch (e) {
+      setError(true);
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
     }
   };
   return (
@@ -112,9 +166,13 @@ function EditProfileScreen({ navigation }) {
       <Appbar.Header elevated={true}>
         <Appbar.BackAction onPress={() => navigation.goBack()} />
         <Appbar.Content title="Edit Profile" />
-        <Appbar.Action icon="content-save" onPress={saveIcon} />
+        <Appbar.Action
+          icon="content-save"
+          onPress={saveIcon}
+          disabled={saving || !updates?.user}
+        />
       </Appbar.Header>
-      <ProgressBar indeterminate={true} visible={loading} />
+      <ProgressBar indeterminate={true} visible={loading || saving} />
       {updates?.user && (
         <View
           style={{
@@ -265,6 +323,12 @@ function EditProfileScreen({ navigation }) {
       )}
       <Snackbar visible={error} onDismiss={() => setError(false)}>
         Sorry, that couldn't be saved.
+      </Snackbar>
+      <Snackbar
+        visible={loadError}
+        onDismiss={() => setLoadError(false)}
+        action={{ label: 'Retry', onPress: loadCurrent }}>
+        Your profile couldn't be loaded.
       </Snackbar>
     </View>
   );

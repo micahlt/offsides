@@ -6,10 +6,20 @@ const { mergeConfig } = require('@react-native/metro-config');
  *
  * @type {import('metro-config').MetroConfig}
  */
+const path = require('path');
+
+const defaultConfig = getDefaultConfig(__dirname);
+// notifier/ is a separate Node program for a server, not part of the app.
+const notifierDir = path.join(__dirname, 'notifier').replace(/[/\\]/g, '[/\\\\]');
+
 const config = {
     resolver: {
-        sourceExts: ['jsx', 'js', 'ts', 'tsx', 'json', 'cjs']
+        sourceExts: ['jsx', 'js', 'ts', 'tsx', 'json', 'cjs'],
+        blockList: [].concat(
+            defaultConfig.resolver.blockList || [],
+            new RegExp(`^${notifierDir}[/\\\\].*`),
+        ),
     }
 };
 
-module.exports = mergeConfig(getDefaultConfig(__dirname), config);
+module.exports = mergeConfig(defaultConfig, config);

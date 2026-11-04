@@ -37,6 +37,18 @@ jobs:
       - name: Install app dependencies
         run: npm install
 
+      # google-services.json isn't committed - it lives in a repository secret
+      # (Settings > Secrets and variables > Actions) so it stays out of the code.
+      - name: Add Firebase config
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+            echo "::error::The GOOGLE_SERVICES_JSON repository secret isn't set, so the APK can't be connected to Firebase."
+            exit 1
+          fi
+          printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+
       - name: Make ./gradlew command executable
         run: cd android && chmod +x ./gradlew && cd ..
 

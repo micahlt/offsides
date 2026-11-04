@@ -1,0 +1,19 @@
+{
+  "name": "offsides-notifier",
+  "private": true,
+  "description": "Pushes new Offsides DMs to your phone through Firebase Cloud Messaging",
+  "type": "module",
+  "main": "index.mjs",
+  "scripts": {
+    "start": "node index.mjs",
+    "dry-run": "node index.mjs --dry-run",
+    "test-push": "node index.mjs --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0",
+    "sidechat.js": "^2.6.6"
+  }
+}

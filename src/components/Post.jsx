@@ -39,6 +39,7 @@ function Post({
   const [width, setWidth] = useState();
   const [group, setGroup] = useRecyclingState(post.group, [post]);
   const [identity, setIdentity] = useRecyclingState(post?.identity, [post]);
+  const [hidden, setHidden] = useRecyclingState(false, [post]);
   const postID = post.id;
 
   // Posts made with a username can be tapped through to that user's public profile.
@@ -82,8 +83,38 @@ function Post({
         {
           text: 'Confirm',
           onPress: async () => {
-            await API.deletePostOrComment(postID);
-            nav.replace('Home');
+            try {
+              const res = await API.deletePostOrComment(postID);
+              // Rejections come back as an error body, not a failed request.
+              if (res?.error_code || res?.message) throw new Error(res.message);
+              nav.popTo('Home', { refresh: Date.now() });
+            } catch (e) {
+              Alert.alert("Sorry, this post couldn't be deleted.");
+            }
+          },
+        },
+        {
+          text: 'Cancel',
+        },
+      ],
+    );
+  }, [postID, API]);
+
+  const blockUser = React.useCallback(() => {
+    Alert.alert(
+      'Hide posts from this user?',
+      "You won't see posts or comments from whoever made this post. You can undo this from Settings.",
+      [
+        {
+          text: 'Confirm',
+          onPress: async () => {
+            try {
+              const res = await API.hidePostsFromUser(postID);
+              if (res?.error_code || res?.message) throw new Error(res.message);
+              setHidden(true);
+            } catch (e) {
+              Alert.alert("Sorry, that didn't work. Please try again.");
+            }
           },
         },
         {
@@ -101,7 +132,9 @@ function Post({
     })
   }, [postID]);
 
-  const MemoizedPost = React.memo(Post);
+  if (hidden) {
+    return <></>;
+  }
 
   return (
     <Card
@@ -143,12 +176,20 @@ function Post({
               </Text>
             )}
           </View>
-          {post.authored_by_user && (
+          {post.authored_by_user ? (
             <IconButton
               icon="delete"
               size={20}
               style={{ marginRight: 0 }}
               onPress={deletePost}
+            />
+          ) : (
+            <IconButton
+              icon="account-cancel-outline"
+              size={20}
+              style={{ marginRight: 0 }}
+              iconColor={colors.onSurfaceDisabled}
+              onPress={blockUser}
             />
           )}
         </View>
@@ -331,7 +372,9 @@ function Post({
 }
 
 Post.whyDidYouRender = true;
-export default React.memo(Post);
+// Made once here: creating it during render remounts the quoted post each time.
+const MemoizedPost = React.memo(Post);
+export default MemoizedPost;
 
 const obj = {
   index: 0,

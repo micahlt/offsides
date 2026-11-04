@@ -31,9 +31,10 @@ function WriterScreen({ navigation, route }) {
   const API = appState.API;
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const [error, setError] = React.useState(false);
+  const [error, setError] = React.useState('');
   const [textContent, setTextContent] = React.useState('');
   const [isUploading, setIsUploading] = React.useState(false);
+  const [submitting, setSubmitting] = React.useState(false);
   const [postSortMethod, setPostSortMethod] = useMMKVString('postSortMethod');
   const [anonMode, setAnonMode] = useMMKVBoolean('anonMode');
   const [asset, setAsset] = React.useState(
@@ -75,7 +76,7 @@ function WriterScreen({ navigation, route }) {
 
   const isPollValid = !isPoll || pollOptions.every(opt => opt.trim().length > 0);
 
-  const createPostOrComment = async () => {
+  const submit = async () => {
     if (mode == 'post') {
       const validPollOptions = isPoll ? pollOptions : undefined;
 
@@ -91,7 +92,10 @@ function WriterScreen({ navigation, route }) {
       );
       if (!p?.message) {
         setPostSortMethod('recent');
-        navigation.replace('Home');
+        // Back to the existing Home (refreshed) rather than stacking a new one.
+        navigation.popTo('Home', { refresh: Date.now() });
+      } else {
+        setError(p.message);
       }
     } else if (mode == 'comment') {
       if (parentID) {
@@ -106,6 +110,8 @@ function WriterScreen({ navigation, route }) {
           anonMode);
         if (!c?.message) {
           navigation.pop();
+        } else {
+          setError(c.message);
         }
       } else {
         const c = await API.createComment(
@@ -119,8 +125,25 @@ function WriterScreen({ navigation, route }) {
           anonMode);
         if (!c?.message) {
           navigation.pop();
+        } else {
+          setError(c.message);
         }
       }
+    }
+  };
+
+  const createPostOrComment = async () => {
+    // A second tap while the first request is in flight would post twice.
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      await submit();
+    } catch (e) {
+      // sidechat.js throws the server's reason (like the two-posts-a-minute
+      // limit) - show it and keep the draft.
+      setError(e?.message || `Sorry, there was an error creating this ${mode}.`);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -132,23 +155,31 @@ function WriterScreen({ navigation, route }) {
       maxWidth: 1800,
     });
     if (result.didCancel || result.errorMessage) return;
-    setIsUploading(true);
     const photo = result.assets[0];
-    photo.height;
-    const assetURL = await API.uploadAsset(
-      photo.uri,
-      photo.type,
-      photo.fileName,
-    );
-    setIsUploading(false);
-    setAsset({
-      url: assetURL,
-      type: photo.type.split('/')[0],
-      height: photo.height,
-      width: photo.width,
-      content_type: photo.type.split('/')[1],
-      id: assetURL.split('/v1/assets/library/')[1],
-    });
+    if (!photo?.type) {
+      setError("Couldn't read this image.");
+      return;
+    }
+    setIsUploading(true);
+    try {
+      const assetURL = await API.uploadAsset(
+        photo.uri,
+        photo.type,
+        photo.fileName,
+      );
+      setAsset({
+        url: assetURL,
+        type: photo.type.split('/')[0],
+        height: photo.height,
+        width: photo.width,
+        content_type: photo.type.split('/')[1],
+        id: assetURL.split('/v1/assets/library/')[1],
+      });
+    } catch (e) {
+      setError(e?.message || "Couldn't upload this image.");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -168,12 +199,14 @@ function WriterScreen({ navigation, route }) {
         <Appbar.Action
           icon="send"
           onPress={createPostOrComment}
-          disabled={textContent.length < 1 || !isPollValid}
+          disabled={
+            textContent.length < 1 || !isPollValid || isUploading || submitting
+          }
         />
       </Appbar.Header>
       <ProgressBar
         indeterminate={true}
-        visible={false}
+        visible={submitting}
         style={{ position: 'absolute', top: 0, left: 0 }}
       />
       <View style={{ flexDirection: 'column', flex: 1 }}>
@@ -374,8 +407,8 @@ function WriterScreen({ navigation, route }) {
           )}
         </View>
       </View>
-      <Snackbar visible={error} onDismiss={() => setError(false)}>
-        Sorry, there was an error creating this {mode}.
+      <Snackbar visible={!!error} onDismiss={() => setError('')}>
+        {error}
       </Snackbar>
     </View>
   );

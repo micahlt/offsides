@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StatusBar, ScrollView, Linking, Image } from 'react-native';
+import { Alert, View, StatusBar, ScrollView, Linking, Image } from 'react-native';
 import {
   Appbar,
   Button,
@@ -17,6 +17,21 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import offsidesLogo from '../assets/Offsides.png';
 import { needsUpdate } from '../utils';
 import { useMMKVObject } from 'react-native-mmkv';
+import { setStringAsync as copyToClipboard } from 'expo-clipboard';
+import {
+  disableNotifications,
+  enableNotifications,
+  getNotificationKey,
+} from '../utils/notifications';
+
+// FCM topic calls never settle while offline (they're queued and retried until
+// they go through), so don't wait on them forever.
+const TIMED_OUT = 'timed out';
+const withTimeout = (promise, ms) =>
+  Promise.race([
+    promise,
+    new Promise(resolve => setTimeout(() => resolve(TIMED_OUT), ms)),
+  ]);
 
 function SettingsScreen({ navigation }) {
   const { appState } = React.useContext(AppContext);
@@ -24,6 +39,8 @@ function SettingsScreen({ navigation }) {
   const [currentGroup, setCurrentGroup] = useMMKVObject('currentGroup');
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const [signingOut, setSigningOut] = React.useState(false);
+  const [copyingKey, setCopyingKey] = React.useState(false);
   React.useEffect(() => {
     checkForUpdate();
   }, []);
@@ -31,9 +48,71 @@ function SettingsScreen({ navigation }) {
     const needs = await needsUpdate(version);
     setUpdateAvailable(needs);
   };
-  const signOut = () => {
+  const signOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await withTimeout(disableNotifications(), 3000);
+    } catch (e) {
+      // Offline - sign out anyway rather than trapping the user here.
+    }
     storage.clearAll();
     RNRestart.restart();
+  };
+  const copyNotificationKey = async () => {
+    if (copyingKey) return;
+    setCopyingKey(true);
+    try {
+      await copyToClipboard(getNotificationKey());
+      // Make sure this phone is actually listening on the key being handed out.
+      let enabled = false;
+      try {
+        // Long enough for the permission prompt, if Android shows one. A
+        // timeout means the subscribe is queued, which counts as enabled.
+        enabled = await withTimeout(enableNotifications(), 10000);
+      } catch (e) {
+        // Offline - it'll subscribe on the next launch.
+      }
+      Alert.alert(
+        'Notification key copied',
+        enabled
+          ? 'Give this to your notifier so it knows where to send your DM notifications. Keep it private - anyone with it could receive them.'
+          : "Copied, but notifications are off for Offsides, so nothing will arrive until you allow them in Android's settings.",
+      );
+    } finally {
+      setCopyingKey(false);
+    }
+  };
+  const unblockAll = () => {
+    Alert.alert(
+      'Unhide everyone?',
+      "You'll start seeing posts and comments from every user you've hidden.",
+      [
+        {
+          text: 'Confirm',
+          onPress: async () => {
+            try {
+              // unhidePostsFromAllUsers resolves even when the server says no,
+              // so check the status here.
+              const res = await appState.API.sendRequest(
+                '/v1/users/unhide_all',
+                'POST',
+                JSON.stringify({}),
+              );
+              if (!res.ok) {
+                throw new Error(`HTTP ${res.status}`);
+              }
+              Alert.alert('Done - everyone is unhidden.');
+            } catch (e) {
+              Alert.alert("Sorry, that didn't work. Please try again.");
+            }
+          },
+        },
+        {
+          text: 'Cancel',
+        },
+      ],
+    );
   };
   return (
     <View style={{ backgroundColor: colors.background, flex: 1 }}>
@@ -69,6 +148,8 @@ function SettingsScreen({ navigation }) {
           <Button
             mode="contained"
             onPress={signOut}
+            loading={signingOut}
+            disabled={signingOut}
             style={{
               maxWidth: '50%',
               marginTop: 10,
@@ -87,6 +168,21 @@ function SettingsScreen({ navigation }) {
             Website
           </Button>
         </View>
+        <Button
+          mode="outlined"
+          onPress={unblockAll}
+          style={{ marginBottom: 20 }}>
+          Unhide All Users
+        </Button>
+        <Button
+          mode="outlined"
+          icon="bell-outline"
+          onPress={copyNotificationKey}
+          loading={copyingKey}
+          disabled={copyingKey}
+          style={{ marginBottom: 20 }}>
+          Copy Notification Key
+        </Button>
         {updateAvailable && (
           <Card style={{ width: '90%', marginBottom: 15 }} mode="contained">
             <Card.Title
