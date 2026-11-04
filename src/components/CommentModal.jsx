@@ -6,7 +6,14 @@ import {
   FlatList,
   InteractionManager,
 } from 'react-native';
-import { Appbar, useTheme, Text, FAB, Divider } from 'react-native-paper';
+import {
+  Appbar,
+  useTheme,
+  Text,
+  FAB,
+  Divider,
+  Snackbar,
+} from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppContext } from '../App';
 import Comment from './Comment';
@@ -27,6 +34,7 @@ function CommentModal({ navigation, route }) {
     /** @type {SidechatPostOrComment[]} */([]),
   );
   const [loadingComments, setLoadingComments] = React.useState(true);
+  const [error, setError] = React.useState('');
 
   React.useEffect(() => {
     if (isFocused) {
@@ -39,17 +47,23 @@ function CommentModal({ navigation, route }) {
     each => <Comment comment={each.item} nav={navigation} />,
     [],
   );
-  const fetchComments = () => {
+  const fetchComments = async () => {
     setLoadingComments(true);
     if (!localPost && postID) {
-      API.getPost(postID).then(post => {
-        setLocalPost(post);
-      });
+      API.getPost(postID)
+        .then(post => {
+          if (post) setLocalPost(post);
+          else setError('This post is no longer available.');
+        })
+        .catch(() => setError("Sorry, this post couldn't be loaded."));
     }
-    API.getPostComments(postID).then(res => {
-      setComments(res);
+    try {
+      setComments(await API.getPostComments(postID));
+    } catch (e) {
+      setError("Sorry, the comments couldn't be loaded.");
+    } finally {
       setLoadingComments(false);
-    });
+    }
   };
 
   const uniqueComments = useUniqueList(comments);
@@ -91,15 +105,20 @@ function CommentModal({ navigation, route }) {
           icon="comment-outline"
           label="Comment"
           style={{ position: 'absolute', bottom: 20 + insets.bottom, right: 20 }}
+          // The post may still be loading when opened from activity or a profile.
+          disabled={!localPost}
           onPress={() =>
             navigation.push('Writer', {
               mode: 'comment',
               postID: postID,
-              groupID: localPost.group.id,
+              groupID: localPost?.group_id ?? localPost?.group?.id,
             })
           }
         />
       </View>
+      <Snackbar visible={!!error} onDismiss={() => setError('')}>
+        {error}
+      </Snackbar>
     </View>
   );
 }

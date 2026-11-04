@@ -69,6 +69,12 @@ function MyProfileScreen({ navigation }) {
     crashlytics().log('Fetching profile');
     try {
       const u = await API.getUpdates(currentGroup?.id);
+      // An API error comes back as a JSON body rather than a throw.
+      if (!u?.user) {
+        crashlytics().log('Failed to fetch profile');
+        setError(true);
+        return;
+      }
       crashlytics().log('Profile fetched successfully');
       // Pull the bio from the public profile if the user object doesn't carry one.
       if (u?.user?.username && typeof u.user.bio !== 'string' && typeof u.user.description !== 'string') {

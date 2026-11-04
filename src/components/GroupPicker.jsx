@@ -8,6 +8,7 @@ import {
   Card,
   Chip,
   IconButton,
+  Snackbar,
   Text,
   useTheme,
 } from 'react-native-paper';
@@ -23,6 +24,7 @@ function GroupPicker({ sheetRef }) {
   const [groups, setGroups] = useMMKVObject('userGroups');
   const [currentGroup, setCurrentGroup] = useMMKVObject('currentGroup');
   const [removeMode, setRemoveMode] = React.useState(false);
+  const [error, setError] = React.useState('');
   React.useEffect(() => {
     if (API) {
       crashlytics().log('Loading GroupPicker');
@@ -32,8 +34,14 @@ function GroupPicker({ sheetRef }) {
   }, [API]);
   const loadGroups = async () => {
     crashlytics().log("Fetching user's groups");
-    const updates = await API.getUpdates(appState.schoolGroupID);
-    setGroups(updates.groups);
+    try {
+      const updates = await API.getUpdates(appState.schoolGroupID);
+      // An error body has no groups - keep the cached list instead of wiping it.
+      if (Array.isArray(updates?.groups)) setGroups(updates.groups);
+    } catch (e) {
+      console.log(e);
+      crashlytics().recordError(e);
+    }
   };
   const getCurrentGroup = async () => {
     crashlytics().log('Fetching current group metadata');
@@ -59,19 +67,28 @@ function GroupPicker({ sheetRef }) {
   const changeCurrentMembership = async () => {
     crashlytics().log('Changing current group membership');
     const isCurrentlyMember = currentGroup.membership_type == 'member';
-    const a = await API.setGroupMembership(currentGroup.id, !isCurrentlyMember);
-    await a;
-    setCurrentGroup({
-      ...currentGroup,
-      membership_type: isCurrentlyMember ? 'non_member' : 'member',
-    });
+    try {
+      const res = await API.setGroupMembership(currentGroup.id, !isCurrentlyMember);
+      // sidechat.js returns the error body instead of throwing on a refusal.
+      if (res?.error_code) throw new Error(res.message);
+      setCurrentGroup({
+        ...currentGroup,
+        membership_type: isCurrentlyMember ? 'non_member' : 'member',
+      });
+    } catch (e) {
+      setError(e?.message || `Couldn't ${isCurrentlyMember ? 'leave' : 'join'} this group.`);
+    }
     loadGroups();
   };
 
   const leaveGroup = async id => {
     crashlytics().log('Leaving a group');
-    const leaveReq = await API.setGroupMembership(id);
-    await leaveReq;
+    try {
+      const res = await API.setGroupMembership(id);
+      if (res?.error_code) throw new Error(res.message);
+    } catch (e) {
+      setError(e?.message || "Couldn't leave this group.");
+    }
     loadGroups();
   };
 
@@ -172,6 +189,9 @@ function GroupPicker({ sheetRef }) {
         />
       </View>
     )}
+    <Snackbar visible={!!error} onDismiss={() => setError('')}>
+      {error}
+    </Snackbar>
   </>
   );
 }

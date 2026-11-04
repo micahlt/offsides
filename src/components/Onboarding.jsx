@@ -18,11 +18,16 @@ function Onboarding() {
     const [currentGroup, setCurrentGroup] = useMMKVObject("currentGroup");
 
     React.useEffect(() => {
-        let s = [];
-        for (let id of suggestedGroupIDs) {
-            API.getGroupMetadata(id).then((group) => s.push(group));
-        }
-        setSuggestedGroups(s);
+        let cancelled = false;
+        // A dead ID resolves to undefined and a network error rejects - skip both.
+        Promise.allSettled(suggestedGroupIDs.map(id => API.getGroupMetadata(id))).then(results => {
+            if (!cancelled) {
+                setSuggestedGroups(results.filter(r => r.status === 'fulfilled' && r.value?.id).map(r => r.value));
+            }
+        });
+        return () => {
+            cancelled = true;
+        };
     }, [])
 
     return <View style={{ height: height, backgroundColor: colors.background }}>

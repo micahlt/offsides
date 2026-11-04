@@ -39,13 +39,20 @@ function ExploreChatsScreen({ navigation, route }) {
   const loadChats = async () => {
     setLoading(true);
     try {
-      const [explore, updates] = await Promise.all([
+      // The icon only matters for joining, so its failure shouldn't hide the list.
+      const [explore, updates] = await Promise.allSettled([
         API.getGroupChats(),
         API.getUpdates(),
       ]);
-      setChats((explore || []).map(o => o.chat || o));
       // Joining reuses the emoji and colors from your profile icon.
-      setIcon(updates?.user?.conversation_icon || null);
+      if (updates.status == 'fulfilled' && updates.value?.user) {
+        setIcon(updates.value.user.conversation_icon || null);
+      }
+      // An API error comes back as a body without chats, not a throw.
+      if (explore.status != 'fulfilled' || !Array.isArray(explore.value)) {
+        throw explore.reason || new Error('Unexpected explore response');
+      }
+      setChats(explore.value.map(o => o.chat || o));
     } catch (e) {
       setError("Sorry, group chats couldn't be loaded.");
     } finally {
@@ -85,6 +92,8 @@ function ExploreChatsScreen({ navigation, route }) {
         contentContainerStyle={{ padding: 10, gap: 10 }}
         data={chats}
         keyExtractor={item => item.id}
+        onRefresh={loadChats}
+        refreshing={false}
         renderItem={({ item }) => {
           const joined = joinedIDs.includes(item.id);
           return (
@@ -160,6 +169,12 @@ function ExploreChatsScreen({ navigation, route }) {
               can't leave group chats yet, so you won't be able to leave this
               one from the app.
             </Text>
+            {!icon && (
+              <Text variant="bodyMedium" style={{ color: colors.error }}>
+                Joining needs your profile emoji. Set one in Edit Profile, or
+                pull down to reload.
+              </Text>
+            )}
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={() => setSelected(null)} disabled={joining}>

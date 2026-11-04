@@ -2,6 +2,7 @@ import { SidechatPoll } from 'sidechat.js/src/types/SidechatTypes.js';
 import * as React from 'react';
 import { View, ToastAndroid } from 'react-native';
 import { Text, TouchableRipple, useTheme } from 'react-native-paper';
+import { useRecyclingState } from '@shopify/flash-list';
 import { AppContext } from '../App';
 
 /**
@@ -16,24 +17,36 @@ function Poll({ poll }) {
   const { appState } = React.useContext(AppContext);
   const API = appState.API;
   const { colors } = useTheme();
-  const [localPoll, setLocalPoll] = React.useState(poll);
+  // Post rows are recycled by FlashList, so reset when the poll changes.
+  const [localPoll, setLocalPoll] = useRecyclingState(poll, [poll]);
 
   const setVote = React.useCallback((choiceIndex) => {
     if (localPoll.participated) {
       ToastAndroid.show('You cannot change your vote', ToastAndroid.SHORT);
       return;
     }
-    API.voteOnPoll(localPoll.id, choiceIndex).then(() => {
-      setLocalPoll({
-        ...localPoll,
-        participated: true,
-        choices: localPoll.choices.map((choice, index) => ({
-          ...choice,
-          selected: index === choiceIndex,
-          count: index === choiceIndex ? choice.count + 1 : choice.count,
-        })),
+    const pollID = localPoll.id;
+    API.voteOnPoll(pollID, choiceIndex)
+      .then(res => {
+        // Rejected votes come back as an error body, not a failed request.
+        if (res?.error_code || res?.message) throw new Error(res.message);
+        setLocalPoll(current =>
+          current?.id !== pollID
+            ? current
+            : {
+                ...current,
+                participated: true,
+                choices: current.choices.map((choice, index) => ({
+                  ...choice,
+                  selected: index === choiceIndex,
+                  count: index === choiceIndex ? choice.count + 1 : choice.count,
+                })),
+              },
+        );
+      })
+      .catch(() => {
+        ToastAndroid.show("Sorry, your vote didn't go through", ToastAndroid.SHORT);
       });
-    });
   }, [localPoll]);
 
   if (!localPoll) return null;

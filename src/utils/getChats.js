@@ -64,6 +64,11 @@ export async function getMessages(API, chatID, cursor) {
     throw new Error(`Failed to fetch messages (HTTP ${res.status})`);
   }
   const json = await res.json();
+  // Callers read chat.messages inside setState updaters, where a throw would
+  // crash the render instead of reaching their catch - so reject bad shapes here.
+  if (!Array.isArray(json?.chat?.messages)) {
+    throw new Error('Unexpected messages response');
+  }
   return { chat: json.chat, cursor: json.cursor || null };
 }
 

@@ -11,6 +11,7 @@ import {
 } from 'react-native-paper';
 import crashlytics from '@react-native-firebase/crashlytics';
 import timesago from 'timesago';
+import { useMMKVObject } from 'react-native-mmkv';
 import { AppContext } from '../App';
 import UserAvatar from './UserAvatar';
 import Group from './Group';
@@ -27,6 +28,7 @@ function ActivityItem({ activity }) {
   const [linkRoute, setLinkRoute] = React.useState('');
   const [linkProps, setLinkProps] = React.useState({});
   const [group, setGroup] = React.useState(null);
+  const [currentGroup, setCurrentGroup] = useMMKVObject('currentGroup');
 
   React.useEffect(() => {
     crashlytics().log('Loading ActivityItem');
@@ -42,9 +44,10 @@ function ActivityItem({ activity }) {
     }
   }, [activity]);
 
-  const readActivity = callback => {
+  // Best effort: a failed mark-as-read shouldn't stop the tap from opening it.
+  const readActivity = () => {
     crashlytics().log('Marking activity as read');
-    API.readActivity(activity.id).then(callback);
+    API.readActivity(activity.id).catch(() => {});
   };
 
   const deviceWidth = Dimensions.get('window').width;
@@ -162,14 +165,10 @@ function ActivityItem({ activity }) {
               exploreMode={true}
               cardMode="outlined"
               onPress={() => {
-                readActivity(() =>
-                  nav.push('Home', {
-                    groupID: group.id,
-                    groupColor: group.color,
-                    groupImage: group.icon_url,
-                    groupName: group.name,
-                  }),
-                );
+                readActivity();
+                // Home shows the stored current group and ignores route params.
+                setCurrentGroup(group);
+                nav.popTo('Home');
               }}
             />
           )}
@@ -229,7 +228,10 @@ function ActivityItem({ activity }) {
           measuredHeight.value = e.nativeEvent.layout.height;
         }}>
         <TouchableRipple
-          onPress={() => readActivity(() => nav.push(linkRoute, linkProps))}
+          onPress={() => {
+            readActivity();
+            nav.push(linkRoute, linkProps);
+          }}
           borderless={true}
           style={{ borderRadius: 10 }}>
           <Card mode="contained" style={{ justifyContent: 'center' }}>

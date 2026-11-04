@@ -11,7 +11,6 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import crashlytics from '@react-native-firebase/crashlytics';
 import messaging from '@react-native-firebase/messaging';
-import { Snackbar } from 'react-native-paper';
 import { SidechatAPIClient } from 'sidechat.js';
 import HomeScreen from './screens/HomeScreen';
 import SettingsScreen from './screens/SettingsScreen';
@@ -30,6 +29,7 @@ import { storage, hasMigratedFromAsyncStorage, migrateFromAsyncStorage } from '.
 import { useMMKVString } from 'react-native-mmkv';
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { enableNotifications } from './utils/notifications';
+import IncomingMessageBanner from './components/IncomingMessageBanner';
 
 
 const Stack = createNativeStackNavigator();
@@ -61,8 +61,11 @@ export default function App() {
           await migrateFromAsyncStorage()
           setHasMigrated(true)
         } catch (e) {
-          // TODO: fall back to AsyncStorage? Wipe storage clean and use MMKV? Crash app?
+          // A key that can't be read fails the same way on every launch, so
+          // carry on with whatever did migrate rather than staying blank.
           crashlytics().recordError(e);
+          storage.set('hasMigratedFromAsyncStorage', true);
+          setHasMigrated(true);
         }
       });
     } else {
@@ -182,15 +185,10 @@ export default function App() {
                 />
               </Stack.Navigator>
             )}
-            <Snackbar
-              visible={!!incoming}
-              onDismiss={() => setIncoming(null)}
-              action={{
-                label: 'Open',
-                onPress: () => setOpenChatID(incoming?.data?.chatID),
-              }}>
-              {incoming?.notification?.body || 'New message'}
-            </Snackbar>
+            <IncomingMessageBanner
+              message={incoming}
+              onOpen={() => setOpenChatID(incoming?.data?.chatID)}
+            />
           </NavigationContainer>
         </AppContext.Provider>
       </KeyboardProvider>

@@ -83,8 +83,14 @@ function Post({
         {
           text: 'Confirm',
           onPress: async () => {
-            await API.deletePostOrComment(postID);
-            nav.replace('Home');
+            try {
+              const res = await API.deletePostOrComment(postID);
+              // Rejections come back as an error body, not a failed request.
+              if (res?.error_code || res?.message) throw new Error(res.message);
+              nav.popTo('Home', { refresh: Date.now() });
+            } catch (e) {
+              Alert.alert("Sorry, this post couldn't be deleted.");
+            }
           },
         },
         {
@@ -103,7 +109,8 @@ function Post({
           text: 'Confirm',
           onPress: async () => {
             try {
-              await API.hidePostsFromUser(postID);
+              const res = await API.hidePostsFromUser(postID);
+              if (res?.error_code || res?.message) throw new Error(res.message);
               setHidden(true);
             } catch (e) {
               Alert.alert("Sorry, that didn't work. Please try again.");
@@ -124,8 +131,6 @@ function Post({
       groupID: post.group_id,
     })
   }, [postID]);
-
-  const MemoizedPost = React.memo(Post);
 
   if (hidden) {
     return <></>;
@@ -367,7 +372,9 @@ function Post({
 }
 
 Post.whyDidYouRender = true;
-export default React.memo(Post);
+// Made once here: creating it during render remounts the quoted post each time.
+const MemoizedPost = React.memo(Post);
+export default MemoizedPost;
 
 const obj = {
   index: 0,
