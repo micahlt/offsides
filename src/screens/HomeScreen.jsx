@@ -25,6 +25,7 @@ import {
   ThemeProvider,
   Icon,
   Badge,
+  Snackbar,
 } from 'react-native-paper';
 import crashlytics from '@react-native-firebase/crashlytics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -46,7 +47,7 @@ import Onboarding from '../components/Onboarding';
 
 const BORDER_RADIUS = 12;
 
-function HomeScreen({ navigation }) {
+function HomeScreen({ navigation, route }) {
   const sheetRef = React.useRef(null);
   const [customTheme, setCustomTheme] = React.useState(false);
   const { appState } = React.useContext(AppContext);
@@ -68,6 +69,8 @@ function HomeScreen({ navigation }) {
   const [sortIcon, setSortIcon] = React.useState('filter-variant');
   const [updateBadge, setUpdateBadge] = React.useState(false);
   const [onboard, setOnboard] = React.useState(false);
+  const [loadError, setLoadError] = React.useState('');
+  const latestFetch = React.useRef(0);
   const [posts, setPosts] = React.useState(
     /** @type {SidechatPostOrComment[]} */([]),
   );
@@ -75,7 +78,15 @@ function HomeScreen({ navigation }) {
   React.useEffect(() => {
     crashlytics().log('Loading HomeScreen');
     needsUpdate().then(setUpdateBadge);
-    API.getUpdates().then(updates => setUserGroups(updates.groups));
+    API.getUpdates()
+      .then(updates => {
+        // An error body has no groups - keep the cached list instead of wiping it.
+        if (Array.isArray(updates?.groups)) setUserGroups(updates.groups);
+      })
+      .catch(e => {
+        console.log(e);
+        crashlytics().recordError(e);
+      });
   }, []);
 
   React.useEffect(() => {
@@ -89,19 +100,17 @@ function HomeScreen({ navigation }) {
   React.useEffect(() => {
     crashlytics().log('Detected group change or sort method change');
     updateSortIcon();
-    if (!loadingPosts) {
-      InteractionManager.runAfterInteractions(() => {
-        if (appState.userToken && currentGroup?.id) {
-          fetchPosts(true, currentGroup.id);
-          setOnboard(false);
-        } else if (appState.userToken && !currentGroup) {
-          setOnboard(true);
-        } else {
-          console.log('App state is undefined, will load in a second');
-        }
-      });
-    }
-  }, [postSortMethod, currentGroup]);
+    InteractionManager.runAfterInteractions(() => {
+      if (appState.userToken && currentGroup?.id) {
+        fetchPosts(true, currentGroup.id);
+        setOnboard(false);
+      } else if (appState.userToken && !currentGroup) {
+        setOnboard(true);
+      } else {
+        console.log('App state is undefined, will load in a second');
+      }
+    });
+  }, [postSortMethod, currentGroup, route.params?.refresh]);
 
   const uniquePosts = useUniqueList(posts);
   const renderItem = React.useCallback(each => {
@@ -124,42 +133,49 @@ function HomeScreen({ navigation }) {
         setSortIcon('filter-variant');
     }
   };
-  const fetchPosts = (refresh, override) => {
-    if (loadingPosts || !currentGroup?.id || !postSortMethod) return false;
+  const fetchPosts = async (refresh, override) => {
+    // A refresh (group/sort change) must not be dropped while another fetch
+    // is in flight - it supersedes it instead.
+    if ((!refresh && loadingPosts) || !currentGroup?.id || !postSortMethod) return false;
+    // Home can't sort by top (the screen says so) - don't fetch just to show an error.
+    if (currentGroup.name == 'Home' && postSortMethod == 'top') return false;
+    const fetchID = ++latestFetch.current;
     crashlytics().log(`Fetching posts sorted by ${postSortMethod}`);
     setLoadingPosts(true);
     try {
       if (refresh) {
         crashlytics().log('Fetch triggered by refresh/group change');
-        clearVotes();
-        setPosts([]);
-        API.getGroupPosts(override || currentGroup.id, postSortMethod).then(
-          res => {
-            if (res.posts) {
-              setPosts(res.posts.filter(i => i.id));
-              setCursor(res.cursor);
-            }
-            setLoadingPosts(false);
-          },
+        // Clear right away on a group/sort change so the old group's posts
+        // don't sit under the new header; a pull-to-refresh keeps them.
+        if (override) setPosts([]);
+        const res = await API.getGroupPosts(
+          override || currentGroup.id,
+          postSortMethod,
         );
+        if (fetchID != latestFetch.current) return;
+        if (!res?.posts) throw new Error(res?.message);
+        clearVotes();
+        setPosts(res.posts.filter(i => i.id));
+        setCursor(res.cursor);
       } else {
         crashlytics().log('Fetch triggered by scroll at end of list');
-        API.getGroupPosts(
+        const res = await API.getGroupPosts(
           override || currentGroup.id,
           postSortMethod,
           cursor,
-        ).then(res => {
-          if (res.posts) {
-            setPosts(posts.concat(res.posts.filter(i => i.id)));
-            setCursor(res.cursor);
-          }
-          setLoadingPosts(false);
-        });
+        );
+        if (fetchID != latestFetch.current) return;
+        if (!res?.posts) throw new Error(res?.message);
+        setPosts(posts.concat(res.posts.filter(i => i.id)));
+        setCursor(res.cursor);
       }
     } catch (e) {
       console.log(e);
       crashlytics().log('Error fetching posts');
       crashlytics().recordError(e);
+      if (fetchID == latestFetch.current) setLoadError("Couldn't load posts.");
+    } finally {
+      if (fetchID == latestFetch.current) setLoadingPosts(false);
     }
   };
 
@@ -171,6 +187,7 @@ function HomeScreen({ navigation }) {
 
   const flingGesture = Gesture.Pan()
     .onStart((e) => {
+      if (!userGroups?.length || !currentGroup) return;
       if (Math.abs(e.velocityX) > 300) {
         const currentIndex = userGroups.findIndex((g) => g.id == currentGroup.id);
         let nextIndex;
@@ -387,6 +404,9 @@ function HomeScreen({ navigation }) {
             })
           }
         />}
+        <Snackbar visible={!!loadError} onDismiss={() => setLoadError('')}>
+          {loadError}
+        </Snackbar>
       </View>
       <View>
         <BottomSheet

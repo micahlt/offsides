@@ -3,6 +3,7 @@ import { FlatList, InteractionManager, View } from 'react-native';
 import {
   ActivityIndicator,
   Appbar,
+  IconButton,
   Snackbar,
   Surface,
   Text,
@@ -21,6 +22,7 @@ import useInterval from '../hooks/useInterval';
 import UserAvatar from '../components/UserAvatar';
 import { getMessages, isGroupChat, mergeMessages } from '../utils/getChats';
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller';
+import sendChatMessage from '../utils/sendChatMessage';
 
 // The API dedupes messages by client_id, so it must be unique per message.
 // Reusing one device-derived ID makes every send after the first in a thread
@@ -56,10 +58,15 @@ function ThreadScreen({ navigation, route }) {
   const [manualRefreshing, setManualRefreshing] = React.useState(false);
   const [messageDraft, setMessageDraft] = React.useState('');
   const [error, setError] = React.useState(false);
+  const [notice, setNotice] = React.useState('');
+  // The message being replied to, chosen by long-pressing it.
+  const [replyTo, setReplyTo] = React.useState(null);
   // undefined until the first page loads; null once the start is reached.
   const [olderCursor, setOlderCursor] = React.useState(undefined);
   const [loadingOlder, setLoadingOlder] = React.useState(false);
   const loadingOlderRef = React.useRef(false);
+  const [sending, setSending] = React.useState(false);
+  const sendingRef = React.useRef(false);
   const isGroup = isGroupChat(meta);
 
   React.useEffect(() => {
@@ -78,14 +85,15 @@ function ThreadScreen({ navigation, route }) {
     }
   }, 5000);
 
-  const fetchMessages = async manual => {
+  // id is passed right after a DM is started, before chatID has updated.
+  const fetchMessages = async (manual, id = chatID) => {
     if (!isFetching) {
       setIsFetching(true);
       if (manual) {
         setManualRefreshing(true);
       }
       try {
-        const { chat, cursor } = await getMessages(API, chatID);
+        const { chat, cursor } = await getMessages(API, id);
         // Merge rather than replace, or older messages scrolled back to vanish.
         setMessages(current => mergeMessages(current, chat.messages));
         setMeta(chat);
@@ -120,30 +128,70 @@ function ThreadScreen({ navigation, route }) {
     }
   };
 
+  // Puts a failed message back without losing anything typed or picked since.
+  const restoreDraft = (text, target) => {
+    setMessageDraft(cur => (cur ? `${text} ${cur}` : text));
+    setReplyTo(cur => cur ?? target);
+  };
+
   const sendMessage = async () => {
-    const clientID = await newClientID();
     const text = messageDraft;
+    if (sendingRef.current || !text.trim()) {
+      return;
+    }
+    sendingRef.current = true;
+    setSending(true);
     setMessageDraft('');
+    const target = replyTo;
+    setReplyTo(null);
     try {
-      await API.sendDM(chatID, text, clientID);
+      const clientID = await newClientID();
+      const { outcome, status } = await sendChatMessage(
+        API,
+        chatID,
+        text,
+        clientID,
+        target,
+      );
+      // Replies are an experiment - say what the server did with this one.
+      if (outcome == 'ignored') {
+        setNotice('Sent, but not as a reply - the server ignored it.');
+      } else if (outcome == 'rejected') {
+        setNotice(
+          `Sent, but not as a reply - the server rejected it (HTTP ${status}).`,
+        );
+      }
       await fetchMessages(false);
     } catch (e) {
-      // Put the draft back so the message isn't lost.
-      setMessageDraft(text);
+      // Put the draft (and the reply) back so the message isn't lost.
+      restoreDraft(text, target);
       setError(true);
+    } finally {
+      sendingRef.current = false;
+      setSending(false);
     }
   };
 
   const startThread = async () => {
-    const clientID = await newClientID();
     const text = messageDraft;
+    if (sendingRef.current || !text.trim()) {
+      return;
+    }
+    sendingRef.current = true;
+    setSending(true);
     setMessageDraft('');
     try {
+      const clientID = await newClientID();
       const newDM = await API.startDM(text, clientID, postID);
       navigation.setParams({ chatID: newDM.chat.id });
+      // The focus effect won't rerun for the new chatID, so load it now.
+      await fetchMessages(false, newDM.chat.id);
     } catch (e) {
-      setMessageDraft(text);
+      restoreDraft(text, null);
       setError(true);
+    } finally {
+      sendingRef.current = false;
+      setSending(false);
     }
   };
 
@@ -153,16 +201,22 @@ function ThreadScreen({ navigation, route }) {
 
   const goToSource = async () => {
     if (!meta) return;
-    const p = await API.getPost(meta.post_id, false);
-    if ((await p.type) == 'post') {
-      navigation.push('Comments', {
-        postID: meta.post_id,
-        postObj: p,
-      });
-    } else if ((await p.type) == 'comment') {
-      navigation.push('Comments', {
-        postID: p.parent_post_id,
-      });
+    try {
+      const p = await API.getPost(meta.post_id, false);
+      if (!p) {
+        setNotice('The original post is no longer available.');
+      } else if ((await p.type) == 'post') {
+        navigation.push('Comments', {
+          postID: meta.post_id,
+          postObj: p,
+        });
+      } else if ((await p.type) == 'comment') {
+        navigation.push('Comments', {
+          postID: p.parent_post_id,
+        });
+      }
+    } catch (e) {
+      setError(true);
     }
   };
 
@@ -178,6 +232,12 @@ function ThreadScreen({ navigation, route }) {
       );
     }
     const mine = item.authored_by_user;
+    const sender = mine
+      ? 'You'
+      : isGroup
+        ? item.identity?.display_name ||
+          aliasName(item.anonymous_alias_position)
+        : 'Them';
     // The list is newest first, so index + 1 is the message shown above this
     // one; only the first of a run from the same sender gets their name.
     const showSender =
@@ -216,13 +276,16 @@ function ThreadScreen({ navigation, route }) {
             <Text
               variant="labelMedium"
               style={{ color: colors.onSurfaceVariant }}>
-              {item.identity?.display_name ||
-                aliasName(item.anonymous_alias_position)}
+              {sender}
             </Text>
           )}
           <TouchableRipple
             borderless={true}
             onPress={() => {}}
+            // Only group chats have replies; DMs don't support them.
+            onLongPress={
+              isGroup ? () => setReplyTo({ ...item, sender }) : undefined
+            }
             style={{ borderRadius: 10 }}>
             <Surface
               style={{
@@ -307,6 +370,41 @@ function ThreadScreen({ navigation, route }) {
           }
           renderItem={renderMessage}
         />
+        {replyTo && (
+          <Surface
+            mode="flat"
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              paddingLeft: 15,
+              backgroundColor: colors.elevation.level2,
+            }}>
+            <View
+              style={{
+                flex: 1,
+                borderLeftWidth: 3,
+                borderLeftColor: colors.primary,
+                paddingLeft: 8,
+                marginVertical: 8,
+              }}>
+              <Text variant="labelMedium" style={{ color: colors.primary }}>
+                Replying to{' '}
+                {replyTo.sender == 'You' ? 'yourself' : replyTo.sender}
+              </Text>
+              <Text
+                variant="bodyMedium"
+                numberOfLines={1}
+                style={{ color: colors.onSurfaceVariant }}>
+                {replyTo.text}
+              </Text>
+            </View>
+            <IconButton
+              icon="close"
+              accessibilityLabel="Cancel reply"
+              onPress={() => setReplyTo(null)}
+            />
+          </Surface>
+        )}
         <TextInput
           value={messageDraft}
           onChangeText={setMessageDraft}
@@ -323,6 +421,7 @@ function ThreadScreen({ navigation, route }) {
           right={
             <TextInput.Icon
               icon="send"
+              disabled={sending || !messageDraft.trim()}
               onPress={() => {
                 if (chatID) {
                   sendMessage();
@@ -336,6 +435,9 @@ function ThreadScreen({ navigation, route }) {
       </KeyboardAvoidingView>
       <Snackbar visible={error} onDismiss={() => setError(false)}>
         Sorry, that didn't go through. Check your connection.
+      </Snackbar>
+      <Snackbar visible={!!notice} onDismiss={() => setNotice('')}>
+        {notice}
       </Snackbar>
     </View>
   );

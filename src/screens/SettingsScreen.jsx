@@ -24,12 +24,23 @@ import {
   getNotificationKey,
 } from '../utils/notifications';
 
+// FCM topic calls never settle while offline (they're queued and retried until
+// they go through), so don't wait on them forever.
+const TIMED_OUT = 'timed out';
+const withTimeout = (promise, ms) =>
+  Promise.race([
+    promise,
+    new Promise(resolve => setTimeout(() => resolve(TIMED_OUT), ms)),
+  ]);
+
 function SettingsScreen({ navigation }) {
   const { appState } = React.useContext(AppContext);
   const [updateAvailable, setUpdateAvailable] = React.useState(false);
   const [currentGroup, setCurrentGroup] = useMMKVObject('currentGroup');
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const [signingOut, setSigningOut] = React.useState(false);
+  const [copyingKey, setCopyingKey] = React.useState(false);
   React.useEffect(() => {
     checkForUpdate();
   }, []);
@@ -38,8 +49,10 @@ function SettingsScreen({ navigation }) {
     setUpdateAvailable(needs);
   };
   const signOut = async () => {
+    if (signingOut) return;
+    setSigningOut(true);
     try {
-      await disableNotifications();
+      await withTimeout(disableNotifications(), 3000);
     } catch (e) {
       // Offline - sign out anyway rather than trapping the user here.
     }
@@ -47,20 +60,28 @@ function SettingsScreen({ navigation }) {
     RNRestart.restart();
   };
   const copyNotificationKey = async () => {
-    await copyToClipboard(getNotificationKey());
-    // Make sure this phone is actually listening on the key being handed out.
-    let enabled = false;
+    if (copyingKey) return;
+    setCopyingKey(true);
     try {
-      enabled = await enableNotifications();
-    } catch (e) {
-      // Offline - it'll subscribe on the next launch.
+      await copyToClipboard(getNotificationKey());
+      // Make sure this phone is actually listening on the key being handed out.
+      let enabled = false;
+      try {
+        // Long enough for the permission prompt, if Android shows one. A
+        // timeout means the subscribe is queued, which counts as enabled.
+        enabled = await withTimeout(enableNotifications(), 10000);
+      } catch (e) {
+        // Offline - it'll subscribe on the next launch.
+      }
+      Alert.alert(
+        'Notification key copied',
+        enabled
+          ? 'Give this to your notifier so it knows where to send your DM notifications. Keep it private - anyone with it could receive them.'
+          : "Copied, but notifications are off for Offsides, so nothing will arrive until you allow them in Android's settings.",
+      );
+    } finally {
+      setCopyingKey(false);
     }
-    Alert.alert(
-      'Notification key copied',
-      enabled
-        ? 'Give this to your notifier so it knows where to send your DM notifications. Keep it private - anyone with it could receive them.'
-        : "Copied, but notifications are off for Offsides, so nothing will arrive until you allow them in Android's settings.",
-    );
   };
   const unblockAll = () => {
     Alert.alert(
@@ -71,7 +92,16 @@ function SettingsScreen({ navigation }) {
           text: 'Confirm',
           onPress: async () => {
             try {
-              await appState.API.unhidePostsFromAllUsers();
+              // unhidePostsFromAllUsers resolves even when the server says no,
+              // so check the status here.
+              const res = await appState.API.sendRequest(
+                '/v1/users/unhide_all',
+                'POST',
+                JSON.stringify({}),
+              );
+              if (!res.ok) {
+                throw new Error(`HTTP ${res.status}`);
+              }
               Alert.alert('Done - everyone is unhidden.');
             } catch (e) {
               Alert.alert("Sorry, that didn't work. Please try again.");
@@ -118,6 +148,8 @@ function SettingsScreen({ navigation }) {
           <Button
             mode="contained"
             onPress={signOut}
+            loading={signingOut}
+            disabled={signingOut}
             style={{
               maxWidth: '50%',
               marginTop: 10,
@@ -146,6 +178,8 @@ function SettingsScreen({ navigation }) {
           mode="outlined"
           icon="bell-outline"
           onPress={copyNotificationKey}
+          loading={copyingKey}
+          disabled={copyingKey}
           style={{ marginBottom: 20 }}>
           Copy Notification Key
         </Button>

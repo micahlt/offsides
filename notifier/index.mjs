@@ -88,25 +88,31 @@ const saveState = state => {
   renameSync(STATE_PATH + '.tmp', STATE_PATH);
 };
 
+// FCM refuses oversized messages, and a notification only shows a few lines.
+const MAX_TEXT = 200;
+
 const describe = message => {
   if (!config.includeText) {
     return 'New message';
   }
   if (message.text) {
-    return message.text;
+    const chars = [...message.text];
+    return chars.length > MAX_TEXT ? chars.slice(0, MAX_TEXT - 1).join('') + '…' : message.text;
   }
   return message.assets?.length ? 'Sent an attachment' : 'New message';
 };
 
+// Set when poll changes state and cleared once it's on disk, so progress made
+// before a poll fails partway through still gets saved.
+let unsaved = false;
+
 /**
  * Checks the newest chats for messages from other people that arrived since
  * the last check, and sends one notification per chat that has any.
- * @returns {Boolean} whether state changed
  */
 async function poll(state) {
   // A new message moves its chat to the top, so the first page is enough.
   const { chats } = await get('/v1/chats');
-  let changed = false;
   for (const { chat } of chats || []) {
     const isGroup = chat?.type == 'group';
     if (!chat || (isGroup && !config.groupChats)) {
@@ -117,40 +123,56 @@ async function poll(state) {
     if (!newer(chat.updated_at, state.updated[chat.id] ?? state.since)) {
       continue;
     }
-    const { chat: full } = await get(`/v1/chats/messages?chat_id=${chat.id}`);
-    const messages = full?.messages || [];
-    // If you've replied since, you've clearly seen what came before it.
-    let seen = state.seen[chat.id] ?? state.since;
-    for (const m of messages) {
-      if (m.authored_by_user && newer(m.created_at, seen)) {
-        seen = m.created_at;
+    // One broken chat mustn't hold up the rest. It's left unmarked, so it's
+    // tried again next time. Only the chat list above decides if the token is
+    // dead - a 401/403 here is about this one chat.
+    try {
+      const { chat: full } = await get(`/v1/chats/messages?chat_id=${chat.id}`);
+      const messages = full?.messages || [];
+      // If you've replied since, you've clearly seen what came before it.
+      let seen = state.seen[chat.id] ?? state.since;
+      for (const m of messages) {
+        if (m.authored_by_user && newer(m.created_at, seen)) {
+          seen = m.created_at;
+        }
       }
+      const fresh = messages.filter(
+        m => m.type == 'message' && !m.authored_by_user && newer(m.created_at, seen),
+      );
+      if (fresh.length) {
+        const latest = fresh.reduce((a, b) => (newer(b.created_at, a.created_at) ? b : a));
+        let body = describe(latest);
+        if (isGroup && latest.identity?.display_name) {
+          body = `${latest.identity.display_name}: ${body}`;
+        }
+        if (fresh.length > 1) {
+          body += ` (+${fresh.length - 1} more)`;
+        }
+        await notify(chat.id, isGroup ? chat.name || 'Group chat' : 'New DM', body);
+        log(`notified ${chat.id} (${fresh.length} new)`);
+      }
+      for (const m of messages) {
+        if (newer(m.created_at, seen)) {
+          seen = m.created_at;
+        }
+      }
+      state.seen[chat.id] = seen;
+      state.updated[chat.id] = chat.updated_at;
+      unsaved = true;
+    } catch (e) {
+      // Rate limits apply to everything, so let tick back off.
+      if (e.status == 429) {
+        throw e;
+      }
+      // A chat we can't read (removed from it, deleted) would otherwise be
+      // refetched every tick; wait until it changes again.
+      if (e.status == 403 || e.status == 404) {
+        state.updated[chat.id] = chat.updated_at;
+        unsaved = true;
+      }
+      log(`chat ${chat.id} failed:`, e.message);
     }
-    const fresh = messages.filter(
-      m => m.type == 'message' && !m.authored_by_user && newer(m.created_at, seen),
-    );
-    if (fresh.length) {
-      const latest = fresh.reduce((a, b) => (newer(b.created_at, a.created_at) ? b : a));
-      let body = describe(latest);
-      if (isGroup && latest.identity?.display_name) {
-        body = `${latest.identity.display_name}: ${body}`;
-      }
-      if (fresh.length > 1) {
-        body += ` (+${fresh.length - 1} more)`;
-      }
-      await notify(chat.id, isGroup ? chat.name || 'Group chat' : 'New DM', body);
-      log(`notified ${chat.id} (${fresh.length} new)`);
-    }
-    for (const m of messages) {
-      if (newer(m.created_at, seen)) {
-        seen = m.created_at;
-      }
-    }
-    state.seen[chat.id] = seen;
-    state.updated[chat.id] = chat.updated_at;
-    changed = true;
   }
-  return changed;
 }
 
 if (TEST) {
@@ -171,12 +193,10 @@ log(`watching for DMs every ~${INTERVAL / 1000}s${DRY_RUN ? ' (dry run)' : ''}`)
 let delay = INTERVAL;
 async function tick() {
   try {
-    if (await poll(state)) {
-      saveState(state);
-    }
+    await poll(state);
     if (state.authFailed) {
       state.authFailed = false;
-      saveState(state);
+      unsaved = true;
       log('login works again');
     }
     delay = INTERVAL;
@@ -199,6 +219,15 @@ async function tick() {
     } else {
       log('poll failed:', e.message);
       delay = INTERVAL;
+    }
+  } finally {
+    if (unsaved) {
+      try {
+        saveState(state);
+        unsaved = false;
+      } catch (err) {
+        log('could not save state:', err.message);
+      }
     }
   }
   setTimeout(tick, jitter(delay));

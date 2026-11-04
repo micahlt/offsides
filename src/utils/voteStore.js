@@ -1,4 +1,5 @@
 import React from 'react';
+import { ToastAndroid } from 'react-native';
 
 /**
  * Tiny in-memory store so every card showing the same post or comment
@@ -8,6 +9,7 @@ import React from 'react';
  */
 const votes = new Map(); // id -> { status, total }
 const listeners = new Map(); // id -> Set<callback>
+const latestCall = new Map(); // id -> number of the newest castVote
 
 export function getVote(id) {
   return votes.get(id);
@@ -37,17 +39,25 @@ export async function castVote(API, id, prevStatus, prevTotal, action) {
   const delta = weight(action) - weight(prevStatus);
   const optimistic = (prevTotal ?? 0) + delta;
   publishVote(id, action, optimistic);
+  const call = (latestCall.get(id) ?? 0) + 1;
+  latestCall.set(id, call);
   try {
     const res = await API.setVote(id, action);
-    const st = res?.post?.vote_status;
-    const tot = res?.post?.vote_total;
+    // A newer vote on this item is in flight or done; its result wins.
+    if (latestCall.get(id) !== call) return;
+    // Rejections (e.g. rate limits) come back as an error body without the post.
+    if (!res?.post) throw new Error(res?.message);
+    const st = res.post.vote_status;
+    const tot = res.post.vote_total;
     const serverAgrees = st === action || st == null;
     const totalMoved = tot !== prevTotal;
     if (typeof tot === 'number' && serverAgrees && (delta === 0 || totalMoved)) {
       publishVote(id, action, tot);
     }
   } catch (e) {
+    if (latestCall.get(id) !== call) return;
     publishVote(id, prevStatus, prevTotal);
+    ToastAndroid.show("Sorry, your vote didn't go through", ToastAndroid.SHORT);
   }
 }
 

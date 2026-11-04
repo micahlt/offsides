@@ -45,8 +45,14 @@ function Comment({ comment, nav, isolated = false }) {
       {
         text: 'Confirm',
         onPress: async () => {
-          await API.deletePostOrComment(comment.id);
-          nav.goBack();
+          try {
+            const res = await API.deletePostOrComment(comment.id);
+            // Rejections come back as an error body, not a failed request.
+            if (res?.error_code || res?.message) throw new Error(res.message);
+            nav.goBack();
+          } catch (e) {
+            Alert.alert("Sorry, this comment couldn't be deleted.");
+          }
         },
       },
       {

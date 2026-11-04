@@ -2,6 +2,7 @@ import React from 'react';
 import { Avatar, useTheme } from 'react-native-paper';
 import GroupAvatar from './GroupAvatar';
 import { useNavigation } from '@react-navigation/native';
+import { useMMKVObject } from 'react-native-mmkv';
 
 function UserAvatar({
   conversationIcon,
@@ -13,15 +14,14 @@ function UserAvatar({
 }) {
   const nav = useNavigation();
   const { colors } = useTheme();
+  const [, setCurrentGroup] = useMMKVObject('currentGroup');
+  // Home shows the stored current group and ignores route params.
   const switchToGroup = React.useCallback(() => {
-    nav.push('Home', {
-      groupID: group.id,
-      groupColor: group.color,
-      groupImage: group.icon_url,
-      groupName: group.name,
-    });
+    setCurrentGroup(group);
+    nav.popTo('Home');
   }, [group]);
-  return React.useCallback(
+  // Not memoized: recycled list rows pass a different post's identity and group.
+  return (
     <>
       {conversationIcon?.emoji || numberAlias ? (
         <>
@@ -52,15 +52,16 @@ function UserAvatar({
           )}
         </>
       ) : (
-        <GroupAvatar
-          groupColor={group.color}
-          groupImage={group.icon_url}
-          groupName={group.name}
-          onPress={switchToGroup}
-        />
+        !!group && (
+          <GroupAvatar
+            groupColor={group.color}
+            groupImage={group.icon_url}
+            groupName={group.name}
+            onPress={switchToGroup}
+          />
+        )
       )}
-    </>,
-    [],
+    </>
   );
 }
 
