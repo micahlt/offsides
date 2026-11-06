@@ -5,7 +5,7 @@ import { InteractionManager, StatusBar, useColorScheme } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from './utils/crashlytics';
 import { SidechatAPIClient } from 'sidechat.js';
 import HomeScreen from './screens/HomeScreen';
 import SettingsScreen from './screens/SettingsScreen';

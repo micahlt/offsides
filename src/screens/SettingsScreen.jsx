@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StatusBar, ScrollView, Linking, Image } from 'react-native';
+import { Alert, View, StatusBar, ScrollView, Linking, Image } from 'react-native';
 import {
   Appbar,
   Button,
@@ -8,6 +8,7 @@ import {
   Divider,
   Avatar,
   Card,
+  Snackbar,
 } from 'react-native-paper';
 import RNRestart from 'react-native-restart';
 import { version } from '../../package.json';
@@ -22,6 +23,8 @@ function SettingsScreen({ navigation }) {
   const { appState } = React.useContext(AppContext);
   const [updateAvailable, setUpdateAvailable] = React.useState(false);
   const [currentGroup, setCurrentGroup] = useMMKVObject('currentGroup');
+  const [unhiding, setUnhiding] = React.useState(false);
+  const [notice, setNotice] = React.useState('');
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   React.useEffect(() => {
@@ -34,6 +37,29 @@ function SettingsScreen({ navigation }) {
   const signOut = () => {
     storage.clearAll();
     RNRestart.restart();
+  };
+  const unhideAuthors = () => {
+    Alert.alert(
+      'Unhide all authors?',
+      'This will make posts from every hidden author eligible to show up again.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Unhide',
+          onPress: async () => {
+            try {
+              setUnhiding(true);
+              await appState.API.unhidePostsFromAllUsers();
+              setNotice('All hidden authors were restored.');
+            } catch (e) {
+              setNotice('Could not unhide authors. Try again in a moment.');
+            } finally {
+              setUnhiding(false);
+            }
+          },
+        },
+      ],
+    );
   };
   return (
     <View style={{ backgroundColor: colors.background, flex: 1 }}>
@@ -131,6 +157,27 @@ function SettingsScreen({ navigation }) {
             <Button mode="contained" onPress={() => Linking.openURL("https://buymeacoffee.com/micahlt")}>Support</Button>
           </Card.Actions>
         </Card>
+        <Card style={{ marginTop: 15 }}>
+          <Card.Title
+            title="Hidden authors"
+            titleVariant="titleMedium"
+            titleStyle={{ color: colors.primary, minHeight: 20 }}
+          />
+          <Card.Content>
+            <Text>
+              Restore posts from authors you have hidden from the feed.
+            </Text>
+          </Card.Content>
+          <Card.Actions>
+            <Button
+              disabled={unhiding}
+              loading={unhiding}
+              mode="contained-tonal"
+              onPress={unhideAuthors}>
+              Unhide all
+            </Button>
+          </Card.Actions>
+        </Card>
         <Divider />
         <Text
           style={{
@@ -163,6 +210,12 @@ function SettingsScreen({ navigation }) {
           developers.
         </Text>
       </ScrollView>
+      <Snackbar
+        visible={!!notice}
+        onDismiss={() => setNotice('')}
+        duration={3500}>
+        {notice}
+      </Snackbar>
     </View>
   );
 }

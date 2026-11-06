@@ -15,7 +15,7 @@ import {
 import { AppContext } from '../App';
 import timesago from 'timesago';
 import { useFocusEffect } from '@react-navigation/native';
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from '../utils/crashlytics';
 import UserContent from '../components/UserContent';
 import { useMMKVObject } from 'react-native-mmkv';
 import { needsUpdate } from '../utils';

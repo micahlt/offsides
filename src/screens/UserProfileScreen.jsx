@@ -5,10 +5,11 @@ import {
   useTheme,
   Text,
   Avatar,
+  Button,
   ProgressBar,
   IconButton,
 } from 'react-native-paper';
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from '../utils/crashlytics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppContext } from '../App';
 import Post from '../components/Post';
@@ -29,6 +30,21 @@ function UserProfileScreen({ navigation, route }) {
   const [posts, setPosts] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const [unavailable, setUnavailable] = React.useState(false);
+
+  const messageSourcePost = React.useMemo(
+    () => posts?.find(item => item?.id && !item?.dms_disabled && !item?.authored_by_user),
+    [posts],
+  );
+
+  const messageUser = React.useCallback(() => {
+    if (!messageSourcePost) return;
+    navigation.push('Thread', {
+      postID: messageSourcePost.id,
+      groupID: messageSourcePost.group_id,
+      type: messageSourcePost.type || 'post',
+      title: `Message @${username}`,
+    });
+  }, [messageSourcePost, navigation, username]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -60,7 +76,7 @@ function UserProfileScreen({ navigation, route }) {
     return () => {
       cancelled = true;
     };
-  }, [username]);
+  }, [API, username]);
 
   const icon = profile?.conversation_icon;
   const bio =
@@ -98,6 +114,14 @@ function UserProfileScreen({ navigation, route }) {
             </Text>
           )}
         </View>
+        <Button
+          compact={true}
+          disabled={!messageSourcePost}
+          icon="chat-outline"
+          mode="contained-tonal"
+          onPress={messageUser}>
+          Message
+        </Button>
       </View>
       {bio && (
         <Text variant="bodyMedium" style={{ marginTop: 10 }}>

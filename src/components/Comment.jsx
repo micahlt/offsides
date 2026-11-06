@@ -6,6 +6,7 @@ import { setStringAsync as copyToClipboard } from 'expo-clipboard';
 import timesago from 'timesago';
 import { AppContext } from '../App.jsx';
 import AutoImage from './AutoImage';
+import AutoVideo from './AutoVideo';
 import UserAvatar from './UserAvatar.jsx';
 import Poll from './Poll.jsx';
 import { useSharedVote, castVote } from '../utils/voteStore';
@@ -31,6 +32,11 @@ function Comment({ comment, nav, isolated = false }) {
     !!comment?.identity?.posted_with_username &&
     !!comment?.identity?.name &&
     comment.identity.name != 'Anonymous';
+  const canMessageAuthor =
+    !!nav &&
+    !isolated &&
+    !comment?.dms_disabled &&
+    !comment?.authored_by_user;
   const openProfile = () => {
     if (!canOpenProfile) return;
     if (comment.authored_by_user) {
@@ -38,6 +44,18 @@ function Comment({ comment, nav, isolated = false }) {
     } else {
       nav.push('UserProfile', { username: comment.identity.name });
     }
+  };
+
+  const messageAuthor = () => {
+    if (!canMessageAuthor) return;
+    nav.push('Thread', {
+      postID: comment.id,
+      type: 'comment',
+      title:
+        comment?.identity?.posted_with_username && comment?.identity?.name
+          ? `Message @${comment.identity.name}`
+          : 'Message author',
+    });
   };
 
   const deleteComment = () => {
@@ -233,19 +251,16 @@ function Comment({ comment, nav, isolated = false }) {
             marginLeft: -8,
             marginBottom: -2,
           }}>
-          {!isolated && (
-            <IconButton
+          {canMessageAuthor && (
+            <Button
+              compact={true}
               icon="chat-outline"
-              onPress={() =>
-                nav.push('Thread', {
-                  postID: comment.id,
-                  type: 'comment',
-                })
-              }
+              mode="text"
+              onPress={messageAuthor}
               style={{ margin: 0 }}
-              size={24}
-              iconColor={colors.onSurfaceDisabled}
-            />
+              textColor={colors.onSurfaceVariant}>
+              DM author
+            </Button>
           )}
           {isolated ? (
             <Button

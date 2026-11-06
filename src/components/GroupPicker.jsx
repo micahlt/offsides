@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { ScrollView, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from '../utils/crashlytics';
 import {
   ActivityIndicator,
   Button,

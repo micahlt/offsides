@@ -18,7 +18,7 @@ import {
   showPhoneNumberHintAsync
 } from 'expo-phone-number-hint';
 import { useSmsUserConsent } from '@eabdullazyanov/react-native-sms-user-consent';
-import crashlytics from '@react-native-firebase/crashlytics';
+import crashlytics from '../utils/crashlytics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { storage } from '../utils/mmkv';
 import { useMMKVObject } from 'react-native-mmkv';
