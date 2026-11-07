@@ -131,6 +131,23 @@ function SettingsScreen({ navigation }) {
             <Button mode="contained" onPress={() => Linking.openURL("https://buymeacoffee.com/micahlt")}>Support</Button>
           </Card.Actions>
         </Card>
+        <Card style={{ width: '90%', marginBottom: 20 }} mode="outlined">
+          <Card.Title title="Delete your Yik Yak account" />
+          <Card.Content>
+            <Text variant="bodyMedium">
+              Offsides can't delete accounts. Delete it from Settings in the
+              official Yik Yak app, or ask Yik Yak support to delete it for you.
+            </Text>
+          </Card.Content>
+          <Card.Actions>
+            <Button
+              mode="contained-tonal"
+              icon="help-circle-outline"
+              onPress={() => Linking.openURL('https://yikyak.zendesk.com/hc/en-us')}>
+              Yik Yak support
+            </Button>
+          </Card.Actions>
+        </Card>
         <Divider />
         <Text
           style={{
