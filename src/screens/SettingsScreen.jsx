@@ -20,6 +20,35 @@ import { useMMKVObject } from 'react-native-mmkv';
 
 function SettingsScreen({ navigation }) {
   const { appState } = React.useContext(AppContext);
+
+  // Yik Yak has no in-app or API account deletion, so open a prefilled
+  // deletion request to their support address.
+  const requestAccountDeletion = async () => {
+    let username = '';
+    try {
+      const u = await appState.API.getUpdates();
+      username = u?.user?.username || '';
+    } catch (e) {
+      // leave blank
+    }
+    const subject = 'Account deletion request';
+    const body = [
+      'Hello,',
+      '',
+      'Please permanently delete my Yik Yak account and all data associated with it.',
+      '',
+      `Username: ${username || '(add your username)'}`,
+      `User ID: ${appState.userID || '(unknown)'}`,
+      'Phone number on the account: (add your phone number)',
+      '',
+      'Please confirm by email once the account has been deleted.',
+      '',
+      'Thank you.',
+    ].join('\n');
+    Linking.openURL(
+      `mailto:support@yikyak.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`,
+    );
+  };
   const [updateAvailable, setUpdateAvailable] = React.useState(false);
   const [currentGroup, setCurrentGroup] = useMMKVObject('currentGroup');
   const { colors } = useTheme();
@@ -135,16 +164,19 @@ function SettingsScreen({ navigation }) {
           <Card.Title title="Delete your Yik Yak account" />
           <Card.Content>
             <Text variant="bodyMedium">
-              Offsides can't delete accounts. Delete it from Settings in the
-              official Yik Yak app, or ask Yik Yak support to delete it for you.
+              Yik Yak deletes accounts by email request. This opens an email to
+              Yik Yak support with your account details filled in. Add your
+              phone number, then send it.
             </Text>
           </Card.Content>
           <Card.Actions>
             <Button
-              mode="contained-tonal"
-              icon="help-circle-outline"
-              onPress={() => Linking.openURL('https://yikyak.zendesk.com/hc/en-us')}>
-              Yik Yak support
+              mode="contained"
+              buttonColor={colors.error}
+              textColor={colors.onError}
+              icon="email-outline"
+              onPress={requestAccountDeletion}>
+              Request deletion
             </Button>
           </Card.Actions>
         </Card>
